@@ -174,17 +174,22 @@ export default function UsersPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {users.map((u) => (
+          {users.map((u) => {
+            const isSelf = user?.id === u.id;
+            return (
             <div
               key={u.id}
-              className="flex flex-wrap items-center gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:shadow-md"
+              className={`flex flex-wrap items-center gap-4 rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md ${isSelf ? "border-indigo-200 ring-1 ring-indigo-100" : "border-slate-200/80"}`}
             >
               <Avatar name={u.name} />
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-slate-800">{u.name}</p>
+                <p className="font-semibold text-slate-800">
+                  {u.name}
+                  {isSelf && <span className="ml-1.5 text-xs font-normal text-indigo-500">(Tú)</span>}
+                </p>
                 <p className="truncate text-sm text-slate-500">{u.email}</p>
               </div>
-              {editingId === u.id && isAdmin ? (
+              {editingId === u.id && isAdmin && !isSelf ? (
                 <div className="flex items-center gap-2">
                   <select
                     defaultValue={(u.role || "").toLowerCase()}
@@ -212,7 +217,7 @@ export default function UsersPage() {
                   >
                     {(u.role || "").toLowerCase()}
                   </span>
-                  {isAdmin && (
+                  {isAdmin && !isSelf && (
                   <button
                     type="button"
                     onClick={() => setEditingId(u.id)}
@@ -224,7 +229,8 @@ export default function UsersPage() {
                 </>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

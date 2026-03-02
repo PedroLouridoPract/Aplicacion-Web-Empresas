@@ -44,8 +44,8 @@ function AppShell() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-slate-100/80">
-      <aside className="flex w-64 flex-col border-r border-slate-200/80 bg-white shadow-sm">
+    <div className="flex h-screen bg-slate-100/80">
+      <aside className="flex w-64 shrink-0 flex-col border-r border-slate-200/80 bg-white shadow-sm">
         <div className="border-b border-slate-100 px-5 py-6">
           <Link to="/dashboard" className="flex items-center gap-2">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-lg font-bold text-white shadow-md shadow-indigo-500/25">
@@ -54,7 +54,7 @@ function AppShell() {
             <span className="text-xl font-bold tracking-tight text-slate-800">Siweb</span>
           </Link>
         </div>
-        <nav className="flex flex-1 flex-col gap-0.5 p-3">
+        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3">
           {navItems.map(({ to, label }) => {
             const isActive = to === "/dashboard" ? (loc.pathname === "/" || loc.pathname === "/dashboard") : loc.pathname.startsWith(to);
             return (
@@ -72,11 +72,11 @@ function AppShell() {
             );
           })}
         </nav>
-        <div className="border-t border-slate-100 p-3">
+        <div className="shrink-0 border-t border-slate-100 p-3">
           <UserMenu />
         </div>
       </aside>
-      <main className="flex-1 overflow-auto p-8">
+      <main className="flex-1 overflow-y-auto p-8">
         <Outlet />
       </main>
     </div>
