@@ -4,7 +4,8 @@ import { createCommentSchema } from "./comments.schemas";
 
 export async function listByTask(req: Request, res: Response) {
   const { companyId } = req.user!;
-  const taskId = req.params.taskId;
+  const taskId = typeof req.params.taskId === "string" ? req.params.taskId : req.params.taskId?.[0];
+  if (!taskId) return res.status(400).json({ message: "Invalid taskId" });
 
   const comments = await service.listByTask({ companyId, taskId });
   res.json({ comments });
@@ -24,4 +25,4 @@ export async function create(req: Request, res: Response) {
   });
 
   res.status(201).json({ comment });
-}
+} 
