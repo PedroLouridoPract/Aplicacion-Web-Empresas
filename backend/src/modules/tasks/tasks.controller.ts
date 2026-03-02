@@ -4,7 +4,8 @@ import * as service from "./tasks.service";
 
 export async function move(req: Request, res: Response) {
   const { id: userId, companyId, role } = req.user!;
-  const taskId = req.params.id;
+  const taskId = typeof req.params.id === "string" ? req.params.id : req.params.id?.[0];
+  if (!taskId) return res.status(400).json({ message: "Invalid task id" });
 
   // Nota: aquí luego metes "member solo si owner" (owner check).
   // Por ahora: si está autenticado, deja mover (para MVP rápido).

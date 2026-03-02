@@ -26,7 +26,8 @@ export async function create(req: Request, res: Response) {
 
 export async function getById(req: Request, res: Response) {
   const { companyId } = req.user!;
-  const projectId = req.params.id;
+  const projectId = typeof req.params.id === "string" ? req.params.id : req.params.id?.[0];
+  if (!projectId) return res.status(400).json({ message: "Invalid project id" });
 
   const project = await service.getProjectById({ companyId, projectId });
   res.json({ project });
@@ -34,7 +35,8 @@ export async function getById(req: Request, res: Response) {
 
 export async function update(req: Request, res: Response) {
   const { companyId } = req.user!;
-  const projectId = req.params.id;
+  const projectId = typeof req.params.id === "string" ? req.params.id : req.params.id?.[0];
+  if (!projectId) return res.status(400).json({ message: "Invalid project id" });
 
   const parsed = updateProjectSchema.parse(req.body);
 
@@ -53,7 +55,8 @@ export async function update(req: Request, res: Response) {
 
 export async function remove(req: Request, res: Response) {
   const { companyId } = req.user!;
-  const projectId = req.params.id;
+  const projectId = typeof req.params.id === "string" ? req.params.id : req.params.id?.[0];
+  if (!projectId) return res.status(400).json({ message: "Invalid project id" });
 
   await service.deleteProject({ companyId, projectId });
   res.status(204).send();
