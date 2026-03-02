@@ -7,23 +7,22 @@
 @baseUrl = http://localhost:3000
 # Después de hacer login, copia aquí el token:
 @token = 
-# Opcional: rellena tras crear un proyecto o tarea para probar GET/PATCH/DELETE:
+# Opcional: rellena tras crear un proyecto, tarea, usuario o comentario:
 @projectId = 
-@taskId =
+@taskId = 
+@userId =
+@commentId =
 
 
 # ========== SIN AUTENTICACIÓN ==========
 
 ### Health check
-# Resultado esperado: 200, body { "ok": true }
 GET {{baseUrl}}/health
 
 
 # ========== AUTH ==========
 
 ### Registrar empresa + primer usuario (admin)
-# Resultado esperado: 201, body con { company: { id, name }, admin: { id, email } }
-# Luego usa adminEmail y adminPassword para hacer login.
 POST {{baseUrl}}/auth/register-company
 Content-Type: application/json
 
@@ -36,8 +35,6 @@ Content-Type: application/json
 
 
 ### Login
-# Resultado esperado: 200, body { "token": "eyJ..." }
-# Copia el token y asígnalo a @token arriba para el resto de peticiones.
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
@@ -48,41 +45,37 @@ Content-Type: application/json
 
 
 ### Obtener mi perfil (requiere token)
-# Resultado esperado: 200, body { "user": { id, companyId, role, email } }
-# Requiere: Header Authorization: Bearer <token>
 GET {{baseUrl}}/auth/me
 Authorization: Bearer {{token}}
 
 
-# ========== PROYECTOS (requieren token; crear/editar/borrar solo ADMIN) ==========
+# ========== PROYECTOS (requieren token) ==========
 
 ### Listar proyectos de la empresa
-# Resultado esperado: 200, body { "projects": [ { id, name, description, status, ... } ] }
 GET {{baseUrl}}/projects
 Authorization: Bearer {{token}}
 
 
 ### Crear proyecto (solo ADMIN)
-# Resultado esperado: 201, body { "project": { id, name, description, status, companyId, ... } }
 POST {{baseUrl}}/projects
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
   "name": "Proyecto Alpha",
-  "description": "Descripción del proyecto de prueba"
+  "description": "Descripción del proyecto de prueba",
+  "startDate": "2026-03-01",
+  "endDate": "2026-06-30",
+  "status": "ACTIVE"
 }
 
 
 ### Obtener un proyecto por ID
-# Resultado esperado: 200, body { "project": { id, name, ... } }
-# Asigna @projectId arriba con un ID real (ej. clxxx...) o ponlo en la URL.
 GET {{baseUrl}}/projects/{{projectId}}
 Authorization: Bearer {{token}}
 
 
-### Actualizar proyecto (solo ADMIN)
-# Resultado esperado: 200, body { "project": { ... } }
+### Actualizar proyecto (ADMIN o MEMBER)
 PATCH {{baseUrl}}/projects/{{projectId}}
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -94,17 +87,110 @@ Content-Type: application/json
 
 
 ### Eliminar proyecto (solo ADMIN)
-# Resultado esperado: 204 sin body.
 DELETE {{baseUrl}}/projects/{{projectId}}
 Authorization: Bearer {{token}}
 
 
-# ========== TAREAS (requieren token) ==========
+### Listar tareas de un proyecto
+GET {{baseUrl}}/projects/{{projectId}}/tasks
+Authorization: Bearer {{token}}
 
-### Mover tarea (cambiar estado y orden)
-# Resultado esperado: 200, body { "task": { id, status, orderIndex, ... } }
-# status: BACKLOG | IN_PROGRESS | REVIEW | DONE
-# Asigna @taskId arriba (crear tareas en Prisma Studio si no hay).
+
+### Vista ejecutiva de un proyecto (overdue, this_week, next_week)
+GET {{baseUrl}}/projects/{{projectId}}/executive
+Authorization: Bearer {{token}}
+
+
+# ========== USUARIOS (requieren token; crear/editar solo ADMIN) ==========
+
+### Listar usuarios de la empresa
+GET {{baseUrl}}/users
+Authorization: Bearer {{token}}
+
+### Crear usuario (solo ADMIN)
+POST {{baseUrl}}/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Nuevo Miembro",
+  "email": "miembro@empresa.com",
+  "password": "password123",
+  "role": "MEMBER"
+}
+
+### Crear usuario invitado (solo ADMIN)
+POST {{baseUrl}}/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Invitado Demo",
+  "email": "invitado@empresa.com",
+  "password": "password123",
+  "role": "GUEST"
+}
+
+### Actualizar usuario (solo ADMIN, ej. cambiar rol)
+PATCH {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "role": "ADMIN"
+}
+
+
+# ========== TAREAS (requieren token; GUEST solo lectura) ==========
+
+### Listar todas las tareas de la empresa (filtros opcionales: ?projectId=X&assigneeId=X&status=X)
+GET {{baseUrl}}/tasks
+Authorization: Bearer {{token}}
+
+### Listar tareas filtradas por proyecto
+GET {{baseUrl}}/tasks?projectId={{projectId}}
+Authorization: Bearer {{token}}
+
+### Listar tareas filtradas por estado
+GET {{baseUrl}}/tasks?status=IN_PROGRESS
+Authorization: Bearer {{token}}
+
+### Mis tareas (asignadas al usuario actual)
+GET {{baseUrl}}/tasks/mine
+Authorization: Bearer {{token}}
+
+### Obtener una tarea
+GET {{baseUrl}}/tasks/{{taskId}}
+Authorization: Bearer {{token}}
+
+### Crear tarea (ADMIN o MEMBER)
+POST {{baseUrl}}/tasks
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "projectId": "{{projectId}}",
+  "title": "Nueva tarea",
+  "description": "Descripción opcional",
+  "assigneeId": null,
+  "dueDate": "2026-03-15",
+  "priority": "MEDIUM",
+  "status": "BACKLOG"
+}
+
+### Actualizar tarea (ADMIN o asignado)
+PATCH {{baseUrl}}/tasks/{{taskId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Título actualizado",
+  "progress": 50,
+  "status": "IN_PROGRESS"
+}
+
+### Mover tarea (cambiar estado y orden - ADMIN o asignado)
+# status: BACKLOG | IN_PROGRESS | REVIEW | DONE (o minúsculas)
 PATCH {{baseUrl}}/tasks/{{taskId}}/move
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -114,17 +200,19 @@ Content-Type: application/json
   "orderIndex": 0
 }
 
+### Eliminar tarea (ADMIN o asignado)
+DELETE {{baseUrl}}/tasks/{{taskId}}
+Authorization: Bearer {{token}}
 
-# ========== COMENTARIOS (requieren token) ==========
+
+# ========== COMENTARIOS (requieren token; GUEST solo lectura) ==========
 
 ### Listar comentarios de una tarea
-# Resultado esperado: 200, body { "comments": [ { id, body, authorId, taskId, createdAt, ... } ] }
 GET {{baseUrl}}/comments/by-task/{{taskId}}
 Authorization: Bearer {{token}}
 
 
-### Crear comentario
-# Resultado esperado: 201, body { "comment": { id, body, taskId, authorId, createdAt, ... } }
+### Crear comentario (ADMIN o MEMBER)
 POST {{baseUrl}}/comments
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -134,28 +222,28 @@ Content-Type: application/json
   "body": "Este es un comentario de prueba."
 }
 
+### Eliminar comentario (ADMIN o autor del comentario)
+DELETE {{baseUrl}}/comments/{{commentId}}
+Authorization: Bearer {{token}}
 
-# ========== DASHBOARD (requieren token) ==========
+
+# ========== DASHBOARD (requieren token; solo ADMIN) ==========
 
 ### Resumen / KPIs (toda la empresa)
-# Resultado esperado: 200, body con scope, kpis (totalTasks, overdueTasks), counts (byStatus, byPriority), generatedAt
 GET {{baseUrl}}/dashboard/summary
 Authorization: Bearer {{token}}
 
 
 ### Resumen por proyecto (opcional query projectId)
-# Resultado esperado: 200, mismo formato que summary pero filtrado por proyecto.
 GET {{baseUrl}}/dashboard/summary?projectId={{projectId}}
 Authorization: Bearer {{token}}
 
 
-### Productividad por usuario
-# Resultado esperado: 200, body con scope, windowDays, window (from, to), perUser (user + metrics: doneLastNDays, inProgressNow, overdueNow)
-# Opcional: ?days=30 para últimos 30 días (por defecto 14)
+### Productividad por usuario (últimos 14 días por defecto)
 GET {{baseUrl}}/dashboard/productivity
 Authorization: Bearer {{token}}
 
 
-### Productividad por proyecto (opcional)
+### Productividad por proyecto (personalizado: últimos 7 días)
 GET {{baseUrl}}/dashboard/productivity?projectId={{projectId}}&days=7
 Authorization: Bearer {{token}}

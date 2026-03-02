@@ -1,11 +1,9 @@
 import { Router } from "express";
 import { authRequired } from "../../middleware/auth";
+import { requireRole } from "../../middleware/rbac";
 import * as ctrl from "./dashboard.controller";
 
 export const dashboardRoutes = Router();
 
-// Resumen (KPIs) + conteos por estado/prioridad
-dashboardRoutes.get("/summary", authRequired, ctrl.summary);
-
-// Productividad por usuario
-dashboardRoutes.get("/productivity", authRequired, ctrl.productivity);
+dashboardRoutes.get("/summary", authRequired, requireRole(["ADMIN"], "ver estadisticas del dashboard (solo administradores)"), ctrl.summary);
+dashboardRoutes.get("/productivity", authRequired, requireRole(["ADMIN"], "ver productividad del equipo (solo administradores)"), ctrl.productivity);

@@ -7,6 +7,7 @@ import { notFound, errorHandler } from "./middleware/error";
 import { authRoutes } from "./modules/auth/auth.routes";
 import { projectsRoutes } from "./modules/projects/projects.routes";
 import { tasksRoutes } from "./modules/tasks/tasks.routes";
+import { usersRoutes } from "./modules/users/users.routes";
 import { dashboardRoutes } from "./modules/dashboard/dashboard.routes";
 import { commentsRoutes } from "./modules/comments/comments.routes";
 
@@ -22,6 +23,7 @@ app.get("/health", (_req, res) => res.json({ ok: true }));
 app.use("/auth", authRoutes);
 app.use("/projects", projectsRoutes);
 app.use("/tasks", tasksRoutes);
+app.use("/users", usersRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/comments", commentsRoutes);
 

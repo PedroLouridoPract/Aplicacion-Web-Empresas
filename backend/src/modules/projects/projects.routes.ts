@@ -1,15 +1,15 @@
 import { Router } from "express";
 import { authRequired } from "../../middleware/auth";
-import { requireAdmin } from "../../middleware/rbac";
+import { requireRole } from "../../middleware/rbac";
 import * as ctrl from "./projects.controller";
 
 export const projectsRoutes = Router();
 
-// Todos autenticados pueden ver proyectos de su empresa
 projectsRoutes.get("/", authRequired, ctrl.list);
 projectsRoutes.get("/:id", authRequired, ctrl.getById);
+projectsRoutes.get("/:id/tasks", authRequired, ctrl.listTasks);
+projectsRoutes.get("/:id/executive", authRequired, ctrl.executive);
 
-// Solo ADMIN crea/edita/borrar proyectos
-projectsRoutes.post("/", authRequired, requireAdmin, ctrl.create);
-projectsRoutes.patch("/:id", authRequired, requireAdmin, ctrl.update);
-projectsRoutes.delete("/:id", authRequired, requireAdmin, ctrl.remove);
+projectsRoutes.post("/", authRequired, requireRole(["ADMIN"], "crear proyectos (solo administradores)"), ctrl.create);
+projectsRoutes.patch("/:id", authRequired, requireRole(["ADMIN", "MEMBER"], "editar proyectos (los invitados solo pueden ver)"), ctrl.update);
+projectsRoutes.delete("/:id", authRequired, requireRole(["ADMIN"], "eliminar proyectos (solo administradores)"), ctrl.remove);

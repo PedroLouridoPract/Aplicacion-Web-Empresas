@@ -1,7 +1,10 @@
-import jwt from "jsonwebtoken";
+import jwt, { type Secret, type SignOptions } from "jsonwebtoken";
 import { prisma } from "../../db/prisma";
 import { env } from "../../config/env";
 import { hashPassword, verifyPassword } from "../../utils/hash";
+
+const jwtSecret: Secret = env.JWT_SECRET;
+const jwtOpts: SignOptions = { expiresIn: env.JWT_EXPIRES_IN as unknown as SignOptions["expiresIn"] };
 
 export async function registerCompany(input: {
   companyName: string;
@@ -27,21 +30,53 @@ export async function registerCompany(input: {
   });
 
   const admin = result.users[0];
-  return { company: { id: result.id, name: result.name }, admin: { id: admin.id, email: admin.email } };
+  const token = jwt.sign(
+    { id: admin.id, companyId: result.id, role: "ADMIN", email: admin.email },
+    jwtSecret,
+    jwtOpts,
+  );
+  return {
+    token,
+    user: {
+      id: admin.id,
+      name: admin.name,
+      email: admin.email,
+      role: admin.role,
+      companyId: result.id,
+    },
+  };
 }
 
 export async function login(email: string, password: string) {
   const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
-  if (!user) throw Object.assign(new Error("Invalid credentials"), { statusCode: 401 });
+  if (!user) throw Object.assign(new Error("Email o contraseña incorrectos"), { statusCode: 401 });
 
   const ok = await verifyPassword(password, user.passwordHash);
-  if (!ok) throw Object.assign(new Error("Invalid credentials"), { statusCode: 401 });
+  if (!ok) throw Object.assign(new Error("Email o contraseña incorrectos"), { statusCode: 401 });
 
   const token = jwt.sign(
     { id: user.id, companyId: user.companyId, role: user.role, email: user.email },
-    env.JWT_SECRET,
-    { expiresIn: env.JWT_EXPIRES_IN }
+    jwtSecret,
+    jwtOpts,
   );
 
-  return { token };
+  return {
+    token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      companyId: user.companyId,
+    },
+  };
+}
+
+export async function getMe(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, name: true, email: true, role: true, companyId: true },
+  });
+  if (!user) return null;
+  return { id: user.id, name: user.name, email: user.email, role: user.role, companyId: user.companyId };
 }
