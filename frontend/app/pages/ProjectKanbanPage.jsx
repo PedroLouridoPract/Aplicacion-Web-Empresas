@@ -197,18 +197,18 @@ export default function ProjectKanbanPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Kanban</h1>
-          <p className="mt-1 text-sm text-slate-500">Proyecto {id}</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Kanban</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Proyecto {id}</p>
         </div>
         <Link
           to={`/projects/${id}`}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
         >
           ← Proyecto
         </Link>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Arrastra las tarjetas entre columnas o usa los botones para mover.
         </p>
         <button
@@ -221,41 +221,41 @@ export default function ProjectKanbanPage() {
       </div>
 
       {moveError && (
-        <div className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 border border-amber-200">
+        <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30">
           {moveError}
         </div>
       )}
 
       {editingTask && taskEditForm && (
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-          <h3 className="text-base font-semibold text-slate-800">Editar tarea</h3>
+        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
+          <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Editar tarea</h3>
           <form onSubmit={handleSaveTask} className="mt-4 flex flex-col gap-4">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Título</label>
+              <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Título</label>
               <input
                 type="text"
                 required
                 value={taskEditForm.title}
                 onChange={(e) => setTaskEditForm((f) => ({ ...f, title: e.target.value }))}
-                className="w-full max-w-md rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Descripción</label>
+              <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Descripción</label>
               <textarea
                 value={taskEditForm.description}
                 onChange={(e) => setTaskEditForm((f) => ({ ...f, description: e.target.value }))}
                 rows={2}
-                className="w-full max-w-md rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             <div className="flex flex-wrap gap-4">
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Asignar a</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Asignar a</label>
                 <select
                   value={taskEditForm.assigneeId}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, assigneeId: e.target.value }))}
-                  className="rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 >
                   <option value="">Sin asignar</option>
                   {users.map((u) => (
@@ -264,21 +264,21 @@ export default function ProjectKanbanPage() {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Fecha límite</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha límite</label>
                 <input
                   type="date"
                   min={today}
                   value={taskEditForm.dueDate}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, dueDate: e.target.value }))}
-                  className="rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Prioridad</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Prioridad</label>
                 <select
                   value={taskEditForm.priority}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, priority: e.target.value }))}
-                  className="rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 >
                   {PRIORITIES.map((p) => (
                     <option key={p.value} value={p.value}>{p.label}</option>
@@ -286,11 +286,11 @@ export default function ProjectKanbanPage() {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Estado</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Estado</label>
                 <select
                   value={taskEditForm.status}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, status: e.target.value }))}
-                  className="rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 >
                   {TASK_STATUSES.map((s) => (
                     <option key={s.value} value={s.value}>{s.label}</option>
@@ -298,25 +298,25 @@ export default function ProjectKanbanPage() {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Progreso %</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Progreso %</label>
                 <input
                   type="number"
                   min={0}
                   max={100}
                   value={taskEditForm.progress}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, progress: Number(e.target.value) || 0 }))}
-                  className="w-20 rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-20 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
             </div>
             {editError && (
-              <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{editError}</div>
+              <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{editError}</div>
             )}
             <div className="flex gap-2">
               <button type="submit" disabled={saving} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60">
                 {saving ? "Guardando..." : "Guardar"}
               </button>
-              <button type="button" onClick={() => { setEditingTask(null); setTaskEditForm(null); setEditError(""); }} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+              <button type="button" onClick={() => { setEditingTask(null); setTaskEditForm(null); setEditError(""); }} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
                 Cancelar
               </button>
             </div>
@@ -325,11 +325,11 @@ export default function ProjectKanbanPage() {
       )}
 
       {showNewTask && (
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
-          <h3 className="text-base font-semibold text-slate-800">Nueva tarea</h3>
+        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+          <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Nueva tarea</h3>
           <form onSubmit={handleCreateTask} className="mt-4 flex flex-wrap items-end gap-4">
             <div className="min-w-[200px]">
-              <label htmlFor="kanban-task-title" className="mb-1 block text-xs font-medium text-slate-600">Título *</label>
+              <label htmlFor="kanban-task-title" className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Título *</label>
               <input
                 id="kanban-task-title"
                 type="text"
@@ -337,16 +337,16 @@ export default function ProjectKanbanPage() {
                 value={taskForm.title}
                 onChange={(e) => setTaskForm((f) => ({ ...f, title: e.target.value }))}
                 placeholder="Título de la tarea"
-                className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             <div className="min-w-[180px]">
-              <label htmlFor="kanban-task-assignee" className="mb-1 block text-xs font-medium text-slate-600">Asignar a</label>
+              <label htmlFor="kanban-task-assignee" className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Asignar a</label>
               <select
                 id="kanban-task-assignee"
                 value={taskForm.assigneeId}
                 onChange={(e) => setTaskForm((f) => ({ ...f, assigneeId: e.target.value }))}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
                 <option value="">Sin asignar</option>
                 {users.map((u) => (
@@ -355,22 +355,22 @@ export default function ProjectKanbanPage() {
               </select>
             </div>
             <div>
-              <label htmlFor="kanban-task-due" className="mb-1 block text-xs font-medium text-slate-600">Fecha límite</label>
+              <label htmlFor="kanban-task-due" className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha límite</label>
               <input
                 id="kanban-task-due"
                 type="date"
                 min={today}
                 value={taskForm.dueDate}
                 onChange={(e) => setTaskForm((f) => ({ ...f, dueDate: e.target.value }))}
-                className="rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Prioridad</label>
+              <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Prioridad</label>
               <select
                 value={taskForm.priority}
                 onChange={(e) => setTaskForm((f) => ({ ...f, priority: e.target.value }))}
-                className="rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
                 {PRIORITIES.map((p) => (
                   <option key={p.value} value={p.value}>{p.label}</option>
@@ -378,7 +378,7 @@ export default function ProjectKanbanPage() {
               </select>
             </div>
             {taskError && (
-              <div className="w-full rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{taskError}</div>
+              <div className="w-full rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{taskError}</div>
             )}
             <div className="flex gap-2">
               <button
@@ -391,7 +391,7 @@ export default function ProjectKanbanPage() {
               <button
                 type="button"
                 onClick={() => { setShowNewTask(false); setTaskError(""); }}
-                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
               >
                 Cancelar
               </button>
@@ -401,7 +401,7 @@ export default function ProjectKanbanPage() {
       )}
 
       {loading ? (
-        <div className="rounded-xl bg-white px-5 py-4 text-sm text-slate-500 shadow-sm border border-slate-200/80">
+        <div className="rounded-xl bg-white dark:bg-slate-800 px-5 py-4 text-sm text-slate-500 dark:text-slate-400 shadow-sm border border-slate-200/80 dark:border-slate-700">
           Cargando...
         </div>
       ) : (

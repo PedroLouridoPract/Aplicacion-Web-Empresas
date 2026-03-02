@@ -3,22 +3,22 @@ import { Link, useParams } from "react-router-dom";
 import { apiFetch } from "../api/http";
 
 const sectionConfig = {
-  overdue: { title: "Atrasadas", className: "border-red-200/80", accent: "bg-red-500", headerBg: "bg-red-50/60" },
-  this_week: { title: "Esta semana", className: "border-amber-200/80", accent: "bg-amber-500", headerBg: "bg-amber-50/60" },
-  next_week: { title: "Proxima semana", className: "border-slate-200", accent: "bg-slate-400", headerBg: "bg-slate-50/60" },
+  overdue: { title: "Atrasadas", className: "border-red-200/80 dark:border-red-500/30", accent: "bg-red-500", headerBg: "bg-red-50/60 dark:bg-red-500/10" },
+  this_week: { title: "Esta semana", className: "border-amber-200/80 dark:border-amber-500/30", accent: "bg-amber-500", headerBg: "bg-amber-50/60 dark:bg-amber-500/10" },
+  next_week: { title: "Proxima semana", className: "border-slate-200 dark:border-slate-700", accent: "bg-slate-400", headerBg: "bg-slate-50/60 dark:bg-slate-800/60" },
 };
 
 const statusStyles = {
-  backlog: { label: "Backlog", bg: "bg-slate-100", text: "text-slate-700" },
-  in_progress: { label: "En proceso", bg: "bg-blue-100", text: "text-blue-800" },
-  review: { label: "En revision", bg: "bg-violet-100", text: "text-violet-800" },
-  done: { label: "Finalizado", bg: "bg-emerald-100", text: "text-emerald-800" },
+  backlog: { label: "Backlog", bg: "bg-slate-100 dark:bg-slate-700", text: "text-slate-700 dark:text-slate-200" },
+  in_progress: { label: "En proceso", bg: "bg-blue-100 dark:bg-blue-500/20", text: "text-blue-800 dark:text-blue-300" },
+  review: { label: "En revision", bg: "bg-violet-100 dark:bg-violet-500/20", text: "text-violet-800 dark:text-violet-300" },
+  done: { label: "Finalizado", bg: "bg-emerald-100 dark:bg-emerald-500/20", text: "text-emerald-800 dark:text-emerald-300" },
 };
 
 const priorityStyles = {
-  high: { label: "Alta", bg: "bg-red-100", text: "text-red-800", dot: "bg-red-500" },
-  medium: { label: "Media", bg: "bg-amber-100", text: "text-amber-800", dot: "bg-amber-500" },
-  low: { label: "Baja", bg: "bg-slate-100", text: "text-slate-600", dot: "bg-slate-400" },
+  high: { label: "Alta", bg: "bg-red-100 dark:bg-red-500/20", text: "text-red-800 dark:text-red-300", dot: "bg-red-500" },
+  medium: { label: "Media", bg: "bg-amber-100 dark:bg-amber-500/20", text: "text-amber-800 dark:text-amber-300", dot: "bg-amber-500" },
+  low: { label: "Baja", bg: "bg-slate-100 dark:bg-slate-700", text: "text-slate-600 dark:text-slate-300", dot: "bg-slate-400" },
 };
 
 const PRIORITY_OPTIONS = [
@@ -55,21 +55,21 @@ function TaskRow({ task }) {
   const assigneeName = task.assignee?.name ?? "Sin asignar";
 
   return (
-    <tr className="border-b border-slate-100 hover:bg-slate-50/50 transition">
+    <tr className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition">
       <td className="px-4 py-3">
         <div>
-          <span className="font-medium text-slate-800">{task.title}</span>
+          <span className="font-medium text-slate-800 dark:text-slate-100">{task.title}</span>
           {task.description && (
-            <p className="mt-0.5 text-xs text-slate-400 line-clamp-1">{task.description}</p>
+            <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500 line-clamp-1">{task.description}</p>
           )}
         </div>
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
             {assigneeName.charAt(0).toUpperCase()}
           </span>
-          <span className="text-sm text-slate-700">{assigneeName}</span>
+          <span className="text-sm text-slate-700 dark:text-slate-200">{assigneeName}</span>
         </div>
       </td>
       <td className="px-4 py-3">
@@ -85,7 +85,7 @@ function TaskRow({ task }) {
       </td>
       <td className="px-4 py-3 min-w-[120px]">
         <div className="flex items-center gap-2">
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+          <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
             <div
               className={`h-full rounded-full transition-all ${
                 progress === 100 ? "bg-emerald-500" : progress >= 50 ? "bg-indigo-500" : "bg-amber-500"
@@ -93,11 +93,11 @@ function TaskRow({ task }) {
               style={{ width: `${progress}%` }}
             />
           </div>
-          <span className="text-xs font-medium text-slate-600 w-8 text-right">{progress}%</span>
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-300 w-8 text-right">{progress}%</span>
         </div>
       </td>
       <td className="px-4 py-3">
-        <span className="text-sm text-slate-600">
+        <span className="text-sm text-slate-600 dark:text-slate-300">
           {due ? new Date(due).toLocaleDateString("es-ES", { day: "2-digit", month: "short" }) : "—"}
         </span>
       </td>
@@ -112,21 +112,21 @@ function Section({ variant, items }) {
     <div className={`rounded-2xl border shadow-sm overflow-hidden ${className}`}>
       <div className={`flex items-center gap-2 px-5 py-3 ${headerBg}`}>
         <span className={`h-2.5 w-2.5 rounded-full ${accent}`} />
-        <h3 className="font-semibold text-slate-800">{title}</h3>
-        <span className="ml-auto rounded-full bg-white/80 px-2 py-0.5 text-xs font-medium text-slate-600 shadow-sm">
+        <h3 className="font-semibold text-slate-800 dark:text-slate-100">{title}</h3>
+        <span className="ml-auto rounded-full bg-white/80 dark:bg-slate-700/80 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300 shadow-sm">
           {items.length}
         </span>
       </div>
 
       {items.length === 0 ? (
-        <div className="bg-white px-5 py-8 text-center text-sm text-slate-400">
+        <div className="bg-white dark:bg-slate-800 px-5 py-8 text-center text-sm text-slate-400 dark:text-slate-500">
           Sin tareas en esta seccion
         </div>
       ) : (
-        <div className="overflow-x-auto bg-white">
+        <div className="overflow-x-auto bg-white dark:bg-slate-800">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200/80 text-xs font-medium uppercase tracking-wide text-slate-500">
+              <tr className="border-b border-slate-200/80 dark:border-slate-700 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 <th className="px-4 py-2.5">Tarea</th>
                 <th className="px-4 py-2.5">Responsable</th>
                 <th className="px-4 py-2.5">Estado</th>
@@ -190,25 +190,25 @@ export default function ProjectExecutivePage() {
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Tabla ejecutiva</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Tabla ejecutiva</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Resumen semanal del proyecto — ideal para reuniones
           </p>
         </div>
         <Link
           to={`/projects/${id}`}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
         >
           ← Proyecto
         </Link>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
-        <span className="text-sm font-medium text-slate-600">Filtros:</span>
+      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm">
+        <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Filtros:</span>
         <select
           value={filters.priority}
           onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value }))}
-          className="rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-1.5 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-1.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
         >
           {PRIORITY_OPTIONS.map((p) => (
             <option key={p.value} value={p.value}>{p.label}</option>
@@ -217,7 +217,7 @@ export default function ProjectExecutivePage() {
         <select
           value={filters.status}
           onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-          className="rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-1.5 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-1.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
         >
           {STATUS_OPTIONS.map((s) => (
             <option key={s.value} value={s.value}>{s.label}</option>
@@ -226,7 +226,7 @@ export default function ProjectExecutivePage() {
         <select
           value={filters.assignee}
           onChange={(e) => setFilters((f) => ({ ...f, assignee: e.target.value }))}
-          className="rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-1.5 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-1.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
         >
           <option value="">Cualquier responsable</option>
           <option value="unassigned">Sin asignar</option>
@@ -237,20 +237,20 @@ export default function ProjectExecutivePage() {
         <button
           type="button"
           onClick={() => setFilters({ priority: "", status: "", assignee: "" })}
-          className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+          className="rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
         >
           Limpiar
         </button>
-        <span className="ml-auto text-xs text-slate-400">{totalFiltered} tareas</span>
+        <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">{totalFiltered} tareas</span>
       </div>
 
       {loading && (
-        <div className="rounded-xl bg-white px-5 py-4 text-sm text-slate-500 shadow-sm border border-slate-200/80">
+        <div className="rounded-xl bg-white dark:bg-slate-800 px-5 py-4 text-sm text-slate-500 dark:text-slate-400 shadow-sm border border-slate-200/80 dark:border-slate-700">
           Cargando...
         </div>
       )}
       {error && (
-        <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+        <div className="rounded-xl bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-300">{error}</div>
       )}
 
       {data && (

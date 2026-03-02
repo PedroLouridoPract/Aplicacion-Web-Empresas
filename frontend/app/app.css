@@ -4,6 +4,8 @@
 
 @source "./**/*.{jsx,tsx,js,ts}";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
 }
@@ -18,11 +20,19 @@ body {
   background: linear-gradient(160deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
   color: #0f172a;
   min-height: 100vh;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.dark body,
+body:where(.dark *) {
+  background: linear-gradient(160deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  color: #e2e8f0;
 }
 
 input,
 textarea,
-button {
+button,
+select {
   font-family: inherit;
 }
 
@@ -31,12 +41,10 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Suavizar transiciones globales */
 a, button {
   transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-/* Cards con sombra suave y hover */
 .card {
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }

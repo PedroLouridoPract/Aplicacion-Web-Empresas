@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -16,10 +16,10 @@ import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
 
 const kpiConfig = [
-  { key: "overdue", label: "Atrasadas", bg: "bg-red-50", border: "border-red-200", text: "text-red-700", num: "text-red-600" },
-  { key: "backlog", label: "Backlog", bg: "bg-slate-50", border: "border-slate-200", text: "text-slate-600", num: "text-slate-800" },
-  { key: "in_progress", label: "En progreso", bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700", num: "text-amber-600" },
-  { key: "done", label: "Finalizadas", bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700", num: "text-emerald-600" },
+  { key: "overdue", label: "Atrasadas", bg: "bg-red-50 dark:bg-red-500/15", border: "border-red-200 dark:border-red-500/30", text: "text-red-700 dark:text-red-200", num: "text-red-600 dark:text-red-400" },
+  { key: "backlog", label: "Backlog", bg: "bg-slate-50 dark:bg-slate-800/50", border: "border-slate-200 dark:border-slate-700", text: "text-slate-600 dark:text-slate-300", num: "text-slate-800 dark:text-slate-100" },
+  { key: "in_progress", label: "En progreso", bg: "bg-amber-50 dark:bg-amber-500/15", border: "border-amber-200 dark:border-amber-500/30", text: "text-amber-700 dark:text-amber-200", num: "text-amber-600 dark:text-amber-400" },
+  { key: "done", label: "Finalizadas", bg: "bg-emerald-50 dark:bg-emerald-500/15", border: "border-emerald-200 dark:border-emerald-500/30", text: "text-emerald-700 dark:text-emerald-200", num: "text-emerald-600 dark:text-emerald-400" },
 ];
 
 const STATUS_COLORS = {
@@ -90,44 +90,18 @@ export default function DashboardPage() {
   });
 
   if (!isAdmin || forbidden) {
-    return (
-      <div className="flex flex-col gap-8">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Inicio</h1>
-          <p className="mt-1 text-sm text-slate-500">Bienvenido, {user?.name ?? "usuario"}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm">
-          <p className="text-slate-600">
-            Las estadísticas y gráficas del dashboard están disponibles solo para administradores.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              to="/my-tasks"
-              className="rounded-xl bg-indigo-600 px-5 py-2.5 font-semibold text-white shadow-md transition hover:bg-indigo-700"
-            >
-              Ver mis tareas
-            </Link>
-            <Link
-              to="/projects"
-              className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 font-medium text-slate-700 transition hover:bg-slate-50"
-            >
-              Ver proyectos
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+    return <Navigate to="/my-tasks" replace />;
   }
 
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">Resumen de tareas y productividad (solo administradores)</p>
+        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Dashboard</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Resumen de tareas y productividad (solo administradores)</p>
       </div>
 
       {loading && (
-        <div className="rounded-xl bg-white px-5 py-4 text-sm text-slate-500 shadow-sm border border-slate-200/80">
+        <div className="rounded-xl bg-white dark:bg-slate-800 px-5 py-4 text-sm text-slate-500 dark:text-slate-400 shadow-sm border border-slate-200/80 dark:border-slate-700">
           Cargando...
         </div>
       )}
@@ -149,9 +123,9 @@ export default function DashboardPage() {
       )}
 
       {summary && chartData.length > 0 && (
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-800">Tareas por estado</h2>
-          <p className="mt-1 text-sm text-slate-500">Distribución actual</p>
+        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Tareas por estado</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Distribución actual</p>
           <div className="mt-4 h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -176,9 +150,9 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-800">Productividad por usuario</h2>
-        <p className="mt-1 text-sm text-slate-500">Tareas completadas, en curso y atrasadas</p>
+      <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Productividad por usuario</h2>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Tareas completadas, en curso y atrasadas</p>
         {prodChartData.length > 0 ? (
           <div className="mt-4 h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -204,19 +178,19 @@ export default function DashboardPage() {
             return (
               <div
                 key={u.id ?? u.user_id ?? Math.random()}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-4 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-700/50 px-4 py-3"
               >
-                <span className="font-medium text-slate-800">{u.name}</span>
+                <span className="font-medium text-slate-800 dark:text-slate-100">{u.name}</span>
                 <span className="flex gap-4 text-sm">
-                  <span className="text-emerald-600 font-medium">Hechas: {done}</span>
-                  <span className="text-amber-600">En curso: {inProgress}</span>
-                  <span className="text-red-600">Atrasadas: {overdue}</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">Hechas: {done}</span>
+                  <span className="text-amber-600 dark:text-amber-400">En curso: {inProgress}</span>
+                  <span className="text-red-600 dark:text-red-400">Atrasadas: {overdue}</span>
                 </span>
               </div>
             );
           })}
           {!prodList.length && !loading && (
-            <p className="py-8 text-center text-sm text-slate-500">Sin datos todavía</p>
+            <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">Sin datos todavía</p>
           )}
         </div>
       </div>

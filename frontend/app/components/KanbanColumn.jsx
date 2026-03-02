@@ -3,10 +3,10 @@ import { useDroppable } from "@dnd-kit/core";
 import TaskCard from "./TaskCard";
 
 const columnStyles = {
-  backlog: "border-slate-200 bg-slate-50/80",
-  in_progress: "border-amber-200/80 bg-amber-50/50",
-  review: "border-blue-200/80 bg-blue-50/50",
-  done: "border-emerald-200/80 bg-emerald-50/50",
+  backlog: "border-slate-200 bg-slate-50/80 dark:border-slate-700 dark:bg-slate-800/80",
+  in_progress: "border-amber-200/80 bg-amber-50/50 dark:border-amber-500/30 dark:bg-amber-500/10",
+  review: "border-blue-200/80 bg-blue-50/50 dark:border-blue-500/30 dark:bg-blue-500/10",
+  done: "border-emerald-200/80 bg-emerald-50/50 dark:border-emerald-500/30 dark:bg-emerald-500/10",
 };
 
 export default function KanbanColumn({ title, statusKey, tasks, statuses, onMove, activeId, currentUser, onEditTask }) {
@@ -22,8 +22,8 @@ export default function KanbanColumn({ title, statusKey, tasks, statuses, onMove
       }`}
     >
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-semibold text-slate-800">{title}</h3>
-        <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-sm font-medium text-slate-600 shadow-sm">
+        <h3 className="font-semibold text-slate-800 dark:text-slate-100">{title}</h3>
+        <span className="rounded-full bg-white/80 dark:bg-slate-700/80 px-2.5 py-0.5 text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm">
           {tasks.length}
         </span>
       </div>

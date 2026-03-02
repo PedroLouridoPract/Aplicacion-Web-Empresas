@@ -50,7 +50,7 @@ export default function LoginPage() {
   if (booting) {
     return (
       <div className="flex min-h-[80vh] items-center justify-center p-4">
-        <p className="text-slate-500">Comprobando sesión...</p>
+        <p className="text-slate-500 dark:text-slate-400">Comprobando sesión...</p>
       </div>
     );
   }
@@ -62,17 +62,17 @@ export default function LoginPage() {
           <span className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-3xl font-bold text-white shadow-xl shadow-indigo-500/30">
             S
           </span>
-          <h1 className="mt-6 text-3xl font-bold tracking-tight text-slate-800">Siweb</h1>
-          <p className="mt-2 text-slate-500">Gestión de proyectos y equipos</p>
+          <h1 className="mt-6 text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100">Siweb</h1>
+          <p className="mt-2 text-slate-500 dark:text-slate-400">Gestión de proyectos y equipos</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white/95 p-8 shadow-xl shadow-slate-200/50 backdrop-blur-sm">
-          <div className="mb-6 flex gap-2 rounded-lg bg-slate-100 p-1">
+        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white/95 dark:bg-slate-800/95 p-8 shadow-xl shadow-slate-200/50 dark:shadow-black/30 backdrop-blur-sm">
+          <div className="mb-6 flex gap-2 rounded-lg bg-slate-100 dark:bg-slate-700 p-1">
             <button
               type="button"
               onClick={() => { setMode("login"); setError(""); }}
               className={`flex-1 rounded-md py-2 text-sm font-medium transition ${
-                mode === "login" ? "bg-white text-slate-800 shadow" : "text-slate-600 hover:text-slate-800"
+                mode === "login" ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow" : "text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100"
               }`}
             >
               Iniciar sesión
@@ -81,7 +81,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => { setMode("register"); setError(""); }}
               className={`flex-1 rounded-md py-2 text-sm font-medium transition ${
-                mode === "register" ? "bg-white text-slate-800 shadow" : "text-slate-600 hover:text-slate-800"
+                mode === "register" ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow" : "text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100"
               }`}
             >
               Registrar empresa
@@ -90,11 +90,11 @@ export default function LoginPage() {
 
           {mode === "login" ? (
             <>
-              <h2 className="text-lg font-semibold text-slate-800">Iniciar sesión</h2>
-              <p className="mt-1 text-sm text-slate-500">Accede con tu cuenta de empresa</p>
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Iniciar sesión</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Accede con tu cuenta de empresa</p>
               <form onSubmit={onSubmitLogin} className="mt-6 flex flex-col gap-4">
                 <div>
-                  <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700">Email</label>
+                  <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Email</label>
                   <input
                     id="email"
                     type="email"
@@ -102,11 +102,11 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-800 placeholder-slate-400 transition focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-3 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
                 <div>
-                  <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700">Contraseña</label>
+                  <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Contraseña</label>
                   <input
                     id="password"
                     type="password"
@@ -114,10 +114,10 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="current-password"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-800 placeholder-slate-400 transition focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-3 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
-                {error && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+                {error && <div className="rounded-xl bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">{error}</div>}
                 <button
                   type="submit"
                   disabled={loading}
@@ -129,33 +129,33 @@ export default function LoginPage() {
             </>
           ) : (
             <>
-              <h2 className="text-lg font-semibold text-slate-800">Alta de empresa</h2>
-              <p className="mt-1 text-sm text-slate-500">Crea tu empresa y usuario administrador</p>
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Alta de empresa</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Crea tu empresa y usuario administrador</p>
               <form onSubmit={onSubmitRegister} className="mt-6 flex flex-col gap-4">
                 <div>
-                  <label htmlFor="companyName" className="mb-1.5 block text-sm font-medium text-slate-700">Nombre de la empresa</label>
+                  <label htmlFor="companyName" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Nombre de la empresa</label>
                   <input
                     id="companyName"
                     type="text"
                     placeholder="Mi Empresa S.L."
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-800 placeholder-slate-400 transition focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-3 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
                 <div>
-                  <label htmlFor="adminName" className="mb-1.5 block text-sm font-medium text-slate-700">Tu nombre (admin)</label>
+                  <label htmlFor="adminName" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Tu nombre (admin)</label>
                   <input
                     id="adminName"
                     type="text"
                     placeholder="Nombre completo"
                     value={adminName}
                     onChange={(e) => setAdminName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-800 placeholder-slate-400 transition focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-3 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
                 <div>
-                  <label htmlFor="regEmail" className="mb-1.5 block text-sm font-medium text-slate-700">Email</label>
+                  <label htmlFor="regEmail" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Email</label>
                   <input
                     id="regEmail"
                     type="email"
@@ -163,11 +163,11 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-800 placeholder-slate-400 transition focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-3 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
                 <div>
-                  <label htmlFor="regPassword" className="mb-1.5 block text-sm font-medium text-slate-700">Contraseña</label>
+                  <label htmlFor="regPassword" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Contraseña</label>
                   <input
                     id="regPassword"
                     type="password"
@@ -175,10 +175,10 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="new-password"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-800 placeholder-slate-400 transition focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-3 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
-                {error && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+                {error && <div className="rounded-xl bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">{error}</div>}
                 <button
                   type="submit"
                   disabled={loading}
