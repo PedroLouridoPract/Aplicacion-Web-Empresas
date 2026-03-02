@@ -1,0 +1,161 @@
+# ============================================================
+# API REST - App Web Empresas (Backend)
+# Usar con la extensión REST Client de VS Code/Cursor.
+# Click en "Send Request" sobre cada petición o Ctrl+Alt+R
+# ============================================================
+
+@baseUrl = http://localhost:3000
+# Después de hacer login, copia aquí el token:
+@token = 
+# Opcional: rellena tras crear un proyecto o tarea para probar GET/PATCH/DELETE:
+@projectId = 
+@taskId =
+
+
+# ========== SIN AUTENTICACIÓN ==========
+
+### Health check
+# Resultado esperado: 200, body { "ok": true }
+GET {{baseUrl}}/health
+
+
+# ========== AUTH ==========
+
+### Registrar empresa + primer usuario (admin)
+# Resultado esperado: 201, body con { company: { id, name }, admin: { id, email } }
+# Luego usa adminEmail y adminPassword para hacer login.
+POST {{baseUrl}}/auth/register-company
+Content-Type: application/json
+
+{
+  "companyName": "Empresa Demo",
+  "adminName": "Admin Demo",
+  "adminEmail": "admin@demo.com",
+  "adminPassword": "password123"
+}
+
+
+### Login
+# Resultado esperado: 200, body { "token": "eyJ..." }
+# Copia el token y asígnalo a @token arriba para el resto de peticiones.
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@demo.com",
+  "password": "password123"
+}
+
+
+### Obtener mi perfil (requiere token)
+# Resultado esperado: 200, body { "user": { id, companyId, role, email } }
+# Requiere: Header Authorization: Bearer <token>
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+
+# ========== PROYECTOS (requieren token; crear/editar/borrar solo ADMIN) ==========
+
+### Listar proyectos de la empresa
+# Resultado esperado: 200, body { "projects": [ { id, name, description, status, ... } ] }
+GET {{baseUrl}}/projects
+Authorization: Bearer {{token}}
+
+
+### Crear proyecto (solo ADMIN)
+# Resultado esperado: 201, body { "project": { id, name, description, status, companyId, ... } }
+POST {{baseUrl}}/projects
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Proyecto Alpha",
+  "description": "Descripción del proyecto de prueba"
+}
+
+
+### Obtener un proyecto por ID
+# Resultado esperado: 200, body { "project": { id, name, ... } }
+# Asigna @projectId arriba con un ID real (ej. clxxx...) o ponlo en la URL.
+GET {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{token}}
+
+
+### Actualizar proyecto (solo ADMIN)
+# Resultado esperado: 200, body { "project": { ... } }
+PATCH {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Proyecto Alpha (actualizado)",
+  "status": "ACTIVE"
+}
+
+
+### Eliminar proyecto (solo ADMIN)
+# Resultado esperado: 204 sin body.
+DELETE {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{token}}
+
+
+# ========== TAREAS (requieren token) ==========
+
+### Mover tarea (cambiar estado y orden)
+# Resultado esperado: 200, body { "task": { id, status, orderIndex, ... } }
+# status: BACKLOG | IN_PROGRESS | REVIEW | DONE
+# Asigna @taskId arriba (crear tareas en Prisma Studio si no hay).
+PATCH {{baseUrl}}/tasks/{{taskId}}/move
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "IN_PROGRESS",
+  "orderIndex": 0
+}
+
+
+# ========== COMENTARIOS (requieren token) ==========
+
+### Listar comentarios de una tarea
+# Resultado esperado: 200, body { "comments": [ { id, body, authorId, taskId, createdAt, ... } ] }
+GET {{baseUrl}}/comments/by-task/{{taskId}}
+Authorization: Bearer {{token}}
+
+
+### Crear comentario
+# Resultado esperado: 201, body { "comment": { id, body, taskId, authorId, createdAt, ... } }
+POST {{baseUrl}}/comments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "taskId": "{{taskId}}",
+  "body": "Este es un comentario de prueba."
+}
+
+
+# ========== DASHBOARD (requieren token) ==========
+
+### Resumen / KPIs (toda la empresa)
+# Resultado esperado: 200, body con scope, kpis (totalTasks, overdueTasks), counts (byStatus, byPriority), generatedAt
+GET {{baseUrl}}/dashboard/summary
+Authorization: Bearer {{token}}
+
+
+### Resumen por proyecto (opcional query projectId)
+# Resultado esperado: 200, mismo formato que summary pero filtrado por proyecto.
+GET {{baseUrl}}/dashboard/summary?projectId={{projectId}}
+Authorization: Bearer {{token}}
+
+
+### Productividad por usuario
+# Resultado esperado: 200, body con scope, windowDays, window (from, to), perUser (user + metrics: doneLastNDays, inProgressNow, overdueNow)
+# Opcional: ?days=30 para últimos 30 días (por defecto 14)
+GET {{baseUrl}}/dashboard/productivity
+Authorization: Bearer {{token}}
+
+
+### Productividad por proyecto (opcional)
+GET {{baseUrl}}/dashboard/productivity?projectId={{projectId}}&days=7
+Authorization: Bearer {{token}}

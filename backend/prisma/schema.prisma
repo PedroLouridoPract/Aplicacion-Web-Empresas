@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+enum TaskStatus {
+  BACKLOG
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  users     User[]
+  projects  Project[]
+  tasks     Task[]
+  comments  Comment[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id])
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(MEMBER)
+  createdAt    DateTime @default(now())
+
+  assignedTasks Task[]   @relation("TaskAssignee")
+  comments      Comment[]
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  name        String
+  description String?
+  startDate   DateTime?
+  endDate     DateTime?
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+
+  tasks       Task[]
+
+  @@index([companyId])
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  companyId   String
+  company     Company    @relation(fields: [companyId], references: [id])
+  projectId   String
+  project     Project    @relation(fields: [projectId], references: [id])
+
+  title       String
+  description String?
+  assigneeId  String?
+  assignee    User?      @relation("TaskAssignee", fields: [assigneeId], references: [id])
+
+  dueDate     DateTime?
+  priority    Priority   @default(MEDIUM)
+  status      TaskStatus @default(BACKLOG)
+  progress    Int        @default(0) // 0..100
+  orderIndex  Int        @default(1000)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  comments    Comment[]
+
+  @@index([companyId, projectId, status, orderIndex])
+  @@index([companyId, assigneeId, dueDate])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([companyId, taskId])
+}
