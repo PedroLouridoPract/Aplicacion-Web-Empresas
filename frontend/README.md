@@ -1,3 +1,31 @@
+# Siweb – Frontend
+
+Frontend React (React Router 7) para la gestión de proyectos. Se conecta al backend API para auth, proyectos, tareas, dashboard y usuarios.
+
+## Conectar al backend
+
+1. **Copia la configuración de entorno** (si no existe ya `.env`):
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Edita `.env`** y pon la URL de tu API:
+   ```env
+   VITE_API_BASE_URL=http://localhost:3000
+   ```
+   - En **desarrollo local**: si el backend corre en el puerto 3000, `http://localhost:3000` es correcto.
+   - Si el backend usa otro puerto, cámbialo (ej: `http://localhost:4000`).
+   - En **producción**: usa la URL pública del API (ej: `https://api.midominio.com`).
+
+3. **Reinicia el servidor de desarrollo** después de cambiar `.env`:
+   ```bash
+   npm run dev
+   ```
+
+El frontend usa esta URL para todas las peticiones: login, proyectos, tareas, dashboard, usuarios, etc.
+
+---
+
 # Welcome to React Router!
 
 A modern, production-ready template for building full-stack React applications using React Router.

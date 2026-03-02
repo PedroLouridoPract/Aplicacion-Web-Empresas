@@ -1,20 +1,73 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
+
+const PRIORITIES = [
+  { value: "HIGH", label: "Alta" },
+  { value: "MEDIUM", label: "Media" },
+  { value: "LOW", label: "Baja" },
+];
+
+const PROJECT_STATUSES = [
+  { value: "ACTIVE", label: "Activo" },
+  { value: "PAUSED", label: "Pausado" },
+  { value: "COMPLETED", label: "Finalizado" },
+];
+
+const TASK_STATUSES = [
+  { value: "BACKLOG", label: "Backlog" },
+  { value: "IN_PROGRESS", label: "En proceso" },
+  { value: "REVIEW", label: "En revisión" },
+  { value: "DONE", label: "Finalizado" },
+];
 
 export default function ProjectDetailPage() {
   const { id } = useParams();
+  const { user } = useAuth();
+  const role = (user?.role && String(user.role).toUpperCase()) || "";
+  const isAdmin = role === "ADMIN";
+  const canEditProject = role === "ADMIN" || role === "MEMBER";
+
   const [project, setProject] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showNewTask, setShowNewTask] = useState(false);
+  const [taskForm, setTaskForm] = useState({
+    title: "",
+    description: "",
+    assigneeId: "",
+    dueDate: "",
+    priority: "MEDIUM",
+  });
+  const [saving, setSaving] = useState(false);
+  const [taskError, setTaskError] = useState("");
+  const [editingProject, setEditingProject] = useState(false);
+  const [projectForm, setProjectForm] = useState({ name: "", description: "", startDate: "", endDate: "", status: "ACTIVE" });
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [taskEditForm, setTaskEditForm] = useState(null);
+  const [saveError, setSaveError] = useState("");
+  const [expandedTaskId, setExpandedTaskId] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [sendingComment, setSendingComment] = useState(false);
 
   useEffect(() => {
     async function load() {
       setError("");
       setLoading(true);
       try {
-        const data = await apiFetch(`/projects/${id}`);
-        setProject(data);
+        const [projRes, tasksRes, usersRes] = await Promise.all([
+          apiFetch(`/projects/${id}`),
+          apiFetch(`/projects/${id}/tasks`).catch(() => []),
+          apiFetch("/users").catch(() => []),
+        ]);
+        setProject(projRes.project ?? projRes);
+        setTasks(Array.isArray(tasksRes) ? tasksRes : []);
+        setUsers(Array.isArray(usersRes) ? usersRes : (usersRes?.users ?? []));
       } catch (err) {
         setError(err.message || "Error cargando proyecto");
       } finally {
@@ -23,6 +76,174 @@ export default function ProjectDetailPage() {
     }
     load();
   }, [id]);
+
+  async function handleCreateTask(e) {
+    e.preventDefault();
+    setTaskError("");
+    setSaving(true);
+    try {
+      await apiFetch("/tasks", {
+        method: "POST",
+        body: JSON.stringify({
+          projectId: id,
+          title: taskForm.title.trim(),
+          description: taskForm.description.trim() || null,
+          assigneeId: taskForm.assigneeId || null,
+          dueDate: taskForm.dueDate || null,
+          priority: taskForm.priority,
+        }),
+      });
+      setTaskForm({ title: "", description: "", assigneeId: "", dueDate: "", priority: "MEDIUM" });
+      setShowNewTask(false);
+      const tasksRes = await apiFetch(`/projects/${id}/tasks`);
+      setTasks(Array.isArray(tasksRes) ? tasksRes : []);
+    } catch (err) {
+      setTaskError(err.message || "Error al crear la tarea");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function startEditProject() {
+    setEditingProject(true);
+    setProjectForm({
+      name: project.name || "",
+      description: project.description || "",
+      startDate: project.startDate ? project.startDate.slice(0, 10) : "",
+      endDate: project.endDate ? project.endDate.slice(0, 10) : "",
+      status: project.status || "ACTIVE",
+    });
+    setSaveError("");
+  }
+
+  async function handleSaveProject(e) {
+    e.preventDefault();
+    setSaveError("");
+    setSaving(true);
+    try {
+      const data = await apiFetch(`/projects/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          name: projectForm.name.trim(),
+          description: projectForm.description.trim() || null,
+          startDate: projectForm.startDate || null,
+          endDate: projectForm.endDate || null,
+          status: projectForm.status,
+        }),
+      });
+      setProject(data.project ?? data);
+      setEditingProject(false);
+    } catch (err) {
+      setSaveError(err.message || "Error al guardar");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function startEditTask(t) {
+    setEditingTaskId(t.id);
+    setTaskEditForm({
+      title: t.title || "",
+      description: t.description || "",
+      assigneeId: t.assigneeId || t.assignee?.id || "",
+      dueDate: t.dueDate || t.due_date ? (t.dueDate || t.due_date).slice(0, 10) : "",
+      priority: (t.priority || "MEDIUM").toUpperCase(),
+      status: (t.status || "BACKLOG").toUpperCase().replace("-", "_"),
+      progress: Number(t.progress) || 0,
+    });
+    setSaveError("");
+  }
+
+  async function handleSaveTask(e) {
+    e.preventDefault();
+    if (!editingTaskId) return;
+    setSaveError("");
+    setSaving(true);
+    try {
+      await apiFetch(`/tasks/${editingTaskId}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          title: taskEditForm.title.trim(),
+          description: taskEditForm.description.trim() || null,
+          assigneeId: taskEditForm.assigneeId || null,
+          dueDate: taskEditForm.dueDate || null,
+          priority: taskEditForm.priority,
+          status: taskEditForm.status,
+          progress: taskEditForm.progress,
+        }),
+      });
+      setEditingTaskId(null);
+      setTaskEditForm(null);
+      const [projRes, tasksRes] = await Promise.all([
+        apiFetch(`/projects/${id}`),
+        apiFetch(`/projects/${id}/tasks`),
+      ]);
+      setProject(projRes.project ?? projRes);
+      setTasks(Array.isArray(tasksRes) ? tasksRes : []);
+    } catch (err) {
+      setSaveError(err.message || "Error al guardar la tarea");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function toggleExpandTask(taskId) {
+    if (expandedTaskId === taskId) {
+      setExpandedTaskId(null);
+      setComments([]);
+      return;
+    }
+    setExpandedTaskId(taskId);
+    setLoadingComments(true);
+    try {
+      const res = await apiFetch(`/comments/by-task/${taskId}`);
+      setComments(res.comments ?? (Array.isArray(res) ? res : []));
+    } catch {
+      setComments([]);
+    } finally {
+      setLoadingComments(false);
+    }
+  }
+
+  async function handleAddComment(e) {
+    e.preventDefault();
+    if (!newComment.trim() || !expandedTaskId) return;
+    setSendingComment(true);
+    try {
+      await apiFetch("/comments", {
+        method: "POST",
+        body: JSON.stringify({ taskId: expandedTaskId, body: newComment.trim() }),
+      });
+      setNewComment("");
+      const res = await apiFetch(`/comments/by-task/${expandedTaskId}`);
+      setComments(res.comments ?? (Array.isArray(res) ? res : []));
+    } catch (err) {
+      alert(err.message || "Error al enviar comentario");
+    } finally {
+      setSendingComment(false);
+    }
+  }
+
+  async function handleDeleteComment(commentId) {
+    if (!confirm("¿Borrar este comentario?")) return;
+    try {
+      await apiFetch(`/comments/${commentId}`, { method: "DELETE" });
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+    } catch (err) {
+      alert(err.message || "Error al borrar comentario");
+    }
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const statusLabel = (s) => {
+    const map = { backlog: "Backlog", in_progress: "En proceso", review: "En revision", done: "Finalizado", BACKLOG: "Backlog", IN_PROGRESS: "En proceso", REVIEW: "En revision", DONE: "Finalizado" };
+    return map[s] || s || "—";
+  };
+  const priorityLabel = (p) => {
+    const map = { high: "Alta", medium: "Media", low: "Baja", HIGH: "Alta", MEDIUM: "Media", LOW: "Baja" };
+    return map[p] || p || "—";
+  };
 
   if (loading) {
     return (
@@ -54,14 +275,92 @@ export default function ProjectDetailPage() {
           <h1 className="text-2xl font-bold text-slate-800">{project.name}</h1>
           <p className="mt-1 text-sm text-slate-500">Detalle del proyecto</p>
         </div>
-        <Link
-          to="/projects"
-          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-        >
-          ← Proyectos
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          {canEditProject && !editingProject && (
+            <button
+              type="button"
+              onClick={startEditProject}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            >
+              Editar proyecto
+            </button>
+          )}
+          <Link
+            to="/projects"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          >
+            ← Proyectos
+          </Link>
+        </div>
       </div>
 
+      {editingProject && canEditProject ? (
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-800">Editar proyecto</h2>
+          <form onSubmit={handleSaveProject} className="mt-4 flex max-w-lg flex-col gap-4">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">Nombre</label>
+              <input
+                type="text"
+                required
+                value={projectForm.name}
+                onChange={(e) => setProjectForm((f) => ({ ...f, name: e.target.value }))}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">Descripción</label>
+              <textarea
+                value={projectForm.description}
+                onChange={(e) => setProjectForm((f) => ({ ...f, description: e.target.value }))}
+                rows={3}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Fecha inicio</label>
+                <input
+                  type="date"
+                  value={projectForm.startDate}
+                  onChange={(e) => setProjectForm((f) => ({ ...f, startDate: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Fecha fin</label>
+                <input
+                  type="date"
+                  value={projectForm.endDate}
+                  onChange={(e) => setProjectForm((f) => ({ ...f, endDate: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">Estado</label>
+              <select
+                value={projectForm.status}
+                onChange={(e) => setProjectForm((f) => ({ ...f, status: e.target.value }))}
+                className="w-full max-w-xs rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              >
+                {PROJECT_STATUSES.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+            {saveError && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{saveError}</div>}
+            <div className="flex gap-2">
+              <button type="submit" disabled={saving} className="rounded-xl bg-indigo-600 px-4 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-60">
+                {saving ? "Guardando..." : "Guardar"}
+              </button>
+              <button type="button" onClick={() => { setEditingProject(false); setSaveError(""); }} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : (
       <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
         {project.description && (
           <p className="text-slate-600 whitespace-pre-wrap">{project.description}</p>
@@ -69,24 +368,25 @@ export default function ProjectDetailPage() {
         <dl className="mt-6 grid gap-3 sm:grid-cols-2">
           <div>
             <dt className="text-sm font-medium text-slate-500">Inicio</dt>
-            <dd className="mt-0.5 font-medium text-slate-800">{formatDate(project.start_date)}</dd>
+            <dd className="mt-0.5 font-medium text-slate-800">{formatDate(project.startDate ?? project.start_date)}</dd>
           </div>
           <div>
             <dt className="text-sm font-medium text-slate-500">Fin</dt>
-            <dd className="mt-0.5 font-medium text-slate-800">{formatDate(project.end_date)}</dd>
+            <dd className="mt-0.5 font-medium text-slate-800">{formatDate(project.endDate ?? project.end_date)}</dd>
           </div>
           <div>
             <dt className="text-sm font-medium text-slate-500">Estado</dt>
             <dd className="mt-0.5">
               <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-sm font-medium text-slate-700">
-                {project.status ?? "—"}
+                {project.status === "ACTIVE" ? "Activo" : project.status === "PAUSED" ? "Pausado" : project.status === "COMPLETED" ? "Finalizado" : project.status ?? "—"}
               </span>
             </dd>
           </div>
         </dl>
       </div>
+      )}
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Link
           to={`/projects/${id}/kanban`}
           className="rounded-xl bg-indigo-600 px-5 py-2.5 font-semibold text-white shadow-md shadow-indigo-500/25 transition hover:bg-indigo-700"
@@ -99,7 +399,342 @@ export default function ProjectDetailPage() {
         >
           Tabla ejecutiva
         </Link>
+        <button
+          type="button"
+          onClick={() => { setShowNewTask(true); setTaskError(""); }}
+          className="rounded-xl bg-emerald-600 px-5 py-2.5 font-semibold text-white shadow-md transition hover:bg-emerald-700"
+        >
+          + Nueva tarea
+        </button>
       </div>
+
+      {showNewTask && (
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-800">Crear tarea</h2>
+          <p className="mt-1 text-sm text-slate-500">Añade una tarea al proyecto y asígnala a alguien</p>
+          <form onSubmit={handleCreateTask} className="mt-5 flex flex-col gap-4">
+            <div>
+              <label htmlFor="task-title" className="mb-1.5 block text-sm font-medium text-slate-700">Título *</label>
+              <input
+                id="task-title"
+                type="text"
+                required
+                value={taskForm.title}
+                onChange={(e) => setTaskForm((f) => ({ ...f, title: e.target.value }))}
+                placeholder="Ej: Revisar maquetas"
+                className="w-full max-w-md rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
+            <div>
+              <label htmlFor="task-desc" className="mb-1.5 block text-sm font-medium text-slate-700">Descripción</label>
+              <textarea
+                id="task-desc"
+                value={taskForm.description}
+                onChange={(e) => setTaskForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="Opcional"
+                rows={2}
+                className="w-full max-w-md rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
+            <div>
+              <label htmlFor="task-assignee" className="mb-1.5 block text-sm font-medium text-slate-700">Asignar a</label>
+              <select
+                id="task-assignee"
+                value={taskForm.assigneeId}
+                onChange={(e) => setTaskForm((f) => ({ ...f, assigneeId: e.target.value }))}
+                className="w-full max-w-md rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              >
+                <option value="">Sin asignar</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name} {u.email ? `(${u.email})` : ""}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="task-due" className="mb-1.5 block text-sm font-medium text-slate-700">Fecha límite</label>
+              <input
+                id="task-due"
+                type="date"
+                min={today}
+                value={taskForm.dueDate}
+                onChange={(e) => setTaskForm((f) => ({ ...f, dueDate: e.target.value }))}
+                className="w-full max-w-md rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">Prioridad</label>
+              <div className="flex gap-2">
+                {PRIORITIES.map((p) => (
+                  <label key={p.value} className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="radio"
+                      name="priority"
+                      value={p.value}
+                      checked={taskForm.priority === p.value}
+                      onChange={(e) => setTaskForm((f) => ({ ...f, priority: e.target.value }))}
+                      className="text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span className="text-sm text-slate-700">{p.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            {taskError && (
+              <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{taskError}</div>
+            )}
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={saving}
+                className="rounded-xl bg-indigo-600 px-4 py-2.5 font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60"
+              >
+                {saving ? "Creando..." : "Crear tarea"}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowNewTask(false); setTaskError(""); }}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 font-medium text-slate-700 transition hover:bg-slate-50"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {editingTaskId && taskEditForm && (
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-800">Editar tarea</h2>
+          <form onSubmit={handleSaveTask} className="mt-4 flex max-w-lg flex-col gap-4">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">Título</label>
+              <input
+                type="text"
+                required
+                value={taskEditForm.title}
+                onChange={(e) => setTaskEditForm((f) => ({ ...f, title: e.target.value }))}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">Descripción</label>
+              <textarea
+                value={taskEditForm.description}
+                onChange={(e) => setTaskEditForm((f) => ({ ...f, description: e.target.value }))}
+                rows={2}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">Asignar a</label>
+              <select
+                value={taskEditForm.assigneeId}
+                onChange={(e) => setTaskEditForm((f) => ({ ...f, assigneeId: e.target.value }))}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              >
+                <option value="">Sin asignar</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Fecha límite</label>
+                <input
+                  type="date"
+                  min={today}
+                  value={taskEditForm.dueDate}
+                  onChange={(e) => setTaskEditForm((f) => ({ ...f, dueDate: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Progreso %</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={taskEditForm.progress}
+                  onChange={(e) => setTaskEditForm((f) => ({ ...f, progress: Number(e.target.value) || 0 }))}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                />
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Prioridad</label>
+                <select
+                  value={taskEditForm.priority}
+                  onChange={(e) => setTaskEditForm((f) => ({ ...f, priority: e.target.value }))}
+                  className="rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                >
+                  {PRIORITIES.map((p) => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Estado</label>
+                <select
+                  value={taskEditForm.status}
+                  onChange={(e) => setTaskEditForm((f) => ({ ...f, status: e.target.value }))}
+                  className="rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                >
+                  {TASK_STATUSES.map((s) => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            {saveError && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{saveError}</div>}
+            <div className="flex gap-2">
+              <button type="submit" disabled={saving} className="rounded-xl bg-indigo-600 px-4 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-60">
+                {saving ? "Guardando..." : "Guardar"}
+              </button>
+              <button type="button" onClick={() => { setEditingTaskId(null); setTaskEditForm(null); setSaveError(""); }} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {tasks.length > 0 && (
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-800">Tareas del proyecto ({tasks.length})</h2>
+          <div className="mt-4 space-y-3">
+            {tasks.map((t) => {
+              const canEditTask = isAdmin || (user?.id && (t.assigneeId === user.id || t.assignee?.id === user.id));
+              const isExpanded = expandedTaskId === t.id;
+              const due = t.dueDate || t.due_date;
+              const progress = Number(t.progress) || 0;
+              return (
+                <div key={t.id} className="rounded-xl border border-slate-200/80 bg-slate-50/50 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => toggleExpandTask(t.id)}
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-slate-100/50 transition"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-xs text-slate-400">{isExpanded ? "▼" : "▶"}</span>
+                      <span className="font-medium text-slate-800 truncate">{t.title}</span>
+                      <span className="text-sm text-slate-500 shrink-0">
+                        {t.assignee?.name ? `→ ${t.assignee.name}` : "Sin asignar"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                        {statusLabel(t.status)}
+                      </span>
+                      {canEditTask && (
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => { e.stopPropagation(); startEditTask(t); }}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); startEditTask(t); } }}
+                          className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer"
+                        >
+                          Editar
+                        </span>
+                      )}
+                    </div>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="border-t border-slate-200/80 bg-white px-4 py-4">
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
+                        <div>
+                          <span className="text-xs font-medium text-slate-500">Responsable</span>
+                          <p className="mt-0.5 text-slate-800">{t.assignee?.name ?? "Sin asignar"}</p>
+                        </div>
+                        <div>
+                          <span className="text-xs font-medium text-slate-500">Prioridad</span>
+                          <p className="mt-0.5 text-slate-800">{priorityLabel(t.priority)}</p>
+                        </div>
+                        <div>
+                          <span className="text-xs font-medium text-slate-500">Estado</span>
+                          <p className="mt-0.5 text-slate-800">{statusLabel(t.status)}</p>
+                        </div>
+                        <div>
+                          <span className="text-xs font-medium text-slate-500">Fecha limite</span>
+                          <p className="mt-0.5 text-slate-800">{due ? new Date(due).toLocaleDateString("es-ES") : "—"}</p>
+                        </div>
+                        <div>
+                          <span className="text-xs font-medium text-slate-500">Progreso</span>
+                          <div className="mt-1 flex items-center gap-2">
+                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                              <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" style={{ width: `${progress}%` }} />
+                            </div>
+                            <span className="text-xs font-medium text-slate-600">{progress}%</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {t.description && (
+                        <div className="mt-4">
+                          <span className="text-xs font-medium text-slate-500">Descripcion</span>
+                          <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{t.description}</p>
+                        </div>
+                      )}
+
+                      <div className="mt-5 border-t border-slate-100 pt-4">
+                        <h4 className="text-sm font-semibold text-slate-700">Comentarios</h4>
+
+                        {loadingComments ? (
+                          <p className="mt-2 text-xs text-slate-400">Cargando comentarios...</p>
+                        ) : comments.length === 0 ? (
+                          <p className="mt-2 text-xs text-slate-400">Sin comentarios aun.</p>
+                        ) : (
+                          <ul className="mt-3 space-y-2">
+                            {comments.map((c) => {
+                              const canDelete = isAdmin || c.authorId === user?.id;
+                              return (
+                                <li key={c.id} className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700">
+                                        {(c.author?.name || "?").charAt(0).toUpperCase()}
+                                      </span>
+                                      <span className="text-xs font-medium text-slate-700">{c.author?.name ?? "Usuario"}</span>
+                                      <span className="text-xs text-slate-400">{new Date(c.createdAt).toLocaleString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
+                                    </div>
+                                    {canDelete && (
+                                      <button type="button" onClick={() => handleDeleteComment(c.id)} className="text-xs text-red-500 hover:text-red-700" title="Borrar comentario">
+                                        Borrar
+                                      </button>
+                                    )}
+                                  </div>
+                                  <p className="mt-1 text-sm text-slate-700 whitespace-pre-wrap">{c.body}</p>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+
+                        {(role === "ADMIN" || role === "MEMBER") && (
+                          <form onSubmit={handleAddComment} className="mt-3 flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="Escribe un comentario..."
+                              value={newComment}
+                              onChange={(e) => setNewComment(e.target.value)}
+                              className="flex-1 rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+                            />
+                            <button type="submit" disabled={sendingComment || !newComment.trim()} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60">
+                              {sendingComment ? "..." : "Enviar"}
+                            </button>
+                          </form>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

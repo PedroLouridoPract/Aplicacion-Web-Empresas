@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
 
 const roleStyles = {
@@ -23,6 +24,9 @@ function Avatar({ name }) {
 }
 
 export default function UsersPage() {
+  const { user } = useAuth();
+  const isAdmin = (user?.role && String(user.role).toUpperCase()) === "ADMIN";
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -85,6 +89,7 @@ export default function UsersPage() {
           <h1 className="text-2xl font-bold text-slate-800">Usuarios</h1>
           <p className="mt-1 text-sm text-slate-500">Gestión de usuarios de la empresa (solo Admin)</p>
         </div>
+        {isAdmin && (
         <button
           type="button"
           onClick={() => { setShowCreate(true); setError(""); }}
@@ -92,6 +97,7 @@ export default function UsersPage() {
         >
           Crear usuario
         </button>
+        )}
       </div>
 
       {showCreate && (
@@ -178,10 +184,10 @@ export default function UsersPage() {
                 <p className="font-semibold text-slate-800">{u.name}</p>
                 <p className="truncate text-sm text-slate-500">{u.email}</p>
               </div>
-              {editingId === u.id ? (
+              {editingId === u.id && isAdmin ? (
                 <div className="flex items-center gap-2">
                   <select
-                    defaultValue={u.role}
+                    defaultValue={(u.role || "").toLowerCase()}
                     className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm"
                     onChange={(e) => handleUpdateRole(u.id, e.target.value)}
                   >
@@ -201,11 +207,12 @@ export default function UsersPage() {
                 <>
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      roleStyles[u.role] || roleStyles.member
+                      roleStyles[(u.role || "").toLowerCase()] || roleStyles.member
                     }`}
                   >
-                    {u.role}
+                    {(u.role || "").toLowerCase()}
                   </span>
+                  {isAdmin && (
                   <button
                     type="button"
                     onClick={() => setEditingId(u.id)}
@@ -213,6 +220,7 @@ export default function UsersPage() {
                   >
                     Editar rol
                   </button>
+                  )}
                 </>
               )}
             </div>

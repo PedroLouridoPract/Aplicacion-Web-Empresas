@@ -18,6 +18,11 @@ export default [
     file: "./pages/DashboardPage.jsx",
   },
   {
+    path: "/my-tasks",
+    id: "my-tasks",
+    file: "./pages/MyTasksPage.jsx",
+  },
+  {
     path: "/projects",
     file: "./pages/ProjectsPage.jsx",
   },

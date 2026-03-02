@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 export default function LoginPage() {
-  const { login, registerCompany, user } = useAuth();
+  const { login, registerCompany, user, booting } = useAuth();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState("login"); // "login" | "register"
@@ -14,7 +14,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  if (user) navigate("/dashboard");
+  if (!booting && user) {
+    navigate("/dashboard", { replace: true });
+    return null;
+  }
 
   async function onSubmitLogin(e) {
     e.preventDefault();
@@ -44,18 +47,26 @@ export default function LoginPage() {
     }
   }
 
+  if (booting) {
+    return (
+      <div className="flex min-h-[80vh] items-center justify-center p-4">
+        <p className="text-slate-500">Comprobando sesión...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-[80vh] items-center justify-center p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-2xl font-bold text-white shadow-lg shadow-indigo-500/30">
+        <div className="mb-10 text-center">
+          <span className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-3xl font-bold text-white shadow-xl shadow-indigo-500/30">
             S
           </span>
-          <h1 className="mt-4 text-2xl font-bold text-slate-800">Siweb</h1>
-          <p className="mt-1 text-sm text-slate-500">Gestión de proyectos</p>
+          <h1 className="mt-6 text-3xl font-bold tracking-tight text-slate-800">Siweb</h1>
+          <p className="mt-2 text-slate-500">Gestión de proyectos y equipos</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-8 shadow-xl shadow-slate-200/50">
+        <div className="rounded-2xl border border-slate-200/80 bg-white/95 p-8 shadow-xl shadow-slate-200/50 backdrop-blur-sm">
           <div className="mb-6 flex gap-2 rounded-lg bg-slate-100 p-1">
             <button
               type="button"
@@ -178,10 +189,6 @@ export default function LoginPage() {
               </form>
             </>
           )}
-
-          <p className="mt-6 text-center text-xs text-slate-400">
-            API: VITE_API_BASE_URL (ej: http://localhost:3000)
-          </p>
         </div>
       </div>
     </div>

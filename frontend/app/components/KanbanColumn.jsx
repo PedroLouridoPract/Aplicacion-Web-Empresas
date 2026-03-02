@@ -9,7 +9,7 @@ const columnStyles = {
   done: "border-emerald-200/80 bg-emerald-50/50",
 };
 
-export default function KanbanColumn({ title, statusKey, tasks, statuses, onMove, activeId }) {
+export default function KanbanColumn({ title, statusKey, tasks, statuses, onMove, activeId, currentUser, onEditTask }) {
   const style = columnStyles[statusKey] || columnStyles.backlog;
 
   const { setNodeRef, isOver } = useDroppable({ id: statusKey });
@@ -36,6 +36,8 @@ export default function KanbanColumn({ title, statusKey, tasks, statuses, onMove
             statuses={statuses}
             onMove={onMove}
             isDragging={activeId === String(t.id)}
+            currentUser={currentUser}
+            onEditTask={onEditTask}
           />
         ))}
       </div>

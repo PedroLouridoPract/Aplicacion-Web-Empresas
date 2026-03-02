@@ -8,9 +8,15 @@ const priorityStyles = {
   low: "bg-slate-100 text-slate-600",
 };
 
-export default function TaskCard({ task, statuses, onMove, isDragging }) {
-  const priorityClass = priorityStyles[task.priority] || priorityStyles.medium;
+export default function TaskCard({ task, statuses, onMove, isDragging, currentUser, onEditTask }) {
+  const priorityKey = (task.priority || "medium").toLowerCase();
+  const priorityClass = priorityStyles[priorityKey] || priorityStyles.medium;
   const progress = Number(task.progress) || 0;
+  const assigneeName = task.assignee?.name ?? null;
+  const assigneeId = task.assigneeId ?? task.assignee?.id;
+  const isAdmin = currentUser?.role && String(currentUser.role).toUpperCase() === "ADMIN";
+  const isAssignee = currentUser?.id && assigneeId === currentUser.id;
+  const canEdit = onEditTask && (isAdmin || isAssignee);
 
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: String(task.id),
@@ -29,14 +35,36 @@ export default function TaskCard({ task, statuses, onMove, isDragging }) {
       {...attributes}
       {...listeners}
     >
-      <p className="font-medium text-slate-800">{task.title}</p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="font-medium text-slate-800 min-w-0 flex-1">{task.title}</p>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEditTask(task); }}
+            className="shrink-0 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
+            title="Editar tarea"
+          >
+            Editar
+          </button>
+        )}
+      </div>
+
+      {task.description && (
+        <p className="mt-1.5 text-xs text-slate-500 line-clamp-2">{task.description}</p>
+      )}
+
+      {assigneeName && (
+        <p className="mt-1.5 text-xs text-slate-500">
+          Asignado a: <span className="font-medium text-slate-600">{assigneeName}</span>
+        </p>
+      )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
         <span className={`rounded-lg px-2 py-0.5 font-medium ${priorityClass}`}>
-          {task.priority}
+          {(task.priority || "medium").toLowerCase()}
         </span>
         <span className="text-slate-500">
-          Vence: {task.due_date ? new Date(task.due_date).toLocaleDateString() : "-"}
+          Vence: {task.due_date || task.dueDate ? new Date(task.due_date || task.dueDate).toLocaleDateString() : "-"}
         </span>
       </div>
 
