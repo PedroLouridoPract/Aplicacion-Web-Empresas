@@ -1,15 +1,45 @@
+/* Tailwind v4: @source y @theme son directivas válidas; el editor puede marcarlas como desconocidas. */
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
+@source "./**/*.{jsx,tsx,js,ts}";
+
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
 }
 
-html,
-body {
-  @apply bg-white dark:bg-gray-950;
+* {
+  box-sizing: border-box;
+}
 
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
-  }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: linear-gradient(160deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
+  color: #0f172a;
+  min-height: 100vh;
+}
+
+input,
+textarea,
+button {
+  font-family: inherit;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Suavizar transiciones globales */
+a, button {
+  transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+/* Cards con sombra suave y hover */
+.card {
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+.card:hover {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 }
