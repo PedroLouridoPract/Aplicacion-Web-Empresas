@@ -34,12 +34,17 @@ export async function create(req: Request, res: Response, next: NextFunction) {
 
 export async function update(req: Request, res: Response, next: NextFunction) {
   try {
-    const { companyId } = req.user!;
+    const { companyId, id: currentUserId } = req.user!;
     const userId = typeof req.params.id === "string" ? req.params.id : req.params.id?.[0];
     if (!userId) return res.status(400).json({ message: "Invalid user id" });
 
     const parsed = updateUserSchema.parse(req.body);
     const role = parsed.role != null ? (String(parsed.role).toUpperCase() as "ADMIN" | "MEMBER" | "GUEST") : undefined;
+
+    if (role && userId === currentUserId) {
+      return res.status(400).json({ message: "No puedes cambiar tu propio rol. Pide a otro administrador que lo haga." });
+    }
+
     const user = await service.updateUser({
       companyId,
       userId,
