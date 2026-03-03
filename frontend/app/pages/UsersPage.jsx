@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
+import Avatar from "../components/Avatar";
 
 const roleStyles = {
   admin: "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300",
@@ -20,20 +21,6 @@ const ROLES = [
   { value: "member", label: "Miembro" },
   { value: "guest", label: "Invitado" },
 ];
-
-function Avatar({ name, size = "md" }) {
-  const initial = (name || "?").charAt(0).toUpperCase();
-  const sizes = {
-    sm: "h-8 w-8 text-xs",
-    md: "h-10 w-10 text-sm",
-    lg: "h-14 w-14 text-lg",
-  };
-  return (
-    <span className={`flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 dark:from-indigo-500 dark:to-violet-600 font-bold text-white ${sizes[size]}`}>
-      {initial}
-    </span>
-  );
-}
 
 export default function UsersPage() {
   const { user } = useAuth();
@@ -214,7 +201,7 @@ export default function UsersPage() {
                       >
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
-                            <Avatar name={u.name} size="sm" />
+                            <Avatar name={u.name} size="xs" />
                             <div>
                               <p className="font-medium text-slate-800 dark:text-slate-100">
                                 {u.name}
