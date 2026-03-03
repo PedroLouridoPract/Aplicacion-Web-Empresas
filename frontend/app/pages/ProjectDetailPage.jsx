@@ -617,12 +617,11 @@ export default function ProjectDetailPage() {
       )}
 
       {tasks.length > 0 && (() => {
-        const uniqueKeys = [...new Set(tasks.map((t) => parseTaskTitle(t.title).key).filter(Boolean))].sort();
         const uniqueTypes = [...new Set(tasks.map((t) => parseTaskTitle(t.title).type).filter(Boolean))].sort();
 
         const filteredTasks = tasks.filter((t) => {
           const parsed = parseTaskTitle(t.title);
-          if (filterKey && parsed.key !== filterKey) return false;
+          if (filterKey && !parsed.key.toLowerCase().includes(filterKey.toLowerCase())) return false;
           if (filterId && !parsed.id.includes(filterId)) return false;
           if (filterType && parsed.type !== filterType) return false;
           if (filterStatus && (t.status || "").toUpperCase() !== filterStatus) return false;
@@ -630,9 +629,11 @@ export default function ProjectDetailPage() {
         });
 
         const sortedTasks = [...filteredTasks].sort((a, b) => {
-          const aTitle = (a.title || "").toLowerCase();
-          const bTitle = (b.title || "").toLowerCase();
-          return sortOrder === "asc" ? aTitle.localeCompare(bTitle) : bTitle.localeCompare(aTitle);
+          const aKey = parseTaskTitle(a.title).key;
+          const bKey = parseTaskTitle(b.title).key;
+          const aNum = parseInt((aKey.match(/\d+/) || ["0"])[0], 10);
+          const bNum = parseInt((bKey.match(/\d+/) || ["0"])[0], 10);
+          return sortOrder === "asc" ? aNum - bNum : bNum - aNum;
         });
 
         const hasActiveFilters = filterKey || filterId || filterType || filterStatus;
@@ -645,16 +646,13 @@ export default function ProjectDetailPage() {
           <div className="mt-4 flex flex-wrap items-end gap-3 rounded-xl border border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 p-4">
             <div className="min-w-[140px]">
               <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Clave incidencia</label>
-              <select
+              <input
+                type="text"
+                placeholder="Buscar clave..."
                 value={filterKey}
                 onChange={(e) => setFilterKey(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
-              >
-                <option value="">Todas</option>
-                {uniqueKeys.map((k) => (
-                  <option key={k} value={k}>{k}</option>
-                ))}
-              </select>
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+              />
             </div>
             <div className="min-w-[120px]">
               <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">ID incidencia</label>
