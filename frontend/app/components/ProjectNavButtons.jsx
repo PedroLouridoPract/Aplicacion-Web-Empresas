@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 const DetailIcon = () => (
@@ -95,29 +95,35 @@ export function NewTaskButton({ onClick, compact = false }) {
   );
 }
 
-const HYSTERESIS = 30;
+const THRESHOLD = 80;
 const DURATION = 200;
 
 export function useStickyCompact() {
-  const sentinelRef = useRef(null);
   const [compact, setCompact] = useState(false);
   const compactRef = useRef(false);
   const rafId = useRef(0);
+  const attachedRef = useRef(false);
+  const cleanupRef = useRef(null);
 
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
+  const sentinelRef = useCallback((node) => {
+    if (cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
+      attachedRef.current = false;
+    }
 
-    const scrollParent = el.closest("main") || window;
+    if (!node) return;
+
+    const scrollParent = node.closest("main") || document.querySelector("main") || document.documentElement;
+
     let ticking = false;
-
     const check = () => {
       ticking = false;
-      const rect = el.getBoundingClientRect();
-      if (!compactRef.current && rect.bottom < -HYSTERESIS) {
+      const st = scrollParent.scrollTop;
+      if (!compactRef.current && st > THRESHOLD) {
         compactRef.current = true;
         setCompact(true);
-      } else if (compactRef.current && rect.bottom >= 0) {
+      } else if (compactRef.current && st <= THRESHOLD - 20) {
         compactRef.current = false;
         setCompact(false);
       }
@@ -131,9 +137,18 @@ export function useStickyCompact() {
     };
 
     scrollParent.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
+    attachedRef.current = true;
+    check();
+
+    cleanupRef.current = () => {
       scrollParent.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(rafId.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (cleanupRef.current) cleanupRef.current();
     };
   }, []);
 

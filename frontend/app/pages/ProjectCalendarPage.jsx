@@ -202,7 +202,6 @@ export default function ProjectCalendarPage() {
           <Link to={`/projects/${id}`} className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700" style={stickyTransition.compactItems(compact)}>
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </Link>
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Filtros</span>
           {Object.entries(PRIORITY_STYLES).map(([key, style]) => (
             <button key={key} type="button" onClick={() => setPriorityFilter(priorityFilter === key ? null : key)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${priorityFilter === key ? style.btnActive : style.btnInactive}`}>{style.label}</button>
           ))}
