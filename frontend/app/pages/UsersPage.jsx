@@ -183,8 +183,9 @@ export default function UsersPage() {
                   <tr className="border-b border-slate-100 dark:border-slate-700">
                     <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Empleado</th>
                     <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Email</th>
-                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Rol</th>
-                    {isAdmin && <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"></th>}
+                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Teléfono</th>
+                    <th className="w-44 px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Rol</th>
+                    {isAdmin && <th className="w-20 px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"></th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -211,6 +212,7 @@ export default function UsersPage() {
                           </div>
                         </td>
                         <td className="px-5 py-3.5 text-slate-500 dark:text-slate-400">{u.email}</td>
+                        <td className="px-5 py-3.5 text-slate-500 dark:text-slate-400">{u.phone || "—"}</td>
                         <td className="px-5 py-3.5">
                           {editingId === u.id && isAdmin && !isSelf ? (
                             <div className="flex items-center gap-2">
@@ -274,6 +276,10 @@ export default function UsersPage() {
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Email</p>
                   <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{selectedUser.email}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Teléfono</p>
+                  <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{selectedUser.phone || "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Miembro desde</p>

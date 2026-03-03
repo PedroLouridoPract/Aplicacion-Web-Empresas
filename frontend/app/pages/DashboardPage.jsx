@@ -81,6 +81,7 @@ export default function DashboardPage() {
   const [summary, setSummary] = useState(null);
   const [prodBar, setProdBar] = useState([]);
   const [prodArea, setProdArea] = useState([]);
+  const [prodTotal, setProdTotal] = useState([]);
   const [pieSummary, setPieSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
@@ -98,15 +99,17 @@ export default function DashboardPage() {
     async function load() {
       setLoading(true);
       try {
-        const [s, p] = await Promise.all([
+        const [s, p, pTotal] = await Promise.all([
           apiFetch("/dashboard/summary"),
           apiFetch(`/dashboard/productivity?days=30`),
+          apiFetch(`/dashboard/productivity?days=365`),
         ]);
         setSummary(s);
         setPieSummary(s);
         const list = Array.isArray(p) ? p : (p?.perUser ?? []);
         setProdBar(list);
         setProdArea(list);
+        setProdTotal(Array.isArray(pTotal) ? pTotal : (pTotal?.perUser ?? []));
       } catch (err) {
         if (err?.status === 403) setForbidden(true);
       } finally {
@@ -178,7 +181,7 @@ export default function DashboardPage() {
     };
   });
 
-  const prodList = Array.isArray(prodBar) ? prodBar : [];
+  const prodList = Array.isArray(prodTotal) ? prodTotal : [];
 
   if (!isAdmin || forbidden) {
     return <Navigate to="/my-tasks" replace />;

@@ -8,6 +8,7 @@ export async function listUsersByCompany(companyId: string) {
       id: true,
       name: true,
       email: true,
+      phone: true,
       role: true,
       companyId: true,
       createdAt: true,
