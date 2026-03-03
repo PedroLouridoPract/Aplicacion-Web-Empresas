@@ -6,6 +6,8 @@ const sectionConfig = {
   overdue: { title: "Atrasadas", accent: "bg-red-500", headerBg: "bg-red-50/60 dark:bg-red-500/10", border: "border-red-200/60 dark:border-red-500/20" },
   this_week: { title: "Esta semana", accent: "bg-amber-500", headerBg: "bg-amber-50/60 dark:bg-amber-500/10", border: "border-amber-200/60 dark:border-amber-500/20" },
   next_week: { title: "Próxima semana", accent: "bg-slate-400", headerBg: "bg-slate-50/60 dark:bg-slate-800/60", border: "border-slate-200 dark:border-slate-700" },
+  later: { title: "A un mes o más", accent: "bg-cyan-500", headerBg: "bg-cyan-50/60 dark:bg-cyan-500/10", border: "border-cyan-200/60 dark:border-cyan-500/20" },
+  unscheduled: { title: "Sin fecha", accent: "bg-indigo-400", headerBg: "bg-indigo-50/60 dark:bg-indigo-500/10", border: "border-indigo-200/60 dark:border-indigo-500/20" },
 };
 
 const statusStyles = {
@@ -176,15 +178,17 @@ export default function ProjectExecutivePage() {
   }, [id]);
 
   const filtered = useMemo(() => {
-    if (!data) return { overdue: [], this_week: [], next_week: [] };
+    if (!data) return { overdue: [], this_week: [], next_week: [], later: [], unscheduled: [] };
     return {
       overdue: filterTasks(data.overdue || [], filters),
       this_week: filterTasks(data.this_week || [], filters),
       next_week: filterTasks(data.next_week || [], filters),
+      later: filterTasks(data.later || [], filters),
+      unscheduled: filterTasks(data.unscheduled || [], filters),
     };
   }, [data, filters]);
 
-  const totalFiltered = filtered.overdue.length + filtered.this_week.length + filtered.next_week.length;
+  const totalFiltered = filtered.overdue.length + filtered.this_week.length + filtered.next_week.length + filtered.later.length + filtered.unscheduled.length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -255,6 +259,8 @@ export default function ProjectExecutivePage() {
           <Section variant="overdue" items={filtered.overdue} />
           <Section variant="this_week" items={filtered.this_week} />
           <Section variant="next_week" items={filtered.next_week} />
+          <Section variant="later" items={filtered.later} />
+          <Section variant="unscheduled" items={filtered.unscheduled} />
         </div>
       )}
     </div>
