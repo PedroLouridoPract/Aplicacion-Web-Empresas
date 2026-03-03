@@ -95,37 +95,47 @@ export function NewTaskButton({ onClick, compact = false }) {
   );
 }
 
-const THRESHOLD = 80;
+const THRESHOLD = 120;
 const DURATION = 200;
 
 export function useStickyCompact() {
   const [compact, setCompact] = useState(false);
   const compactRef = useRef(false);
   const rafId = useRef(0);
-  const attachedRef = useRef(false);
   const cleanupRef = useRef(null);
+  const suppressUntil = useRef(0);
+  const stickyRef = useRef(null);
 
   const sentinelRef = useCallback((node) => {
     if (cleanupRef.current) {
       cleanupRef.current();
       cleanupRef.current = null;
-      attachedRef.current = false;
     }
-
     if (!node) return;
 
+    stickyRef.current = node.nextElementSibling;
     const scrollParent = node.closest("main") || document.querySelector("main") || document.documentElement;
 
     let ticking = false;
     const check = () => {
       ticking = false;
+      if (Date.now() < suppressUntil.current) return;
+
       const st = scrollParent.scrollTop;
       if (!compactRef.current && st > THRESHOLD) {
+        const hBefore = stickyRef.current ? stickyRef.current.offsetHeight : 0;
         compactRef.current = true;
         setCompact(true);
-      } else if (compactRef.current && st <= THRESHOLD - 20) {
+        suppressUntil.current = Date.now() + 300;
+        requestAnimationFrame(() => {
+          const hAfter = stickyRef.current ? stickyRef.current.offsetHeight : 0;
+          const diff = hBefore - hAfter;
+          if (diff > 0) scrollParent.scrollTop = Math.max(0, scrollParent.scrollTop - diff);
+        });
+      } else if (compactRef.current && st <= 10) {
         compactRef.current = false;
         setCompact(false);
+        suppressUntil.current = Date.now() + 300;
       }
     };
 
@@ -137,7 +147,6 @@ export function useStickyCompact() {
     };
 
     scrollParent.addEventListener("scroll", onScroll, { passive: true });
-    attachedRef.current = true;
     check();
 
     cleanupRef.current = () => {
@@ -147,9 +156,7 @@ export function useStickyCompact() {
   }, []);
 
   useEffect(() => {
-    return () => {
-      if (cleanupRef.current) cleanupRef.current();
-    };
+    return () => { if (cleanupRef.current) cleanupRef.current(); };
   }, []);
 
   return { sentinelRef, compact };
