@@ -142,7 +142,7 @@ export default function ImportPage() {
     : [];
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Importar CSV</h1>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -212,8 +212,8 @@ export default function ImportPage() {
 
       {/* Guía de columnas */}
       {!file && (
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Columnas reconocidas</h3>
+        <div className="content-card p-6">
+          <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Columnas reconocidas</h3>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             El sistema detecta automáticamente las columnas del CSV. Se requiere <strong>Nombre del proyecto</strong> y al menos <strong>Clave de incidencia</strong> o <strong>Resumen</strong>.
             Si el proyecto o las personas no existen, se crean automáticamente.
@@ -292,7 +292,7 @@ export default function ImportPage() {
       {/* Proyectos detectados */}
       {preview && preview.projects?.length > 0 && (
         <div className="rounded-2xl border border-violet-200/80 dark:border-violet-500/30 bg-violet-50/50 dark:bg-violet-500/5 p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-violet-800 dark:text-violet-300">
+          <h3 className="text-base font-semibold text-violet-800 dark:text-violet-300">
             {preview.projects.length === 1 ? "Proyecto detectado" : "Proyectos detectados"}
           </h3>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -317,7 +317,7 @@ export default function ImportPage() {
       {/* Columnas detectadas */}
       {preview && relevantColumns.length > 0 && (
         <div className="rounded-2xl border border-indigo-200/80 dark:border-indigo-500/30 bg-indigo-50/50 dark:bg-indigo-500/5 p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-indigo-800 dark:text-indigo-300">Columnas detectadas que se importarán</h3>
+          <h3 className="text-base font-semibold text-indigo-800 dark:text-indigo-300">Columnas detectadas que se importarán</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {relevantColumns.map((col) => (
               <span key={col} className="inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-slate-800 px-3 py-1.5 text-sm shadow-sm border border-indigo-100 dark:border-indigo-500/20">
@@ -337,8 +337,8 @@ export default function ImportPage() {
 
       {/* Preview de datos */}
       {preview && preview.preview.length > 0 && (
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+        <div className="content-card p-6">
+          <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
             Vista previa
             <span className="ml-2 font-normal text-slate-500 dark:text-slate-400">
               (mostrando {preview.preview.length} de {preview.totalRows} filas)
@@ -391,7 +391,7 @@ export default function ImportPage() {
           <button
             onClick={doImport}
             disabled={importing}
-            className="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-2.5 font-semibold text-white shadow-md shadow-indigo-500/25 transition hover:shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg bg-indigo-600 px-6 py-2.5 font-semibold text-white shadow-sm transition hover:shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {importing ? (
               <span className="flex items-center gap-2">
@@ -410,9 +410,9 @@ export default function ImportPage() {
 
       {/* Resultados */}
       {result && (
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Resultado de la importación</h3>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="content-card p-6">
+          <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Resultado de la importación</h3>
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
             <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 p-4 text-center">
               <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{result.total}</p>
               <p className="text-sm text-slate-500 dark:text-slate-400">Total filas</p>
@@ -491,7 +491,7 @@ export default function ImportPage() {
           <div className="mt-6 flex gap-3">
             <button
               onClick={reset}
-              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-100 dark:hover:bg-slate-700"
+              className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-100 dark:hover:bg-slate-700"
             >
               Importar otro archivo
             </button>

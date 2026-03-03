@@ -3,8 +3,8 @@ import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 
 const priorityStyles = {
-  high: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300",
-  medium: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300",
+  high: "bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300",
+  medium: "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300",
   low: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
 };
 
@@ -31,17 +31,17 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
     <div
       ref={setNodeRef}
       style={style}
-      className="rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm transition hover:shadow-md touch-none"
+      className="rounded-lg border border-slate-200/60 dark:border-slate-700/60 bg-white dark:bg-slate-800 p-3.5 shadow-sm transition hover:shadow-md touch-none"
       {...attributes}
       {...listeners}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="font-medium text-slate-800 dark:text-slate-100 min-w-0 flex-1">{task.title}</p>
+        <p className="text-sm font-medium text-slate-800 dark:text-slate-100 min-w-0 flex-1">{task.title}</p>
         {canEdit && (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEditTask(task); }}
-            className="shrink-0 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+            className="shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
             title="Editar tarea"
           >
             Editar
@@ -50,35 +50,37 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
       </div>
 
       {task.description && (
-        <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{task.description}</p>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{task.description}</p>
       )}
 
       {assigneeName && (
-        <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
-          Asignado a: <span className="font-medium text-slate-600 dark:text-slate-300">{assigneeName}</span>
-        </p>
+        <div className="mt-2 flex items-center gap-1.5">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 text-[10px] font-bold text-white">
+            {assigneeName.charAt(0).toUpperCase()}
+          </span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">{assigneeName}</span>
+        </div>
       )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-        <span className={`rounded-lg px-2 py-0.5 font-medium ${priorityClass}`}>
+      <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-xs">
+        <span className={`rounded-md px-2 py-0.5 font-medium ${priorityClass}`}>
           {(task.priority || "medium").toLowerCase()}
         </span>
-        <span className="text-slate-500 dark:text-slate-400">
-          Vence: {task.due_date || task.dueDate ? new Date(task.due_date || task.dueDate).toLocaleDateString() : "-"}
+        <span className="text-slate-400 dark:text-slate-500">
+          {task.due_date || task.dueDate ? new Date(task.due_date || task.dueDate).toLocaleDateString("es-ES", { day: "2-digit", month: "short" }) : "—"}
         </span>
       </div>
 
-      <div className="mt-3">
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+      <div className="mt-2.5">
+        <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all"
+            className="h-full rounded-full bg-indigo-500 dark:bg-indigo-400 transition-all"
             style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
           />
         </div>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{progress}%</p>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-1.5">
+      <div className="mt-2.5 flex flex-wrap gap-1">
         {statuses
           .filter((s) => s.key !== task.status)
           .map((s) => (
@@ -86,10 +88,10 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
               key={s.key}
               type="button"
               onClick={(e) => { e.stopPropagation(); onMove(task.id, s.key); }}
-              className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-100 dark:hover:bg-slate-700"
+              className="rounded-md bg-slate-50 dark:bg-slate-700/50 px-1.5 py-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-slate-200"
               title={`Mover a ${s.label}`}
             >
-              → {s.label}
+              {s.label}
             </button>
           ))}
       </div>

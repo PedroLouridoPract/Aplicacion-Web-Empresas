@@ -202,7 +202,7 @@ export default function ProjectKanbanPage() {
         </div>
         <Link
           to={`/projects/${id}`}
-          className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
         >
           ← Proyecto
         </Link>
@@ -214,20 +214,20 @@ export default function ProjectKanbanPage() {
         <button
           type="button"
           onClick={() => { setShowNewTask(true); setTaskError(""); }}
-          className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-emerald-700"
+          className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
         >
           + Nueva tarea
         </button>
       </div>
 
       {moveError && (
-        <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30">
+        <div className="rounded-lg bg-amber-50 dark:bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30">
           {moveError}
         </div>
       )}
 
       {editingTask && taskEditForm && (
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
+        <div className="content-card p-6">
           <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Editar tarea</h3>
           <form onSubmit={handleSaveTask} className="mt-4 flex flex-col gap-4">
             <div>
@@ -237,7 +237,7 @@ export default function ProjectKanbanPage() {
                 required
                 value={taskEditForm.title}
                 onChange={(e) => setTaskEditForm((f) => ({ ...f, title: e.target.value }))}
-                className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             <div>
@@ -246,7 +246,7 @@ export default function ProjectKanbanPage() {
                 value={taskEditForm.description}
                 onChange={(e) => setTaskEditForm((f) => ({ ...f, description: e.target.value }))}
                 rows={2}
-                className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             <div className="flex flex-wrap gap-4">
@@ -255,7 +255,7 @@ export default function ProjectKanbanPage() {
                 <select
                   value={taskEditForm.assigneeId}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, assigneeId: e.target.value }))}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 >
                   <option value="">Sin asignar</option>
                   {users.map((u) => (
@@ -270,7 +270,7 @@ export default function ProjectKanbanPage() {
                   min={today}
                   value={taskEditForm.dueDate}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, dueDate: e.target.value }))}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
               <div>
@@ -278,7 +278,7 @@ export default function ProjectKanbanPage() {
                 <select
                   value={taskEditForm.priority}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, priority: e.target.value }))}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 >
                   {PRIORITIES.map((p) => (
                     <option key={p.value} value={p.value}>{p.label}</option>
@@ -290,7 +290,7 @@ export default function ProjectKanbanPage() {
                 <select
                   value={taskEditForm.status}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, status: e.target.value }))}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 >
                   {TASK_STATUSES.map((s) => (
                     <option key={s.value} value={s.value}>{s.label}</option>
@@ -305,7 +305,7 @@ export default function ProjectKanbanPage() {
                   max={100}
                   value={taskEditForm.progress}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, progress: Number(e.target.value) || 0 }))}
-                  className="w-20 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-20 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
             </div>
@@ -313,7 +313,7 @@ export default function ProjectKanbanPage() {
               <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{editError}</div>
             )}
             <div className="flex gap-2">
-              <button type="submit" disabled={saving} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60">
+              <button type="submit" disabled={saving} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-60">
                 {saving ? "Guardando..." : "Guardar"}
               </button>
               <button type="button" onClick={() => { setEditingTask(null); setTaskEditForm(null); setEditError(""); }} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
@@ -325,7 +325,7 @@ export default function ProjectKanbanPage() {
       )}
 
       {showNewTask && (
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+        <div className="content-card p-5">
           <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Nueva tarea</h3>
           <form onSubmit={handleCreateTask} className="mt-4 flex flex-wrap items-end gap-4">
             <div className="min-w-[200px]">
@@ -337,7 +337,7 @@ export default function ProjectKanbanPage() {
                 value={taskForm.title}
                 onChange={(e) => setTaskForm((f) => ({ ...f, title: e.target.value }))}
                 placeholder="Título de la tarea"
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             <div className="min-w-[180px]">
@@ -346,7 +346,7 @@ export default function ProjectKanbanPage() {
                 id="kanban-task-assignee"
                 value={taskForm.assigneeId}
                 onChange={(e) => setTaskForm((f) => ({ ...f, assigneeId: e.target.value }))}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               >
                 <option value="">Sin asignar</option>
                 {users.map((u) => (
@@ -362,7 +362,7 @@ export default function ProjectKanbanPage() {
                 min={today}
                 value={taskForm.dueDate}
                 onChange={(e) => setTaskForm((f) => ({ ...f, dueDate: e.target.value }))}
-                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             <div>
@@ -370,7 +370,7 @@ export default function ProjectKanbanPage() {
               <select
                 value={taskForm.priority}
                 onChange={(e) => setTaskForm((f) => ({ ...f, priority: e.target.value }))}
-                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               >
                 {PRIORITIES.map((p) => (
                   <option key={p.value} value={p.value}>{p.label}</option>
@@ -384,7 +384,7 @@ export default function ProjectKanbanPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-60"
               >
                 {saving ? "Creando..." : "Crear"}
               </button>
@@ -401,7 +401,7 @@ export default function ProjectKanbanPage() {
       )}
 
       {loading ? (
-        <div className="rounded-xl bg-white dark:bg-slate-800 px-5 py-4 text-sm text-slate-500 dark:text-slate-400 shadow-sm border border-slate-200/80 dark:border-slate-700">
+        <div className="content-card p-5 text-sm text-slate-500 dark:text-slate-400">
           Cargando...
         </div>
       ) : (

@@ -1,18 +1,64 @@
+import { useState } from "react";
 import { Link, Links, Navigate, Outlet, Scripts, useLocation } from "react-router";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
-import { ThemeProvider } from "./theme/ThemeContext";
-// @ts-expect-error UserMenu.jsx sin declaración de tipos
-import UserMenu from "./components/UserMenu";
+import { ThemeProvider, useTheme } from "./theme/ThemeContext";
 import "./app.css";
 
+const NAV_ICONS: Record<string, React.ReactNode> = {
+  "/dashboard": (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+    </svg>
+  ),
+  "/my-tasks": (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+    </svg>
+  ),
+  "/projects": (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+    </svg>
+  ),
+  "/users": (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  ),
+  "/import": (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+    </svg>
+  ),
+};
+
+function getPageTitle(pathname: string): string {
+  if (pathname === "/" || pathname === "/dashboard") return "Dashboard";
+  if (pathname === "/my-tasks") return "Mis tareas";
+  if (pathname.startsWith("/projects") && pathname.includes("/kanban")) return "Kanban";
+  if (pathname.startsWith("/projects") && pathname.includes("/executive")) return "Vista ejecutiva";
+  if (pathname.match(/^\/projects\/[^/]+$/)) return "Detalle del proyecto";
+  if (pathname === "/projects") return "Proyectos";
+  if (pathname === "/users") return "Empleados";
+  if (pathname === "/import") return "Importar CSV";
+  return "Siweb";
+}
+
+function getInitials(name?: string): string {
+  if (!name) return "?";
+  return name.trim().split(/\s+/).map(s => s[0]).slice(0, 2).join("").toUpperCase();
+}
+
 function AppShell() {
-  const { user, booting } = useAuth();
+  const { user, booting, logout } = useAuth();
+  const { isDark, toggle: toggleTheme } = useTheme();
   const loc = useLocation();
   const isLoginPage = loc.pathname === "/login";
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (booting) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-100/90 dark:bg-slate-900">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
           <p className="text-sm text-slate-500 dark:text-slate-400">Cargando...</p>
@@ -45,47 +91,184 @@ function AppShell() {
     { to: "/dashboard", label: "Dashboard", hide: !isAdmin },
     { to: "/my-tasks", label: "Mis tareas" },
     { to: "/projects", label: "Proyectos" },
-    { to: "/users", label: "Usuarios", hide: isGuest },
-    { to: "/import", label: "Importar CSV", hide: isGuest },
+    { to: "/users", label: "Empleados", hide: isGuest },
+    { to: "/import", label: "Importar", hide: isGuest },
   ];
   const navItems = allNavItems.filter((item) => !item.hide);
 
+  const pageTitle = getPageTitle(loc.pathname);
+
   return (
-    <div className="flex h-screen bg-slate-100/80 dark:bg-slate-950">
-      <aside className="flex w-64 shrink-0 flex-col border-r border-slate-200/80 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
-        <div className="border-b border-slate-100 px-5 py-6 dark:border-slate-800">
-          <Link to={isAdmin ? "/dashboard" : "/my-tasks"} className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-lg font-bold text-white shadow-md shadow-indigo-500/25">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-950">
+      {/* Collapsible sidebar */}
+      <div className="relative shrink-0">
+        <aside
+          className={`sidebar-narrow flex h-full flex-col border-r border-slate-200/60 bg-white py-4 dark:border-slate-800 dark:bg-slate-900 transition-all duration-300 ease-in-out ${
+            sidebarOpen ? "w-[220px]" : "w-[68px]"
+          }`}
+        >
+          {/* Logo */}
+          <div className={`mb-6 flex items-center ${sidebarOpen ? "px-4" : "justify-center"}`}>
+            <Link
+              to={isAdmin ? "/dashboard" : "/my-tasks"}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-lg font-bold text-white shadow-lg shadow-indigo-500/30"
+            >
               S
-            </span>
-            <span className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">Siweb</span>
-          </Link>
-        </div>
-        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3">
+            </Link>
+            {sidebarOpen && (
+              <span className="ml-3 text-base font-bold tracking-tight text-slate-800 dark:text-slate-100">Siweb</span>
+            )}
+          </div>
+
+        {/* Nav items */}
+        <nav className={`flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden ${sidebarOpen ? "px-3" : "items-center px-1.5"}`}>
           {navItems.map(({ to, label }) => {
-            const isActive = to === "/dashboard" ? (loc.pathname === "/" || loc.pathname === "/dashboard") : loc.pathname.startsWith(to);
+            const isActive =
+              to === "/dashboard"
+                ? loc.pathname === "/" || loc.pathname === "/dashboard"
+                : loc.pathname.startsWith(to);
             return (
               <Link
                 key={to}
                 to={to}
-                className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
+                title={!sidebarOpen ? label : undefined}
+                className={`group relative flex h-10 shrink-0 items-center gap-3 rounded-xl transition-all ${
+                  sidebarOpen ? "px-3" : "w-10 justify-center"
+                } ${
                   isActive
-                    ? "bg-indigo-50 text-indigo-700 shadow-sm dark:bg-indigo-500/15 dark:text-indigo-400"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                    ? "bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-500/15 dark:text-indigo-400"
+                    : "text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
                 }`}
               >
-                {label}
+                <span className="shrink-0">
+                  {NAV_ICONS[to] || <span className="text-xs font-bold">{label[0]}</span>}
+                </span>
+                {sidebarOpen && (
+                  <span className={`whitespace-nowrap text-sm font-medium ${
+                    isActive ? "text-indigo-700 dark:text-indigo-300" : "text-slate-600 dark:text-slate-300"
+                  }`}>
+                    {label}
+                  </span>
+                )}
+                {!sidebarOpen && (
+                  <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-slate-700">
+                    {label}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
-        <div className="shrink-0 border-t border-slate-100 p-3 dark:border-slate-800">
-          <UserMenu />
+
+        {/* Bottom actions */}
+        <div className={`mt-auto flex flex-col gap-1.5 ${sidebarOpen ? "px-3" : "items-center"}`}>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            title={isDark ? "Modo claro" : "Modo oscuro"}
+            className={`flex h-10 shrink-0 items-center gap-3 rounded-xl text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300 ${
+              sidebarOpen ? "px-3" : "w-10 justify-center"
+            }`}
+          >
+            {isDark ? (
+              <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
+            {sidebarOpen && <span className="whitespace-nowrap text-sm font-medium">{isDark ? "Modo claro" : "Modo oscuro"}</span>}
+          </button>
+          <button
+            type="button"
+            onClick={() => { logout(); }}
+            title="Cerrar sesión"
+            className={`flex h-10 shrink-0 items-center gap-3 rounded-xl text-slate-400 transition hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-500/10 dark:hover:text-red-400 ${
+              sidebarOpen ? "px-3" : "w-10 justify-center"
+            }`}
+          >
+            <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            {sidebarOpen && <span className="whitespace-nowrap text-sm font-medium">Cerrar sesión</span>}
+          </button>
+
+          {/* User avatar */}
+          <div className={`mt-1 flex items-center gap-3 ${sidebarOpen ? "rounded-xl border border-slate-100 bg-slate-50/50 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-800/50" : "justify-center"}`}>
+            <Link
+              to="/users"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 text-xs font-bold text-white shadow-sm"
+              title={user?.name}
+            >
+              {getInitials(user?.name)}
+            </Link>
+            {sidebarOpen && (
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">{user?.name}</p>
+                <p className="truncate text-xs text-slate-400 dark:text-slate-500">{user?.email}</p>
+              </div>
+            )}
+          </div>
         </div>
-      </aside>
-      <main className="flex-1 overflow-y-auto p-8">
-        <Outlet />
-      </main>
+        </aside>
+
+        {/* Toggle button on sidebar edge */}
+        <button
+          type="button"
+          onClick={() => setSidebarOpen(v => !v)}
+          className="absolute -right-3 top-7 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
+          title={sidebarOpen ? "Cerrar menú" : "Abrir menú"}
+        >
+          <svg className={`h-3 w-3 text-slate-500 transition-transform duration-300 dark:text-slate-400 ${sidebarOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Main area */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Top header */}
+        <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200/60 bg-white px-6 dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center gap-3">
+            <h1 className="text-sm font-semibold text-slate-800 dark:text-slate-100">{pageTitle}</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative hidden sm:block">
+              <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Buscar..."
+                className="h-9 w-56 rounded-lg border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-sm text-slate-700 placeholder-slate-400 transition focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-200 dark:placeholder-slate-500 dark:focus:bg-slate-800"
+              />
+            </div>
+            <button type="button" className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </button>
+            <div className="flex items-center gap-2.5 border-l border-slate-200 pl-3 dark:border-slate-700">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 text-xs font-bold text-white">
+                {getInitials(user?.name)}
+              </div>
+              <div className="hidden md:block">
+                <p className="text-xs font-medium leading-tight text-slate-700 dark:text-slate-200">{user?.name}</p>
+                <p className="text-[11px] leading-tight text-slate-400 dark:text-slate-500">{user?.email}</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-7xl p-6 lg:p-8">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

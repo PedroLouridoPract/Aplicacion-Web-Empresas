@@ -3,10 +3,10 @@ import { useDroppable } from "@dnd-kit/core";
 import TaskCard from "./TaskCard";
 
 const columnStyles = {
-  backlog: "border-slate-200 bg-slate-50/80 dark:border-slate-700 dark:bg-slate-800/80",
-  in_progress: "border-amber-200/80 bg-amber-50/50 dark:border-amber-500/30 dark:bg-amber-500/10",
-  review: "border-blue-200/80 bg-blue-50/50 dark:border-blue-500/30 dark:bg-blue-500/10",
-  done: "border-emerald-200/80 bg-emerald-50/50 dark:border-emerald-500/30 dark:bg-emerald-500/10",
+  backlog: "border-slate-200 bg-slate-50/60 dark:border-slate-700 dark:bg-slate-800/60",
+  in_progress: "border-amber-200/60 bg-amber-50/40 dark:border-amber-500/20 dark:bg-amber-500/5",
+  review: "border-indigo-200/60 bg-indigo-50/40 dark:border-indigo-500/20 dark:bg-indigo-500/5",
+  done: "border-emerald-200/60 bg-emerald-50/40 dark:border-emerald-500/20 dark:bg-emerald-500/5",
 };
 
 export default function KanbanColumn({ title, statusKey, tasks, statuses, onMove, activeId, currentUser, onEditTask }) {
@@ -17,18 +17,18 @@ export default function KanbanColumn({ title, statusKey, tasks, statuses, onMove
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col rounded-2xl border ${style} p-4 shadow-sm min-h-[280px] transition ${
+      className={`flex flex-col rounded-xl border ${style} p-3.5 min-h-[280px] transition ${
         isOver ? "ring-2 ring-indigo-400 ring-offset-2" : ""
       }`}
     >
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-semibold text-slate-800 dark:text-slate-100">{title}</h3>
-        <span className="rounded-full bg-white/80 dark:bg-slate-700/80 px-2.5 py-0.5 text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm">
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{title}</h3>
+        <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/80 dark:bg-slate-700/80 px-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
           {tasks.length}
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-3">
+      <div className="flex flex-1 flex-col gap-2.5">
         {tasks.map((t) => (
           <TaskCard
             key={t.id}
