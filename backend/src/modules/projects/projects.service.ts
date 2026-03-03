@@ -126,7 +126,10 @@ export async function getExecutiveView(params: { companyId: string; projectId: s
 
   const baseWhere = { companyId: params.companyId, projectId: params.projectId };
 
-  const [overdue, thisWeek, nextWeek] = await Promise.all([
+  const oneMonthFromNow = new Date(startOfToday);
+  oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+
+  const [overdue, thisWeek, nextWeek, later, unscheduled] = await Promise.all([
     prisma.task.findMany({
       where: {
         ...baseWhere,
@@ -152,7 +155,23 @@ export async function getExecutiveView(params: { companyId: string; projectId: s
       select: taskSelect,
       orderBy: [{ dueDate: "asc" }, { orderIndex: "asc" }],
     }),
+    prisma.task.findMany({
+      where: {
+        ...baseWhere,
+        dueDate: { gte: oneMonthFromNow },
+      },
+      select: taskSelect,
+      orderBy: [{ dueDate: "asc" }, { orderIndex: "asc" }],
+    }),
+    prisma.task.findMany({
+      where: {
+        ...baseWhere,
+        dueDate: null,
+      },
+      select: taskSelect,
+      orderBy: [{ orderIndex: "asc" }, { createdAt: "desc" }],
+    }),
   ]);
 
-  return { overdue, this_week: thisWeek, next_week: nextWeek };
+  return { overdue, this_week: thisWeek, next_week: nextWeek, later, unscheduled };
 }

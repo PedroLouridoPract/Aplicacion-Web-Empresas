@@ -120,6 +120,8 @@ export async function executive(req: Request, res: Response, next: NextFunction)
       overdue: data.overdue.map(mapTask),
       this_week: data.this_week.map(mapTask),
       next_week: data.next_week.map(mapTask),
+      later: data.later.map(mapTask),
+      unscheduled: data.unscheduled.map(mapTask),
     });
   } catch (err) {
     next(err);
