@@ -11,6 +11,8 @@ tasksRoutes.get("/", authRequired, ctrl.list);
 tasksRoutes.get("/mine", authRequired, ctrl.mine);
 tasksRoutes.get("/:id", authRequired, ctrl.getById);
 tasksRoutes.post("/", authRequired, canWrite, ctrl.create);
+tasksRoutes.post("/:id/lock", authRequired, canWrite, ctrl.lock);
+tasksRoutes.delete("/:id/lock", authRequired, canWrite, ctrl.unlock);
 tasksRoutes.patch("/:id/move", authRequired, canWrite, ctrl.move);
 tasksRoutes.patch("/:id", authRequired, canWrite, ctrl.update);
 tasksRoutes.delete("/:id", authRequired, canWrite, ctrl.remove);

@@ -1,5 +1,7 @@
 import { prisma } from "../../db/prisma";
 
+const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
+
 const taskSelect = {
   id: true,
   title: true,
@@ -16,6 +18,9 @@ const taskSelect = {
   orderIndex: true,
   projectId: true,
   companyId: true,
+  lockedById: true,
+  lockedAt: true,
+  lockedBy: { select: { id: true, name: true } },
   createdAt: true,
   updatedAt: true,
   assignee: {
@@ -179,4 +184,55 @@ export async function listTasks(params: {
     },
     orderBy: [{ status: "asc" }, { orderIndex: "asc" }, { dueDate: "asc" }],
   });
+}
+
+function isLockExpired(lockedAt: Date | null): boolean {
+  if (!lockedAt) return true;
+  return Date.now() - lockedAt.getTime() > LOCK_TIMEOUT_MS;
+}
+
+export async function lockTask(params: { companyId: string; taskId: string; userId: string }) {
+  const task = await prisma.task.findFirst({
+    where: { id: params.taskId, companyId: params.companyId },
+    select: { id: true, lockedById: true, lockedAt: true, lockedBy: { select: { id: true, name: true } } },
+  });
+  if (!task) throw Object.assign(new Error("La tarea no existe o no pertenece a tu empresa"), { statusCode: 404 });
+
+  if (task.lockedById && task.lockedById !== params.userId && !isLockExpired(task.lockedAt)) {
+    const lockerName = task.lockedBy?.name || "otro usuario";
+    throw Object.assign(
+      new Error(`Esta tarea está siendo editada por ${lockerName}. Inténtalo más tarde.`),
+      { statusCode: 423 }
+    );
+  }
+
+  return prisma.task.update({
+    where: { id: params.taskId },
+    data: { lockedById: params.userId, lockedAt: new Date() },
+    select: taskSelect,
+  });
+}
+
+export async function unlockTask(params: { companyId: string; taskId: string; userId: string }) {
+  const task = await prisma.task.findFirst({
+    where: { id: params.taskId, companyId: params.companyId },
+    select: { id: true, lockedById: true },
+  });
+  if (!task) throw Object.assign(new Error("La tarea no existe o no pertenece a tu empresa"), { statusCode: 404 });
+
+  if (task.lockedById && task.lockedById !== params.userId) {
+    throw Object.assign(new Error("No puedes desbloquear una tarea bloqueada por otro usuario"), { statusCode: 403 });
+  }
+
+  return prisma.task.update({
+    where: { id: params.taskId },
+    data: { lockedById: null, lockedAt: null },
+    select: taskSelect,
+  });
+}
+
+export function isTaskLockedByOther(task: { lockedById: string | null; lockedAt: Date | null }, userId: string): boolean {
+  if (!task.lockedById) return false;
+  if (task.lockedById === userId) return false;
+  return !isLockExpired(task.lockedAt);
 }

@@ -101,6 +101,11 @@ export async function update(req: Request, res: Response, next: NextFunction) {
       return res.status(403).json({ message: "Solo el responsable de la tarea o un administrador pueden editarla" });
     }
 
+    if (service.isTaskLockedByOther(existing, userId)) {
+      const lockerName = (existing as any).lockedBy?.name || "otro usuario";
+      return res.status(423).json({ message: `Esta tarea está siendo editada por ${lockerName}. Inténtalo más tarde.` });
+    }
+
     const parsed = updateTaskSchema.parse(req.body);
     if (parsed.dueDate) assertFutureDate(parsed.dueDate, "fecha limite");
     const dueDate = parsed.dueDate !== undefined ? (parsed.dueDate ? new Date(parsed.dueDate) : null) : undefined;
@@ -118,6 +123,32 @@ export async function update(req: Request, res: Response, next: NextFunction) {
         ...(parsed.orderIndex != null && { orderIndex: parsed.orderIndex }),
       },
     });
+    res.json(task);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function lock(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { companyId, id: userId } = req.user!;
+    const taskId = typeof req.params.id === "string" ? req.params.id : req.params.id?.[0];
+    if (!taskId) return res.status(400).json({ message: "Invalid task id" });
+
+    const task = await service.lockTask({ companyId, taskId, userId });
+    res.json(task);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function unlock(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { companyId, id: userId } = req.user!;
+    const taskId = typeof req.params.id === "string" ? req.params.id : req.params.id?.[0];
+    if (!taskId) return res.status(400).json({ message: "Invalid task id" });
+
+    const task = await service.unlockTask({ companyId, taskId, userId });
     res.json(task);
   } catch (err) {
     next(err);

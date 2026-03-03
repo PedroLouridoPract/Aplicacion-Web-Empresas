@@ -122,17 +122,34 @@ export default function ProjectKanbanPage() {
     }
   }
 
-  function startEditTask(task) {
-    setEditingTask(task);
-    setTaskEditForm({
-      title: task.title || "",
-      description: task.description || "",
-      assigneeId: task.assigneeId || task.assignee?.id || "",
-      dueDate: task.dueDate || task.due_date ? (task.dueDate || task.due_date).slice(0, 10) : "",
-      priority: (task.priority || "MEDIUM").toUpperCase(),
-      status: (task.status || "backlog").toUpperCase().replace("-", "_"),
-      progress: Number(task.progress) || 0,
-    });
+  const [lockError, setLockError] = useState("");
+
+  async function startEditTask(task) {
+    setLockError("");
+    setEditError("");
+    try {
+      await apiFetch(`/tasks/${task.id}/lock`, { method: "POST" });
+      setEditingTask(task);
+      setTaskEditForm({
+        title: task.title || "",
+        description: task.description || "",
+        assigneeId: task.assigneeId || task.assignee?.id || "",
+        dueDate: task.dueDate || task.due_date ? (task.dueDate || task.due_date).slice(0, 10) : "",
+        priority: (task.priority || "MEDIUM").toUpperCase(),
+        status: (task.status || "backlog").toUpperCase().replace("-", "_"),
+        progress: Number(task.progress) || 0,
+      });
+    } catch (err) {
+      setLockError(err.message || "No se pudo bloquear la tarea para edición");
+    }
+  }
+
+  async function cancelEditTask() {
+    if (editingTask) {
+      try { await apiFetch(`/tasks/${editingTask.id}/lock`, { method: "DELETE" }); } catch {}
+    }
+    setEditingTask(null);
+    setTaskEditForm(null);
     setEditError("");
   }
 
@@ -154,6 +171,7 @@ export default function ProjectKanbanPage() {
           progress: taskEditForm.progress,
         }),
       });
+      try { await apiFetch(`/tasks/${editingTask.id}/lock`, { method: "DELETE" }); } catch {}
       setEditingTask(null);
       setTaskEditForm(null);
       await load();
@@ -288,14 +306,26 @@ export default function ProjectKanbanPage() {
         </div>
       )}
 
+      {lockError && (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-500/30 dark:bg-amber-500/10">
+          <svg className="h-5 w-5 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <p className="text-sm font-medium text-amber-800 dark:text-amber-300">{lockError}</p>
+          <button type="button" onClick={() => setLockError("")} className="ml-auto text-amber-600 hover:text-amber-800 dark:text-amber-400">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+      )}
+
       {editingTask && taskEditForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { setEditingTask(null); setTaskEditForm(null); setEditError(""); }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={cancelEditTask}>
           <div className="w-full max-w-lg rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Editar tarea</h3>
               <button
                 type="button"
-                onClick={() => { setEditingTask(null); setTaskEditForm(null); setEditError(""); }}
+                onClick={cancelEditTask}
                 className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
@@ -387,7 +417,7 @@ export default function ProjectKanbanPage() {
                 <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{editError}</div>
               )}
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => { setEditingTask(null); setTaskEditForm(null); setEditError(""); }} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+                <button type="button" onClick={cancelEditTask} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
                   Cancelar
                 </button>
                 <button type="submit" disabled={saving} className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-60">
