@@ -49,6 +49,7 @@ export default function ProjectDetailPage() {
   const [filterId, setFilterId] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [filterAssign, setFilterAssign] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [taskForm, setTaskForm] = useState({
     title: "",
@@ -625,6 +626,8 @@ export default function ProjectDetailPage() {
           if (filterId && !parsed.id.includes(filterId)) return false;
           if (filterType && parsed.type !== filterType) return false;
           if (filterStatus && (t.status || "").toUpperCase() !== filterStatus) return false;
+          if (filterAssign === "assigned" && !t.assigneeId && !t.assignee?.id) return false;
+          if (filterAssign === "unassigned" && (t.assigneeId || t.assignee?.id)) return false;
           return true;
         });
 
@@ -636,7 +639,7 @@ export default function ProjectDetailPage() {
           return sortOrder === "asc" ? aNum - bNum : bNum - aNum;
         });
 
-        const hasActiveFilters = filterKey || filterId || filterType || filterStatus;
+        const hasActiveFilters = filterKey || filterId || filterType || filterStatus || filterAssign;
 
         return (
         <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
@@ -691,6 +694,18 @@ export default function ProjectDetailPage() {
               </select>
             </div>
             <div className="min-w-[130px]">
+              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Asignación</label>
+              <select
+                value={filterAssign}
+                onChange={(e) => setFilterAssign(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+              >
+                <option value="">Todas</option>
+                <option value="assigned">Asignadas</option>
+                <option value="unassigned">Sin asignar</option>
+              </select>
+            </div>
+            <div className="min-w-[130px]">
               <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Orden</label>
               <select
                 value={sortOrder}
@@ -704,7 +719,7 @@ export default function ProjectDetailPage() {
             {hasActiveFilters && (
               <button
                 type="button"
-                onClick={() => { setFilterKey(""); setFilterId(""); setFilterType(""); setFilterStatus(""); }}
+                onClick={() => { setFilterKey(""); setFilterId(""); setFilterType(""); setFilterStatus(""); setFilterAssign(""); }}
                 className="rounded-lg border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition"
               >
                 Limpiar filtros
