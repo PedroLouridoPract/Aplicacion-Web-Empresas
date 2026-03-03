@@ -41,3 +41,7 @@ export async function markAllAsRead(userId: string) {
     data: { read: true },
   });
 }
+
+export async function deleteAll(userId: string) {
+  return prisma.notification.deleteMany({ where: { userId } });
+}

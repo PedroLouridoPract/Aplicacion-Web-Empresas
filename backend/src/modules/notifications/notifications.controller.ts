@@ -33,3 +33,13 @@ export async function markAllRead(req: Request, res: Response, next: NextFunctio
     next(err);
   }
 }
+
+export async function removeAll(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.id;
+    await service.deleteAll(userId);
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+}

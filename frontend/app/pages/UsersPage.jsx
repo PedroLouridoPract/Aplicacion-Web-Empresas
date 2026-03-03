@@ -182,6 +182,7 @@ export default function UsersPage() {
                 <thead>
                   <tr className="border-b border-slate-100 dark:border-slate-700">
                     <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Empleado</th>
+                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Tareas</th>
                     <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Email</th>
                     <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Teléfono</th>
                     <th className="w-44 px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Rol</th>
@@ -210,6 +211,11 @@ export default function UsersPage() {
                               </p>
                             </div>
                           </div>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-indigo-700 dark:text-indigo-300">
+                            {u._count?.assignedTasks ?? 0}
+                          </span>
                         </td>
                         <td className="px-5 py-3.5 text-slate-500 dark:text-slate-400">{u.email}</td>
                         <td className="px-5 py-3.5 text-slate-500 dark:text-slate-400">{u.phone || "—"}</td>
@@ -273,6 +279,10 @@ export default function UsersPage() {
                 </span>
               </div>
               <div className="mt-6 space-y-4">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Tareas asignadas</p>
+                  <p className="mt-1 text-sm font-semibold text-indigo-600 dark:text-indigo-400">{selectedUser._count?.assignedTasks ?? 0}</p>
+                </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Email</p>
                   <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{selectedUser.email}</p>

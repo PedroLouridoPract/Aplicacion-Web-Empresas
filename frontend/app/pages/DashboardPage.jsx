@@ -182,7 +182,13 @@ export default function DashboardPage() {
     };
   });
 
-  const prodList = Array.isArray(prodTotal) ? prodTotal : [];
+  const prodList = (Array.isArray(prodTotal) ? prodTotal : [])
+    .slice()
+    .sort((a, b) => {
+      const aDone = (a.metrics ?? a).doneLastNDays ?? (a.metrics ?? a).done ?? 0;
+      const bDone = (b.metrics ?? b).doneLastNDays ?? (b.metrics ?? b).done ?? 0;
+      return bDone - aDone;
+    });
 
   if (!isAdmin || forbidden) {
     return <Navigate to="/my-tasks" replace />;
@@ -370,25 +376,31 @@ export default function DashboardPage() {
           {/* Top users - Productivity ranking */}
           <div className="content-card p-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Top productividad</h2>
+              <div>
+                <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Top productividad</h2>
+                <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">Tareas completadas por usuario</p>
+              </div>
             </div>
             <div className="mt-4 flex flex-col gap-3">
-              {prodList.slice(0, 5).map((item) => {
+              {prodList.slice(0, 5).map((item, idx) => {
                 const u = item.user ?? item;
                 const m = item.metrics ?? item;
                 const done = m.doneLastNDays ?? m.done ?? 0;
-                const maxDone = Math.max(...prodList.map(p => (p.metrics ?? p).doneLastNDays ?? (p.metrics ?? p).done ?? 0), 1);
+                const maxDone = Math.max((prodList[0]?.metrics ?? prodList[0])?.doneLastNDays ?? (prodList[0]?.metrics ?? prodList[0])?.done ?? 0, 1);
                 const pct = Math.round((done / maxDone) * 100);
                 return (
                   <div key={u.id ?? u.user_id ?? u.name} className="flex items-center gap-3">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                      {idx + 1}
+                    </span>
                     <Avatar name={u.name} src={u.avatarUrl} size="xs" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between text-sm">
                         <span className="truncate font-medium text-slate-700 dark:text-slate-200">{u.name}</span>
-                        <span className="ml-2 shrink-0 tabular-nums text-xs font-medium text-slate-500 dark:text-slate-400">{done}</span>
+                        <span className="ml-2 shrink-0 tabular-nums text-xs font-semibold text-emerald-600 dark:text-emerald-400">{done}</span>
                       </div>
                       <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                        <div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${pct}%` }} />
+                        <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
                   </div>

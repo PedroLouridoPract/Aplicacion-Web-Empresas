@@ -760,6 +760,7 @@ export default function ProjectDetailPage() {
                   </button>
 
                   {isExpanded && (() => {
+                    const parsed = parseTaskTitle(t.title);
                     const creator = t.creatorName || null;
                     const reporter = t.reporterName || null;
                     const sameCreatorReporter = creator && reporter && creator.toLowerCase() === reporter.toLowerCase();
@@ -774,6 +775,24 @@ export default function ProjectDetailPage() {
                       )}
 
                       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
+                        {parsed.key && (
+                          <div>
+                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Clave</span>
+                            <p className="mt-0.5 font-mono text-slate-800 dark:text-slate-100">{parsed.key}</p>
+                          </div>
+                        )}
+                        {parsed.id && (
+                          <div>
+                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">ID incidencia</span>
+                            <p className="mt-0.5 font-mono text-slate-800 dark:text-slate-100">{parsed.id}</p>
+                          </div>
+                        )}
+                        {parsed.type && (
+                          <div>
+                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Tipo</span>
+                            <p className="mt-0.5 text-slate-800 dark:text-slate-100">{parsed.type}</p>
+                          </div>
+                        )}
                         <div>
                           <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Persona asignada</span>
                           <p className="mt-0.5 text-slate-800 dark:text-slate-100">{t.assignee?.name ?? "Sin asignar"}</p>

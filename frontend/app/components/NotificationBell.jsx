@@ -52,6 +52,14 @@ export default function NotificationBell() {
     } catch {}
   }
 
+  async function handleDeleteAll() {
+    try {
+      await apiFetch("/notifications", { method: "DELETE" });
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch {}
+  }
+
   async function handleMarkRead(id) {
     try {
       await apiFetch(`/notifications/${id}/read`, { method: "PATCH" });
@@ -94,15 +102,26 @@ export default function NotificationBell() {
         <div className="absolute right-0 top-full mt-2 w-80 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl z-50">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-4 py-3">
             <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Notificaciones</h3>
-            {unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={handleMarkAllRead}
-                className="text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-              >
-                Marcar todas como leídas
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleMarkAllRead}
+                  className="text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                >
+                  Marcar leídas
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleDeleteAll}
+                  className="text-xs font-medium text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                >
+                  Borrar todas
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="max-h-80 overflow-y-auto">
