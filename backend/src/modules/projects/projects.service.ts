@@ -80,9 +80,13 @@ export async function deleteProject(params: { companyId: string; projectId: stri
 const taskSelect = {
   id: true,
   title: true,
+  summary: true,
   description: true,
   assigneeId: true,
+  creatorName: true,
+  reporterName: true,
   dueDate: true,
+  resolvedAt: true,
   priority: true,
   status: true,
   progress: true,

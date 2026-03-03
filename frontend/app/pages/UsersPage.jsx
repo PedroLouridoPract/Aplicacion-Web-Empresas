@@ -194,7 +194,9 @@ export default function UsersPage() {
                   {u.name}
                   {isSelf && <span className="ml-1.5 text-xs font-normal text-indigo-500 dark:text-indigo-400">(Tú)</span>}
                 </p>
-                <p className="truncate text-sm text-slate-500 dark:text-slate-400">{u.email}</p>
+                <p className="truncate text-sm text-slate-500 dark:text-slate-400">
+                  {u.email || <span className="italic text-amber-500 dark:text-amber-400">Sin email asignado</span>}
+                </p>
               </div>
               {editingId === u.id && isAdmin && !isSelf ? (
                 <div className="flex items-center gap-2">

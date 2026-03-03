@@ -22,6 +22,14 @@ const TASK_STATUSES = [
   { value: "DONE", label: "Finalizado" },
 ];
 
+function parseTaskTitle(title) {
+  if (!title) return { key: "", id: "", type: "" };
+  const parts = title.split("·").map((s) => s.trim());
+  if (parts.length >= 3) return { key: parts[0], id: parts[1], type: parts[2] };
+  if (parts.length === 2) return { key: parts[0], id: parts[1], type: "" };
+  return { key: title, id: "", type: "" };
+}
+
 export default function ProjectDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -35,6 +43,12 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showNewTask, setShowNewTask] = useState(false);
+
+  const [filterKey, setFilterKey] = useState("");
+  const [filterId, setFilterId] = useState("");
+  const [filterType, setFilterType] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc");
   const [taskForm, setTaskForm] = useState({
     title: "",
     description: "",
@@ -382,6 +396,12 @@ export default function ProjectDetailPage() {
               </span>
             </dd>
           </div>
+          {project.leadName && (
+            <div>
+              <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Responsable</dt>
+              <dd className="mt-0.5 font-medium text-slate-800 dark:text-slate-100">{project.leadName}</dd>
+            </div>
+          )}
         </dl>
       </div>
       )}
@@ -600,15 +620,119 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
-      {tasks.length > 0 && (
+      {tasks.length > 0 && (() => {
+        const uniqueKeys = [...new Set(tasks.map((t) => parseTaskTitle(t.title).key).filter(Boolean))].sort();
+        const uniqueTypes = [...new Set(tasks.map((t) => parseTaskTitle(t.title).type).filter(Boolean))].sort();
+
+        const filteredTasks = tasks.filter((t) => {
+          const parsed = parseTaskTitle(t.title);
+          if (filterKey && parsed.key !== filterKey) return false;
+          if (filterId && !parsed.id.includes(filterId)) return false;
+          if (filterType && parsed.type !== filterType) return false;
+          if (filterStatus && (t.status || "").toUpperCase() !== filterStatus) return false;
+          return true;
+        });
+
+        const sortedTasks = [...filteredTasks].sort((a, b) => {
+          const aTitle = (a.title || "").toLowerCase();
+          const bTitle = (b.title || "").toLowerCase();
+          return sortOrder === "asc" ? aTitle.localeCompare(bTitle) : bTitle.localeCompare(aTitle);
+        });
+
+        const hasActiveFilters = filterKey || filterId || filterType || filterStatus;
+
+        return (
         <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Tareas del proyecto ({tasks.length})</h2>
+
+          {/* Barra de filtros */}
+          <div className="mt-4 flex flex-wrap items-end gap-3 rounded-xl border border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 p-4">
+            <div className="min-w-[140px]">
+              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Clave incidencia</label>
+              <select
+                value={filterKey}
+                onChange={(e) => setFilterKey(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+              >
+                <option value="">Todas</option>
+                {uniqueKeys.map((k) => (
+                  <option key={k} value={k}>{k}</option>
+                ))}
+              </select>
+            </div>
+            <div className="min-w-[120px]">
+              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">ID incidencia</label>
+              <input
+                type="text"
+                placeholder="Buscar ID..."
+                value={filterId}
+                onChange={(e) => setFilterId(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+              />
+            </div>
+            <div className="min-w-[130px]">
+              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Tipo incidencia</label>
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+              >
+                <option value="">Todos</option>
+                {uniqueTypes.map((tp) => (
+                  <option key={tp} value={tp}>{tp}</option>
+                ))}
+              </select>
+            </div>
+            <div className="min-w-[130px]">
+              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Estado</label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+              >
+                <option value="">Todos</option>
+                {TASK_STATUSES.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="min-w-[130px]">
+              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Orden</label>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+              >
+                <option value="asc">Ascendente</option>
+                <option value="desc">Descendente</option>
+              </select>
+            </div>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={() => { setFilterKey(""); setFilterId(""); setFilterType(""); setFilterStatus(""); }}
+                className="rounded-lg border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+
+          {hasActiveFilters && (
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+              Mostrando {sortedTasks.length} de {tasks.length} tareas
+            </p>
+          )}
+
           <div className="mt-4 space-y-3">
-            {tasks.map((t) => {
+            {sortedTasks.length === 0 ? (
+              <p className="py-6 text-center text-sm text-slate-400 dark:text-slate-500">No se encontraron tareas con los filtros aplicados</p>
+            ) : sortedTasks.map((t) => {
               const canEditTask = isAdmin || (user?.id && (t.assigneeId === user.id || t.assignee?.id === user.id));
               const isExpanded = expandedTaskId === t.id;
               const due = t.dueDate || t.due_date;
-              const progress = Number(t.progress) || 0;
+              const isDone = (t.status || "").toUpperCase() === "DONE";
+              const progress = isDone ? 100 : (Number(t.progress) || 0);
               return (
                 <div key={t.id} className="rounded-xl border border-slate-200/80 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 overflow-hidden">
                   <button
@@ -641,11 +765,23 @@ export default function ProjectDetailPage() {
                     </div>
                   </button>
 
-                  {isExpanded && (
+                  {isExpanded && (() => {
+                    const creator = t.creatorName || null;
+                    const reporter = t.reporterName || null;
+                    const sameCreatorReporter = creator && reporter && creator.toLowerCase() === reporter.toLowerCase();
+                    return (
                     <div className="border-t border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-4">
+                      {/* Resumen */}
+                      {t.summary && (
+                        <div className="mb-4 rounded-xl bg-indigo-50/70 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 p-4">
+                          <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-400">Resumen</span>
+                          <p className="mt-1 text-sm text-slate-800 dark:text-slate-100 whitespace-pre-wrap">{t.summary}</p>
+                        </div>
+                      )}
+
                       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
                         <div>
-                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Responsable</span>
+                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Persona asignada</span>
                           <p className="mt-0.5 text-slate-800 dark:text-slate-100">{t.assignee?.name ?? "Sin asignar"}</p>
                         </div>
                         <div>
@@ -657,9 +793,21 @@ export default function ProjectDetailPage() {
                           <p className="mt-0.5 text-slate-800 dark:text-slate-100">{statusLabel(t.status)}</p>
                         </div>
                         <div>
-                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Fecha limite</span>
-                          <p className="mt-0.5 text-slate-800 dark:text-slate-100">{due ? new Date(due).toLocaleDateString("es-ES") : "—"}</p>
+                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Fecha creación</span>
+                          <p className="mt-0.5 text-slate-800 dark:text-slate-100">
+                            {t.createdAt
+                              ? new Date(t.createdAt).toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                              : "—"}
+                          </p>
                         </div>
+                        {t.resolvedAt && (
+                          <div>
+                            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Fecha resuelta</span>
+                            <p className="mt-0.5 text-slate-800 dark:text-slate-100">
+                              {new Date(t.resolvedAt).toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          </div>
+                        )}
                         <div>
                           <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Progreso</span>
                           <div className="mt-1 flex items-center gap-2">
@@ -669,11 +817,34 @@ export default function ProjectDetailPage() {
                             <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{progress}%</span>
                           </div>
                         </div>
+
+                        {/* Creador / Informador */}
+                        {sameCreatorReporter ? (
+                          <div>
+                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Creador / Informador</span>
+                            <p className="mt-0.5 text-slate-800 dark:text-slate-100">{creator}</p>
+                          </div>
+                        ) : (
+                          <>
+                            {creator && (
+                              <div>
+                                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Creador</span>
+                                <p className="mt-0.5 text-slate-800 dark:text-slate-100">{creator}</p>
+                              </div>
+                            )}
+                            {reporter && (
+                              <div>
+                                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Informador</span>
+                                <p className="mt-0.5 text-slate-800 dark:text-slate-100">{reporter}</p>
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
 
                       {t.description && (
                         <div className="mt-4">
-                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Descripcion</span>
+                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Descripción</span>
                           <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">{t.description}</p>
                         </div>
                       )}
@@ -684,19 +855,20 @@ export default function ProjectDetailPage() {
                         {loadingComments ? (
                           <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">Cargando comentarios...</p>
                         ) : comments.length === 0 ? (
-                          <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">Sin comentarios aun.</p>
+                          <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">Sin comentarios aún.</p>
                         ) : (
                           <ul className="mt-3 space-y-2">
                             {comments.map((c) => {
-                              const canDelete = isAdmin || c.authorId === user?.id;
+                              const authorDisplay = c.author?.name || c.authorName || "Usuario";
+                              const canDelete = isAdmin || (c.authorId && c.authorId === user?.id);
                               return (
                                 <li key={c.id} className="rounded-lg border border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2">
                                   <div className="flex items-center justify-between gap-2">
                                     <div className="flex items-center gap-2">
                                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
-                                        {(c.author?.name || "?").charAt(0).toUpperCase()}
+                                        {authorDisplay.charAt(0).toUpperCase()}
                                       </span>
-                                      <span className="text-xs font-medium text-slate-700 dark:text-slate-200">{c.author?.name ?? "Usuario"}</span>
+                                      <span className="text-xs font-medium text-slate-700 dark:text-slate-200">{authorDisplay}</span>
                                       <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(c.createdAt).toLocaleString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
                                     </div>
                                     {canDelete && (
@@ -728,13 +900,15 @@ export default function ProjectDetailPage() {
                         )}
                       </div>
                     </div>
-                  )}
+                    );
+                  })()}
                 </div>
               );
             })}
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

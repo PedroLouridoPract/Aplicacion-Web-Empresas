@@ -2,21 +2,24 @@ import React, { useState, useRef, useCallback } from "react";
 import { apiFetch } from "../api/http";
 
 const KNOWN_COLUMNS = {
-  resumen: "Título",
-  summary: "Título",
-  title: "Título",
-  titulo: "Título",
-  "título": "Título",
-  nombre: "Título",
-  tarea: "Título",
-  task: "Título",
-  "clave de incidencia": "Clave Jira",
-  "issue key": "Clave Jira",
-  key: "Clave Jira",
+  "clave de incidencia": "Clave",
+  "issue key": "Clave",
+  key: "Clave",
+  "id de la incidencia": "ID incidencia",
+  "issue id": "ID incidencia",
+  "tipo de incidencia": "Tipo",
+  "issue type": "Tipo",
+  resumen: "Resumen",
+  summary: "Resumen",
+  title: "Resumen",
+  titulo: "Resumen",
+  "título": "Resumen",
   "nombre del proyecto": "Proyecto",
   "project name": "Proyecto",
   proyecto: "Proyecto",
   project: "Proyecto",
+  "responsable del proyecto": "Responsable proyecto",
+  "project lead": "Responsable proyecto",
   "descripción": "Descripción",
   description: "Descripción",
   descripcion: "Descripción",
@@ -27,26 +30,25 @@ const KNOWN_COLUMNS = {
   status: "Estado",
   "categoría de estado": "Categoría estado",
   "status category": "Categoría estado",
-  "persona asignada": "Asignado",
-  assignee: "Asignado",
-  asignado: "Asignado",
-  responsable: "Asignado",
+  "persona asignada": "Persona asignada",
+  assignee: "Persona asignada",
+  asignado: "Persona asignada",
   "fecha de vencimiento": "Fecha límite",
   "due date": "Fecha límite",
   duedate: "Fecha límite",
   fecha_limite: "Fecha límite",
   vencimiento: "Fecha límite",
-  progress: "Progreso",
-  progreso: "Progreso",
-  avance: "Progreso",
-  "tipo de incidencia": "Tipo",
-  "issue type": "Tipo",
-  etiquetas: "Etiquetas",
-  labels: "Etiquetas",
-  creada: "Fecha creación",
-  created: "Fecha creación",
+  creador: "Creador",
+  creator: "Creador",
   informador: "Informador",
   reporter: "Informador",
+  creada: "Fecha creación",
+  created: "Fecha creación",
+  resuelta: "Fecha resuelta",
+  resolved: "Fecha resuelta",
+  "fecha de resolución": "Fecha resuelta",
+  comentario: "Comentarios",
+  comment: "Comentarios",
 };
 
 function getColumnLabel(col) {
@@ -213,8 +215,8 @@ export default function ImportPage() {
         <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Columnas reconocidas</h3>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            El sistema detecta automáticamente las columnas del CSV. Solo se requiere <strong>Resumen</strong> y <strong>Nombre del proyecto</strong>.
-            Si el proyecto no existe, se crea automáticamente.
+            El sistema detecta automáticamente las columnas del CSV. Se requiere <strong>Nombre del proyecto</strong> y al menos <strong>Clave de incidencia</strong> o <strong>Resumen</strong>.
+            Si el proyecto o las personas no existen, se crean automáticamente.
           </p>
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-full text-sm">
@@ -228,13 +230,18 @@ export default function ImportPage() {
               <tbody className="text-slate-600 dark:text-slate-400">
                 <tr className="border-b border-slate-100 dark:border-slate-700/50">
                   <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-200">Proyecto *</td>
-                  <td className="py-2 pr-4"><code className="text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">Nombre del proyecto, Project name</code></td>
+                  <td className="py-2 pr-4"><code className="text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">Nombre del proyecto</code></td>
                   <td className="py-2 text-xs text-slate-500">Se crea el proyecto si no existe</td>
                 </tr>
                 <tr className="border-b border-slate-100 dark:border-slate-700/50">
-                  <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-200">Título *</td>
-                  <td className="py-2 pr-4"><code className="text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">Resumen, Summary, titulo, title</code></td>
-                  <td className="py-2 text-xs text-slate-500">Se antepone la clave Jira si existe</td>
+                  <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-200">Nombre tarea</td>
+                  <td className="py-2 pr-4"><code className="text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">Clave de incidencia + ID + Tipo de Incidencia</code></td>
+                  <td className="py-2 text-xs text-slate-500">Ej: KAN-527 · 18862 · Tarea</td>
+                </tr>
+                <tr className="border-b border-slate-100 dark:border-slate-700/50">
+                  <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-200">Resumen</td>
+                  <td className="py-2 pr-4"><code className="text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">Resumen, Summary</code></td>
+                  <td className="py-2 text-xs text-slate-500">Se muestra al abrir la tarea</td>
                 </tr>
                 <tr className="border-b border-slate-100 dark:border-slate-700/50">
                   <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-200">Descripción</td>
@@ -252,14 +259,29 @@ export default function ImportPage() {
                   <td className="py-2 text-xs text-slate-500">Por hacer → Backlog · En curso → En progreso · Listo → Done</td>
                 </tr>
                 <tr className="border-b border-slate-100 dark:border-slate-700/50">
-                  <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-200">Asignado</td>
-                  <td className="py-2 pr-4"><code className="text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">Persona asignada, Assignee</code></td>
-                  <td className="py-2 text-xs text-slate-500">Se busca por nombre o email en tu empresa</td>
+                  <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-200">Responsable proyecto</td>
+                  <td className="py-2 pr-4"><code className="text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">Responsable del proyecto</code></td>
+                  <td className="py-2 text-xs text-slate-500">Se guarda como responsable del proyecto</td>
                 </tr>
-                <tr>
+                <tr className="border-b border-slate-100 dark:border-slate-700/50">
+                  <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-200">Persona asignada</td>
+                  <td className="py-2 pr-4"><code className="text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">Persona asignada, Assignee</code></td>
+                  <td className="py-2 text-xs text-slate-500">Se crea el usuario si no existe (sin email)</td>
+                </tr>
+                <tr className="border-b border-slate-100 dark:border-slate-700/50">
+                  <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-200">Creador / Informador</td>
+                  <td className="py-2 pr-4"><code className="text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">Creador, Informador</code></td>
+                  <td className="py-2 text-xs text-slate-500">Se muestra en el detalle de la tarea</td>
+                </tr>
+                <tr className="border-b border-slate-100 dark:border-slate-700/50">
                   <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-200">Fecha límite</td>
                   <td className="py-2 pr-4"><code className="text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">Fecha de vencimiento, Due date</code></td>
                   <td className="py-2 text-xs text-slate-500">Soporta formato Jira (02/mar/26) e ISO</td>
+                </tr>
+                <tr>
+                  <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-200">Comentarios</td>
+                  <td className="py-2 pr-4"><code className="text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">Comentario, Comment</code></td>
+                  <td className="py-2 text-xs text-slate-500">Se importan con fecha y autor</td>
                 </tr>
               </tbody>
             </table>
@@ -390,7 +412,7 @@ export default function ImportPage() {
       {result && (
         <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Resultado de la importación</h3>
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 p-4 text-center">
               <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{result.total}</p>
               <p className="text-sm text-slate-500 dark:text-slate-400">Total filas</p>
@@ -398,6 +420,14 @@ export default function ImportPage() {
             <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 p-4 text-center">
               <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{result.created}</p>
               <p className="text-sm text-slate-500 dark:text-slate-400">Tareas creadas</p>
+            </div>
+            <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 p-4 text-center">
+              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{result.updated ?? 0}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Tareas actualizadas</p>
+            </div>
+            <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 p-4 text-center">
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{result.commentsImported ?? 0}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Comentarios</p>
             </div>
             <div className="rounded-xl bg-red-50 dark:bg-red-500/10 p-4 text-center">
               <p className="text-2xl font-bold text-red-600 dark:text-red-400">{result.errors?.length ?? 0}</p>
@@ -418,6 +448,26 @@ export default function ImportPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                     <span className="font-medium text-violet-700 dark:text-violet-300">{name}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Usuarios creados */}
+          {result.usersCreated?.length > 0 && (
+            <div className="mt-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 p-4">
+              <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                {result.usersCreated.length === 1 ? "Usuario creado (sin email)" : `${result.usersCreated.length} usuarios creados (sin email)`}
+              </h4>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Puedes asignarles un email desde la sección Usuarios para que puedan iniciar sesión</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {result.usersCreated.map((name) => (
+                  <span key={name} className="inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-slate-800 px-3 py-1.5 text-sm shadow-sm border border-blue-200 dark:border-blue-500/20">
+                    <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span className="font-medium text-blue-700 dark:text-blue-300">{name}</span>
                   </span>
                 ))}
               </div>

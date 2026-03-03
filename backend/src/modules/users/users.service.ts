@@ -48,19 +48,29 @@ export async function createUser(params: {
 export async function updateUser(params: {
   companyId: string;
   userId: string;
-  data: { role?: "ADMIN" | "MEMBER" | "GUEST"; name?: string };
+  data: { role?: "ADMIN" | "MEMBER" | "GUEST"; name?: string; email?: string; password?: string };
 }) {
   const user = await prisma.user.findFirst({
     where: { id: params.userId, companyId: params.companyId },
   });
   if (!user) throw Object.assign(new Error("El usuario no existe o no pertenece a tu empresa"), { statusCode: 404 });
 
+  if (params.data.email) {
+    const existing = await prisma.user.findFirst({
+      where: { email: params.data.email.toLowerCase(), id: { not: params.userId } },
+    });
+    if (existing) throw Object.assign(new Error("Ese email ya está registrado en el sistema"), { statusCode: 409 });
+  }
+
+  const updateData: Record<string, unknown> = {};
+  if (params.data.role != null) updateData.role = params.data.role;
+  if (params.data.name != null) updateData.name = params.data.name;
+  if (params.data.email != null) updateData.email = params.data.email.toLowerCase();
+  if (params.data.password) updateData.passwordHash = await hashPassword(params.data.password);
+
   return prisma.user.update({
     where: { id: params.userId },
-    data: {
-      ...(params.data.role != null && { role: params.data.role }),
-      ...(params.data.name != null && { name: params.data.name }),
-    },
+    data: updateData,
     select: {
       id: true,
       name: true,
