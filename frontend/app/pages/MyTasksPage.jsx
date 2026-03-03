@@ -160,7 +160,7 @@ export default function MyTasksPage() {
                       <td className="px-5 py-3.5">
                         {project?.id && (
                           <Link
-                            to={`/projects/${project.id}/kanban`}
+                            to={`/projects/${project.id}/kanban?priority=${(t.priority || "").toUpperCase()}&assignee=${t.assigneeId || t.assignee?.id || ""}`}
                             className="rounded-lg bg-indigo-600 dark:bg-indigo-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-indigo-700 dark:hover:bg-indigo-400"
                           >
                             Kanban

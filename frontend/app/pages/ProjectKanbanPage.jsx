@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   DndContext,
   DragOverlay,
@@ -56,7 +56,13 @@ export default function ProjectKanbanPage() {
   const [taskEditForm, setTaskEditForm] = useState(null);
   const [editError, setEditError] = useState("");
 
-  const [filters, setFilters] = useState({ priority: "", assignee: "", dateFrom: "", dateTo: "" });
+  const [searchParams] = useSearchParams();
+  const [filters, setFilters] = useState(() => ({
+    priority: searchParams.get("priority") || "",
+    assignee: searchParams.get("assignee") || "",
+    dateFrom: "",
+    dateTo: "",
+  }));
 
   const grouped = useMemo(() => {
     const map = Object.fromEntries(STATUSES.map((s) => [s.key, []]));
@@ -226,17 +232,17 @@ export default function ProjectKanbanPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Kanban</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Proyecto {id}</p>
-        </div>
+      <div className="flex items-center gap-3">
         <Link
           to={`/projects/${id}`}
-          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700"
         >
-          ← Proyecto
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
         </Link>
+        <div>
+          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Kanban</h2>
+          <p className="text-xs text-slate-400 dark:text-slate-500">Proyecto {id}</p>
+        </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -245,7 +251,7 @@ export default function ProjectKanbanPage() {
         <button
           type="button"
           onClick={() => { setShowNewTask(true); setTaskError(""); }}
-          className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
         >
           + Nueva tarea
         </button>

@@ -1,6 +1,13 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
+
+const TASK_PRIORITIES = [
+  { value: "HIGH", label: "Alta" },
+  { value: "MEDIUM", label: "Media" },
+  { value: "LOW", label: "Baja" },
+];
 
 const sectionConfig = {
   overdue: { title: "Atrasadas", accent: "bg-red-500", headerBg: "bg-red-50/60 dark:bg-red-500/10", border: "border-red-200/60 dark:border-red-500/20" },
@@ -58,20 +65,20 @@ function TaskRow({ task }) {
 
   return (
     <tr className="border-b border-slate-50 transition hover:bg-slate-50/50 dark:border-slate-800 dark:hover:bg-slate-800/30">
-      <td className="px-5 py-3">
-        <div>
-          <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{task.title}</span>
+      <td className="px-5 py-3 overflow-hidden">
+        <div className="min-w-0">
+          <span className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate block">{task.title}</span>
           {task.description && (
-            <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500 line-clamp-1">{task.description}</p>
+            <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500 truncate">{task.description}</p>
           )}
         </div>
       </td>
-      <td className="px-5 py-3">
-        <div className="flex items-center gap-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 text-[10px] font-bold text-white">
+      <td className="px-5 py-3 overflow-hidden">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 text-[10px] font-bold text-white">
             {assigneeName.charAt(0).toUpperCase()}
           </span>
-          <span className="text-sm text-slate-700 dark:text-slate-200">{assigneeName}</span>
+          <span className="text-sm text-slate-700 dark:text-slate-200 truncate">{assigneeName}</span>
         </div>
       </td>
       <td className="px-5 py-3">
@@ -98,17 +105,85 @@ function TaskRow({ task }) {
           <span className="text-xs font-medium text-slate-500 dark:text-slate-400 w-8 text-right">{progress}%</span>
         </div>
       </td>
-      <td className="px-5 py-3">
-        <span className="text-sm text-slate-500 dark:text-slate-400">
-          {due ? new Date(due).toLocaleDateString("es-ES", { day: "2-digit", month: "short" }) : "—"}
+      <td className="px-5 py-3 overflow-hidden">
+        <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+          {due ? new Date(due).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
         </span>
       </td>
     </tr>
   );
 }
 
+const SORT_COLUMNS = [
+  { key: "title", label: "Tarea" },
+  { key: "assignee", label: "Responsable" },
+  { key: "status", label: "Estado" },
+  { key: "priority", label: "Prioridad" },
+  { key: "progress", label: "Progreso" },
+  { key: "date", label: "Fecha" },
+];
+
+const PRIORITY_ORDER = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+const STATUS_ORDER = { DONE: 0, REVIEW: 1, IN_PROGRESS: 2, BACKLOG: 3 };
+
+function sortItems(items, sortKey, sortDir) {
+  if (!sortKey) return items;
+  const dir = sortDir === "asc" ? 1 : -1;
+  return [...items].sort((a, b) => {
+    let av, bv;
+    switch (sortKey) {
+      case "title":
+        av = (a.title || "").toLowerCase();
+        bv = (b.title || "").toLowerCase();
+        return av.localeCompare(bv) * dir;
+      case "assignee":
+        av = (a.assignee?.name || "zzz").toLowerCase();
+        bv = (b.assignee?.name || "zzz").toLowerCase();
+        return av.localeCompare(bv) * dir;
+      case "status":
+        av = STATUS_ORDER[(a.status || "").toUpperCase()] ?? 9;
+        bv = STATUS_ORDER[(b.status || "").toUpperCase()] ?? 9;
+        return (av - bv) * dir;
+      case "priority":
+        av = PRIORITY_ORDER[(a.priority || "").toUpperCase()] ?? 9;
+        bv = PRIORITY_ORDER[(b.priority || "").toUpperCase()] ?? 9;
+        return (av - bv) * dir;
+      case "progress":
+        av = Number(a.progress) || 0;
+        bv = Number(b.progress) || 0;
+        return (av - bv) * dir;
+      case "date":
+        av = new Date(a.due_date || a.dueDate || 0).getTime();
+        bv = new Date(b.due_date || b.dueDate || 0).getTime();
+        return (av - bv) * dir;
+      default:
+        return 0;
+    }
+  });
+}
+
+function SortArrow({ active, dir }) {
+  if (!active) return <svg className="ml-1 h-3 w-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>;
+  return dir === "asc"
+    ? <svg className="ml-1 h-3 w-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
+    : <svg className="ml-1 h-3 w-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>;
+}
+
 function Section({ variant, items }) {
   const { title, accent, headerBg, border } = sectionConfig[variant] || sectionConfig.next_week;
+  const [sortKey, setSortKey] = React.useState(null);
+  const [sortDir, setSortDir] = React.useState("asc");
+
+  function handleSort(key) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
+
+  const sorted = React.useMemo(() => sortItems(items, sortKey, sortDir), [items, sortKey, sortDir]);
 
   return (
     <div className={`overflow-hidden rounded-xl border ${border}`}>
@@ -126,19 +201,33 @@ function Section({ variant, items }) {
         </div>
       ) : (
         <div className="overflow-x-auto bg-white dark:bg-slate-800">
-          <table className="w-full text-left text-sm">
+          <table className="w-full table-fixed text-left text-sm">
+            <colgroup>
+              <col className="w-[35%]" />
+              <col className="w-[16%]" />
+              <col className="w-[11%]" />
+              <col className="w-[10%]" />
+              <col className="w-[12%]" />
+              <col className="w-[16%]" />
+            </colgroup>
             <thead>
-              <tr className="border-b border-slate-100 dark:border-slate-700 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                <th className="px-5 py-2.5">Tarea</th>
-                <th className="px-5 py-2.5">Responsable</th>
-                <th className="px-5 py-2.5">Estado</th>
-                <th className="px-5 py-2.5">Prioridad</th>
-                <th className="px-5 py-2.5">Progreso</th>
-                <th className="px-5 py-2.5">Fecha</th>
+              <tr className="border-b border-slate-100 dark:border-slate-700">
+                {SORT_COLUMNS.map(({ key, label }) => (
+                  <th
+                    key={key}
+                    className="px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 cursor-pointer select-none transition hover:text-indigo-600 dark:hover:text-indigo-400"
+                    onClick={() => handleSort(key)}
+                  >
+                    <span className="inline-flex items-center">
+                      {label}
+                      <SortArrow active={sortKey === key} dir={sortDir} />
+                    </span>
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {items.map((t) => (
+              {sorted.map((t) => (
                 <TaskRow key={t.id} task={t} />
               ))}
             </tbody>
@@ -151,11 +240,43 @@ function Section({ variant, items }) {
 
 export default function ProjectExecutivePage() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filters, setFilters] = useState({ priority: "", status: "", assignee: "" });
+  const [showNewTask, setShowNewTask] = useState(false);
+  const [taskForm, setTaskForm] = useState({ title: "", description: "", assigneeId: "", dueDate: "", priority: "MEDIUM" });
+  const [taskError, setTaskError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const today = new Date().toISOString().slice(0, 10);
+
+  async function reload() {
+    try {
+      const execRes = await apiFetch(`/projects/${id}/executive`);
+      setData(execRes);
+    } catch {}
+  }
+
+  async function handleCreateTask(e) {
+    e.preventDefault();
+    setTaskError("");
+    setSaving(true);
+    try {
+      await apiFetch("/tasks", {
+        method: "POST",
+        body: JSON.stringify({ projectId: id, title: taskForm.title.trim(), description: taskForm.description.trim() || null, assigneeId: taskForm.assigneeId || null, dueDate: taskForm.dueDate || null, priority: taskForm.priority }),
+      });
+      setTaskForm({ title: "", description: "", assigneeId: "", dueDate: "", priority: "MEDIUM" });
+      setShowNewTask(false);
+      await reload();
+    } catch (err) {
+      setTaskError(err.message || "Error al crear la tarea");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -192,17 +313,68 @@ export default function ProjectExecutivePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Resumen semanal del proyecto
-        </p>
-        <Link
-          to={`/projects/${id}`}
-          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
-        >
-          Proyecto
-        </Link>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Link
+            to={`/projects/${id}`}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          </Link>
+          <div>
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Tabla Ejecutiva</h2>
+            <p className="text-xs text-slate-400 dark:text-slate-500">Resumen semanal del proyecto</p>
+          </div>
+        </div>
+        <button type="button" onClick={() => { setShowNewTask(true); setTaskError(""); }} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700">+ Nueva tarea</button>
       </div>
+
+      {showNewTask && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { setShowNewTask(false); setTaskError(""); }}>
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Crear tarea</h3>
+              <button type="button" onClick={() => { setShowNewTask(false); setTaskError(""); }} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+              </button>
+            </div>
+            <form onSubmit={handleCreateTask} className="flex flex-col gap-4">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Título *</label>
+                <input type="text" required value={taskForm.title} onChange={(e) => setTaskForm((f) => ({ ...f, title: e.target.value }))} placeholder="Ej: Revisar maquetas" className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Descripción</label>
+                <textarea value={taskForm.description} onChange={(e) => setTaskForm((f) => ({ ...f, description: e.target.value }))} placeholder="Opcional" rows={2} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Asignar a</label>
+                <select value={taskForm.assigneeId} onChange={(e) => setTaskForm((f) => ({ ...f, assigneeId: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                  <option value="">Sin asignar</option>
+                  {users.map((u) => (<option key={u.id} value={u.id}>{u.name}</option>))}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha límite</label>
+                  <input type="date" min={today} value={taskForm.dueDate} onChange={(e) => setTaskForm((f) => ({ ...f, dueDate: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Prioridad</label>
+                  <select value={taskForm.priority} onChange={(e) => setTaskForm((f) => ({ ...f, priority: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                    {TASK_PRIORITIES.map((p) => (<option key={p.value} value={p.value}>{p.label}</option>))}
+                  </select>
+                </div>
+              </div>
+              {taskError && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{taskError}</div>}
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => { setShowNewTask(false); setTaskError(""); }} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
+                <button type="submit" disabled={saving} className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-60">{saving ? "Creando..." : "Crear tarea"}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="content-card flex flex-wrap items-center gap-3 p-4">
         <span className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Filtros</span>

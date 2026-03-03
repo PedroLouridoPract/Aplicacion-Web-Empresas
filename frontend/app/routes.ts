@@ -35,6 +35,10 @@ export default [
     file: "./pages/ProjectExecutivePage.jsx",
   },
   {
+    path: "/projects/:id/calendar",
+    file: "./pages/ProjectCalendarPage.jsx",
+  },
+  {
     path: "/projects/:id",
     file: "./pages/ProjectDetailPage.jsx",
   },
