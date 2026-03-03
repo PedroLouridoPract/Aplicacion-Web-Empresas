@@ -6,6 +6,8 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  phone?: string | null;
+  avatarUrl?: string | null;
   role: string;
   companyId?: string;
   company_id?: string;
@@ -16,6 +18,7 @@ export interface AuthContextValue {
   booting: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   registerCompany: (
     companyName: string,
     adminName: string,
@@ -98,8 +101,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
+  async function refreshUser() {
+    try {
+      const data = await apiFetch("/auth/me") as { user?: AuthUser };
+      const userData = data?.user ?? data;
+      setUser(userData && typeof userData === "object" && "id" in userData ? userData as AuthUser : null);
+    } catch {
+      // keep current user on failure
+    }
+  }
+
   const value = useMemo<AuthContextValue>(
-    () => ({ user, booting, login, logout, registerCompany }),
+    () => ({ user, booting, login, logout, refreshUser, registerCompany }),
     [user, booting]
   );
 

@@ -75,8 +75,8 @@ export async function login(email: string, password: string) {
 export async function getMe(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true, email: true, role: true, companyId: true },
+    select: { id: true, name: true, email: true, phone: true, avatarUrl: true, role: true, companyId: true, createdAt: true },
   });
   if (!user) return null;
-  return { id: user.id, name: user.name, email: user.email, role: user.role, companyId: user.companyId };
+  return user;
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, Links, Navigate, Outlet, Scripts, useLocation } from "react-router";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { ThemeProvider, useTheme } from "./theme/ThemeContext";
+import { getColorForName } from "./components/Avatar";
 import "./app.css";
 
 const NAV_ICONS: Record<string, React.ReactNode> = {
@@ -40,6 +41,7 @@ function getPageTitle(pathname: string): string {
   if (pathname.match(/^\/projects\/[^/]+$/)) return "Detalle del proyecto";
   if (pathname === "/projects") return "Proyectos";
   if (pathname === "/users") return "Empleados";
+  if (pathname === "/profile") return "Mi perfil";
   if (pathname === "/import") return "Importar CSV";
   return "Siweb";
 }
@@ -198,17 +200,22 @@ function AppShell() {
           {/* User avatar */}
           <div className={`mt-1 flex items-center gap-3 ${sidebarOpen ? "rounded-xl border border-slate-100 bg-slate-50/50 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-800/50" : "justify-center"}`}>
             <Link
-              to="/users"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 text-xs font-bold text-white shadow-sm"
-              title={user?.name}
+              to="/profile"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm overflow-hidden"
+              style={!user?.avatarUrl ? { backgroundColor: getColorForName(user?.name) } : undefined}
+              title="Mi perfil"
             >
-              {getInitials(user?.name)}
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
+              ) : (
+                getInitials(user?.name)
+              )}
             </Link>
             {sidebarOpen && (
-              <div className="min-w-0 flex-1">
+              <Link to="/profile" className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">{user?.name}</p>
                 <p className="truncate text-xs text-slate-400 dark:text-slate-500">{user?.email}</p>
-              </div>
+              </Link>
             )}
           </div>
         </div>
@@ -250,15 +257,22 @@ function AppShell() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
             </button>
-            <div className="flex items-center gap-2.5 border-l border-slate-200 pl-3 dark:border-slate-700">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 text-xs font-bold text-white">
-                {getInitials(user?.name)}
+            <Link to="/profile" className="flex items-center gap-2.5 border-l border-slate-200 pl-3 dark:border-slate-700 transition hover:opacity-80">
+              <div
+                className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white overflow-hidden"
+                style={!user?.avatarUrl ? { backgroundColor: getColorForName(user?.name) } : undefined}
+              >
+                {user?.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
+                ) : (
+                  getInitials(user?.name)
+                )}
               </div>
               <div className="hidden md:block">
                 <p className="text-xs font-medium leading-tight text-slate-700 dark:text-slate-200">{user?.name}</p>
                 <p className="text-[11px] leading-tight text-slate-400 dark:text-slate-500">{user?.email}</p>
               </div>
-            </div>
+            </Link>
           </div>
         </header>
 

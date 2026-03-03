@@ -39,6 +39,11 @@ export default [
     file: "./pages/ProjectDetailPage.jsx",
   },
   {
+    path: "/profile",
+    id: "profile",
+    file: "./pages/ProfilePage.jsx",
+  },
+  {
     path: "/users",
     file: "./pages/UsersPage.jsx",
   },
