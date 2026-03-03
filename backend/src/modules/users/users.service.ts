@@ -13,6 +13,7 @@ export async function listUsersByCompany(companyId: string) {
       avatarUrl: true,
       companyId: true,
       createdAt: true,
+      _count: { select: { assignedTasks: true } },
     },
     orderBy: { name: "asc" },
   });

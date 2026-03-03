@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
+import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner, useStickyCompact, stickyTransition } from "../components/ProjectNavButtons";
 
 const TASK_PRIORITIES = [
   { value: "HIGH", label: "Alta" },
@@ -66,6 +67,7 @@ function formatWeekRange(monday) {
 export default function ProjectCalendarPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { sentinelRef, compact } = useStickyCompact();
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -181,52 +183,42 @@ export default function ProjectCalendarPage() {
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Link
-            to={`/projects/${id}`}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700"
-          >
+    <div className="flex flex-col gap-6">
+      <div ref={sentinelRef} className="h-px w-full -mb-px" />
+      <div className={`sticky top-0 z-30 ${compact ? "bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm -mx-6 px-6 py-3 shadow-sm border-b border-slate-200/60 dark:border-slate-700/60" : "flex flex-col gap-3"}`} style={stickyTransition.wrapper(compact)}>
+        <div className="flex flex-wrap items-center gap-3" style={stickyTransition.navRow(compact)}>
+          <Link to={`/projects/${id}`} className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </Link>
-          <div>
-            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Vista Semanal</h2>
+          <div className="mr-auto">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Calendario</h2>
             <p className="text-xs text-slate-400 dark:text-slate-500">Resumen de tareas de la semana</p>
           </div>
+          <ProjectNavButtons projectId={id} current="calendar" />
+          <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} />
         </div>
-        <button type="button" onClick={() => { setShowNewTask(true); setTaskError(""); }} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700">+ Nueva tarea</button>
-      </div>
 
-      {/* Filters */}
-      <div className="content-card flex flex-wrap items-center gap-3 p-4">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Filtros</span>
-        {Object.entries(PRIORITY_STYLES).map(([key, style]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setPriorityFilter(priorityFilter === key ? null : key)}
-            className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${priorityFilter === key ? style.btnActive : style.btnInactive}`}
-          >
-            {style.label}
-          </button>
-        ))}
-        <select
-          value={assigneeFilter}
-          onChange={(e) => setAssigneeFilter(e.target.value)}
-          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
-        >
-          <option value="">Todos los miembros</option>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>{u.name}</option>
+        <div className={`flex flex-wrap items-center gap-3 ${compact ? "" : "content-card p-4"}`}>
+          <Link to={`/projects/${id}`} className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700" style={stickyTransition.compactItems(compact)}>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          </Link>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Filtros</span>
+          {Object.entries(PRIORITY_STYLES).map(([key, style]) => (
+            <button key={key} type="button" onClick={() => setPriorityFilter(priorityFilter === key ? null : key)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${priorityFilter === key ? style.btnActive : style.btnInactive}`}>{style.label}</button>
           ))}
-        </select>
-        {(priorityFilter || assigneeFilter) && (
-          <button type="button" onClick={() => { setPriorityFilter(null); setAssigneeFilter(""); }} className="rounded-lg px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200">
-            Limpiar
-          </button>
-        )}
+          <select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20">
+            <option value="">Todos los miembros</option>
+            {users.map((u) => (<option key={u.id} value={u.id}>{u.name}</option>))}
+          </select>
+          {(priorityFilter || assigneeFilter) && (
+            <button type="button" onClick={() => { setPriorityFilter(null); setAssigneeFilter(""); }} className="rounded-lg px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200">Limpiar</button>
+          )}
+          <div className="inline-flex items-center gap-3" style={stickyTransition.compactItems(compact)}>
+            <span className="ml-auto" />
+            <ProjectNavButtons projectId={id} current="calendar" compact />
+            <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} compact />
+          </div>
+        </div>
       </div>
 
       {showNewTask && (
@@ -294,7 +286,7 @@ export default function ProjectCalendarPage() {
         </div>
 
         {loading ? (
-          <div className="px-5 py-16 text-center text-sm text-slate-400">Cargando...</div>
+          <ProjectLoadingSpinner />
         ) : (
           <div className="grid grid-cols-7 divide-x divide-slate-100 dark:divide-slate-700/50">
             {weekDays.map((day, i) => {

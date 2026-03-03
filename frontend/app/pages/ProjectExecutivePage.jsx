@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
 import Avatar from "../components/Avatar";
+import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner, useStickyCompact, stickyTransition } from "../components/ProjectNavButtons";
 
 const TASK_PRIORITIES = [
   { value: "HIGH", label: "Alta" },
@@ -240,6 +241,7 @@ function Section({ variant, items }) {
 export default function ProjectExecutivePage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { sentinelRef, compact } = useStickyCompact();
   const [data, setData] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -312,20 +314,43 @@ export default function ProjectExecutivePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Link
-            to={`/projects/${id}`}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700"
-          >
+      <div ref={sentinelRef} className="h-px w-full -mb-px" />
+      <div className={`sticky top-0 z-30 ${compact ? "bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm -mx-6 px-6 py-3 shadow-sm border-b border-slate-200/60 dark:border-slate-700/60" : "flex flex-col gap-3"}`} style={stickyTransition.wrapper(compact)}>
+        <div className="flex flex-wrap items-center gap-3" style={stickyTransition.navRow(compact)}>
+          <Link to={`/projects/${id}`} className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </Link>
-          <div>
+          <div className="mr-auto">
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Tabla Ejecutiva</h2>
             <p className="text-xs text-slate-400 dark:text-slate-500">Resumen semanal del proyecto</p>
           </div>
+          <ProjectNavButtons projectId={id} current="executive" />
+          <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} />
         </div>
-        <button type="button" onClick={() => { setShowNewTask(true); setTaskError(""); }} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700">+ Nueva tarea</button>
+
+        <div className={`flex flex-wrap items-center gap-3 ${compact ? "" : "content-card p-4"}`}>
+          <Link to={`/projects/${id}`} className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700" style={stickyTransition.compactItems(compact)}>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          </Link>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Filtros</span>
+          <select value={filters.priority} onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value }))} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            {PRIORITY_OPTIONS.map((p) => (<option key={p.value} value={p.value}>{p.label}</option>))}
+          </select>
+          <select value={filters.status} onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            {STATUS_OPTIONS.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
+          </select>
+          <select value={filters.assignee} onChange={(e) => setFilters((f) => ({ ...f, assignee: e.target.value }))} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            <option value="">Cualquier responsable</option>
+            <option value="unassigned">Sin asignar</option>
+            {users.map((u) => (<option key={u.id} value={u.id}>{u.name}</option>))}
+          </select>
+          <button type="button" onClick={() => setFilters({ priority: "", status: "", assignee: "" })} className="rounded-lg px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200">Limpiar</button>
+          <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">{totalFiltered} tareas</span>
+          <div className="inline-flex items-center gap-3" style={stickyTransition.compactItems(compact)}>
+            <ProjectNavButtons projectId={id} current="executive" compact />
+            <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} compact />
+          </div>
+        </div>
       </div>
 
       {showNewTask && (
@@ -375,52 +400,7 @@ export default function ProjectExecutivePage() {
         </div>
       )}
 
-      <div className="content-card flex flex-wrap items-center gap-3 p-4">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Filtros</span>
-        <select
-          value={filters.priority}
-          onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value }))}
-          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-        >
-          {PRIORITY_OPTIONS.map((p) => (
-            <option key={p.value} value={p.value}>{p.label}</option>
-          ))}
-        </select>
-        <select
-          value={filters.status}
-          onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-        >
-          {STATUS_OPTIONS.map((s) => (
-            <option key={s.value} value={s.value}>{s.label}</option>
-          ))}
-        </select>
-        <select
-          value={filters.assignee}
-          onChange={(e) => setFilters((f) => ({ ...f, assignee: e.target.value }))}
-          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-        >
-          <option value="">Cualquier responsable</option>
-          <option value="unassigned">Sin asignar</option>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>{u.name}</option>
-          ))}
-        </select>
-        <button
-          type="button"
-          onClick={() => setFilters({ priority: "", status: "", assignee: "" })}
-          className="rounded-lg px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
-        >
-          Limpiar
-        </button>
-        <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">{totalFiltered} tareas</span>
-      </div>
-
-      {loading && (
-        <div className="content-card px-5 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
-          Cargando...
-        </div>
-      )}
+      {loading && <ProjectLoadingSpinner />}
       {error && (
         <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">{error}</div>
       )}
