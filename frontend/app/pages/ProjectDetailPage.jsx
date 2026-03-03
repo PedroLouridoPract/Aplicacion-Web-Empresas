@@ -247,7 +247,7 @@ export default function ProjectDetailPage() {
 
   if (loading) {
     return (
-      <div className="rounded-xl bg-white dark:bg-slate-800 px-5 py-4 text-sm text-slate-500 dark:text-slate-400 shadow-sm border border-slate-200/80 dark:border-slate-700">
+      <div className="content-card px-5 py-4 text-sm text-slate-500 dark:text-slate-400">
         Cargando...
       </div>
     );
@@ -259,7 +259,7 @@ export default function ProjectDetailPage() {
         <Link to="/projects" className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-400">
           ← Volver a proyectos
         </Link>
-        <div className="rounded-xl bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+        <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">
           {error || "Proyecto no encontrado"}
         </div>
       </div>
@@ -272,7 +272,7 @@ export default function ProjectDetailPage() {
     <div className="flex flex-col gap-8">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{project.name}</h1>
+          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{project.name}</h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Detalle del proyecto</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -280,14 +280,14 @@ export default function ProjectDetailPage() {
             <button
               type="button"
               onClick={startEditProject}
-              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+              className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
             >
               Editar proyecto
             </button>
           )}
           <Link
             to="/projects"
-            className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+            className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
           >
             ← Proyectos
           </Link>
@@ -295,8 +295,8 @@ export default function ProjectDetailPage() {
       </div>
 
       {editingProject && canEditProject ? (
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Editar proyecto</h2>
+        <div className="content-card p-6">
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Editar proyecto</h2>
           <form onSubmit={handleSaveProject} className="mt-4 flex max-w-lg flex-col gap-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Nombre</label>
@@ -305,7 +305,7 @@ export default function ProjectDetailPage() {
                 required
                 value={projectForm.name}
                 onChange={(e) => setProjectForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
             <div>
@@ -314,7 +314,7 @@ export default function ProjectDetailPage() {
                 value={projectForm.description}
                 onChange={(e) => setProjectForm((f) => ({ ...f, description: e.target.value }))}
                 rows={3}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -324,7 +324,7 @@ export default function ProjectDetailPage() {
                   type="date"
                   value={projectForm.startDate}
                   onChange={(e) => setProjectForm((f) => ({ ...f, startDate: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
               <div>
@@ -333,7 +333,7 @@ export default function ProjectDetailPage() {
                   type="date"
                   value={projectForm.endDate}
                   onChange={(e) => setProjectForm((f) => ({ ...f, endDate: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
             </div>
@@ -342,37 +342,37 @@ export default function ProjectDetailPage() {
               <select
                 value={projectForm.status}
                 onChange={(e) => setProjectForm((f) => ({ ...f, status: e.target.value }))}
-                className="w-full max-w-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full max-w-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               >
                 {PROJECT_STATUSES.map((s) => (
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
               </select>
             </div>
-            {saveError && <div className="rounded-xl bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">{saveError}</div>}
+            {saveError && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">{saveError}</div>}
             <div className="flex gap-2">
-              <button type="submit" disabled={saving} className="rounded-xl bg-indigo-600 px-4 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-60">
+              <button type="submit" disabled={saving} className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60">
                 {saving ? "Guardando..." : "Guardar"}
               </button>
-              <button type="button" onClick={() => { setEditingProject(false); setSaveError(""); }} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+              <button type="button" onClick={() => { setEditingProject(false); setSaveError(""); }} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
                 Cancelar
               </button>
             </div>
           </form>
         </div>
       ) : (
-      <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
+      <div className="content-card p-6">
         {project.description && (
-          <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{project.description}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{project.description}</p>
         )}
         <dl className="mt-6 grid gap-3 sm:grid-cols-2">
           <div>
             <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Inicio</dt>
-            <dd className="mt-0.5 font-medium text-slate-800 dark:text-slate-100">{formatDate(project.startDate ?? project.start_date)}</dd>
+            <dd className="mt-0.5 text-sm font-medium text-slate-800 dark:text-slate-100">{formatDate(project.startDate ?? project.start_date)}</dd>
           </div>
           <div>
             <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Fin</dt>
-            <dd className="mt-0.5 font-medium text-slate-800 dark:text-slate-100">{formatDate(project.endDate ?? project.end_date)}</dd>
+            <dd className="mt-0.5 text-sm font-medium text-slate-800 dark:text-slate-100">{formatDate(project.endDate ?? project.end_date)}</dd>
           </div>
           <div>
             <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Estado</dt>
@@ -389,28 +389,28 @@ export default function ProjectDetailPage() {
       <div className="flex flex-wrap items-center gap-3">
         <Link
           to={`/projects/${id}/kanban`}
-          className="rounded-xl bg-indigo-600 px-5 py-2.5 font-semibold text-white shadow-md shadow-indigo-500/25 transition hover:bg-indigo-700"
+          className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
         >
           Ver Kanban
         </Link>
         <Link
           to={`/projects/${id}/executive`}
-          className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2.5 font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
         >
           Tabla ejecutiva
         </Link>
         <button
           type="button"
           onClick={() => { setShowNewTask(true); setTaskError(""); }}
-          className="rounded-xl bg-emerald-600 px-5 py-2.5 font-semibold text-white shadow-md transition hover:bg-emerald-700"
+          className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
         >
           + Nueva tarea
         </button>
       </div>
 
       {showNewTask && (
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Crear tarea</h2>
+        <div className="content-card p-6">
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Crear tarea</h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Añade una tarea al proyecto y asígnala a alguien</p>
           <form onSubmit={handleCreateTask} className="mt-5 flex flex-col gap-4">
             <div>
@@ -422,7 +422,7 @@ export default function ProjectDetailPage() {
                 value={taskForm.title}
                 onChange={(e) => setTaskForm((f) => ({ ...f, title: e.target.value }))}
                 placeholder="Ej: Revisar maquetas"
-                className="w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
             <div>
@@ -433,7 +433,7 @@ export default function ProjectDetailPage() {
                 onChange={(e) => setTaskForm((f) => ({ ...f, description: e.target.value }))}
                 placeholder="Opcional"
                 rows={2}
-                className="w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
             <div>
@@ -442,7 +442,7 @@ export default function ProjectDetailPage() {
                 id="task-assignee"
                 value={taskForm.assigneeId}
                 onChange={(e) => setTaskForm((f) => ({ ...f, assigneeId: e.target.value }))}
-                className="w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               >
                 <option value="">Sin asignar</option>
                 {users.map((u) => (
@@ -458,7 +458,7 @@ export default function ProjectDetailPage() {
                 min={today}
                 value={taskForm.dueDate}
                 onChange={(e) => setTaskForm((f) => ({ ...f, dueDate: e.target.value }))}
-                className="w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
             <div>
@@ -480,20 +480,20 @@ export default function ProjectDetailPage() {
               </div>
             </div>
             {taskError && (
-              <div className="rounded-xl bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">{taskError}</div>
+              <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">{taskError}</div>
             )}
             <div className="flex gap-2">
               <button
                 type="submit"
                 disabled={saving}
-                className="rounded-xl bg-indigo-600 px-4 py-2.5 font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60"
+                className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60"
               >
                 {saving ? "Creando..." : "Crear tarea"}
               </button>
               <button
                 type="button"
                 onClick={() => { setShowNewTask(false); setTaskError(""); }}
-                className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
               >
                 Cancelar
               </button>
@@ -503,8 +503,8 @@ export default function ProjectDetailPage() {
       )}
 
       {editingTaskId && taskEditForm && (
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Editar tarea</h2>
+        <div className="content-card p-6">
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Editar tarea</h2>
           <form onSubmit={handleSaveTask} className="mt-4 flex max-w-lg flex-col gap-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Título</label>
@@ -513,7 +513,7 @@ export default function ProjectDetailPage() {
                 required
                 value={taskEditForm.title}
                 onChange={(e) => setTaskEditForm((f) => ({ ...f, title: e.target.value }))}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
             <div>
@@ -522,7 +522,7 @@ export default function ProjectDetailPage() {
                 value={taskEditForm.description}
                 onChange={(e) => setTaskEditForm((f) => ({ ...f, description: e.target.value }))}
                 rows={2}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
             <div>
@@ -530,7 +530,7 @@ export default function ProjectDetailPage() {
               <select
                 value={taskEditForm.assigneeId}
                 onChange={(e) => setTaskEditForm((f) => ({ ...f, assigneeId: e.target.value }))}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               >
                 <option value="">Sin asignar</option>
                 {users.map((u) => (
@@ -546,7 +546,7 @@ export default function ProjectDetailPage() {
                   min={today}
                   value={taskEditForm.dueDate}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, dueDate: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
               <div>
@@ -557,7 +557,7 @@ export default function ProjectDetailPage() {
                   max={100}
                   value={taskEditForm.progress}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, progress: Number(e.target.value) || 0 }))}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
             </div>
@@ -567,7 +567,7 @@ export default function ProjectDetailPage() {
                 <select
                   value={taskEditForm.priority}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, priority: e.target.value }))}
-                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 >
                   {PRIORITIES.map((p) => (
                     <option key={p.value} value={p.value}>{p.label}</option>
@@ -579,7 +579,7 @@ export default function ProjectDetailPage() {
                 <select
                   value={taskEditForm.status}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, status: e.target.value }))}
-                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 >
                   {TASK_STATUSES.map((s) => (
                     <option key={s.value} value={s.value}>{s.label}</option>
@@ -587,12 +587,12 @@ export default function ProjectDetailPage() {
                 </select>
               </div>
             </div>
-            {saveError && <div className="rounded-xl bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">{saveError}</div>}
+            {saveError && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">{saveError}</div>}
             <div className="flex gap-2">
-              <button type="submit" disabled={saving} className="rounded-xl bg-indigo-600 px-4 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-60">
+              <button type="submit" disabled={saving} className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60">
                 {saving ? "Guardando..." : "Guardar"}
               </button>
-              <button type="button" onClick={() => { setEditingTaskId(null); setTaskEditForm(null); setSaveError(""); }} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+              <button type="button" onClick={() => { setEditingTaskId(null); setTaskEditForm(null); setSaveError(""); }} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
                 Cancelar
               </button>
             </div>
@@ -601,8 +601,8 @@ export default function ProjectDetailPage() {
       )}
 
       {tasks.length > 0 && (
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Tareas del proyecto ({tasks.length})</h2>
+        <div className="content-card p-6">
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Tareas del proyecto ({tasks.length})</h2>
           <div className="mt-4 space-y-3">
             {tasks.map((t) => {
               const canEditTask = isAdmin || (user?.id && (t.assigneeId === user.id || t.assignee?.id === user.id));
@@ -610,7 +610,7 @@ export default function ProjectDetailPage() {
               const due = t.dueDate || t.due_date;
               const progress = Number(t.progress) || 0;
               return (
-                <div key={t.id} className="rounded-xl border border-slate-200/80 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 overflow-hidden">
+                <div key={t.id} className="rounded-lg border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
                   <button
                     type="button"
                     onClick={() => toggleExpandTask(t.id)}
@@ -618,7 +618,7 @@ export default function ProjectDetailPage() {
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <span className="text-xs text-slate-400 dark:text-slate-500">{isExpanded ? "▼" : "▶"}</span>
-                      <span className="font-medium text-slate-800 dark:text-slate-100 truncate">{t.title}</span>
+                      <span className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{t.title}</span>
                       <span className="text-sm text-slate-500 dark:text-slate-400 shrink-0">
                         {t.assignee?.name ? `→ ${t.assignee.name}` : "Sin asignar"}
                       </span>
@@ -719,7 +719,7 @@ export default function ProjectDetailPage() {
                               placeholder="Escribe un comentario..."
                               value={newComment}
                               onChange={(e) => setNewComment(e.target.value)}
-                              className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+                              className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                             />
                             <button type="submit" disabled={sendingComment || !newComment.trim()} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60">
                               {sendingComment ? "..." : "Enviar"}
