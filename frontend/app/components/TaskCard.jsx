@@ -9,7 +9,7 @@ const priorityStyles = {
   low: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
 };
 
-export default function TaskCard({ task, statuses, onMove, isDragging, currentUser, onEditTask }) {
+export default function TaskCard({ task, statuses, onMove, isDragging, currentUser, onEditTask, onDeleteTask }) {
   const priorityKey = (task.priority || "medium").toLowerCase();
   const priorityClass = priorityStyles[priorityKey] || priorityStyles.medium;
   const progress = Number(task.progress) || 0;
@@ -38,16 +38,28 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
     >
       <div className="flex items-start justify-between gap-2">
         <p className="text-sm font-medium text-slate-800 dark:text-slate-100 min-w-0 flex-1">{task.title}</p>
-        {canEdit && (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEditTask(task); }}
-            className="shrink-0 rounded-md bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold text-indigo-600 transition hover:bg-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:hover:bg-indigo-500/30"
-            title="Editar tarea"
-          >
-            Editar
-          </button>
-        )}
+        <div className="flex items-center gap-1 shrink-0">
+          {canEdit && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEditTask(task); }}
+              className="rounded-md bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold text-indigo-600 transition hover:bg-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:hover:bg-indigo-500/30"
+              title="Editar tarea"
+            >
+              Editar
+            </button>
+          )}
+          {isAdmin && onDeleteTask && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); onDeleteTask(task); }}
+              className="rounded-md bg-red-50 p-1 text-red-500 transition hover:bg-red-100 hover:text-red-700 dark:bg-red-500/15 dark:text-red-400 dark:hover:bg-red-500/25"
+              title="Eliminar tarea"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {task.description && (

@@ -210,13 +210,12 @@ export async function unlock(req: Request, res: Response, next: NextFunction) {
 
 export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
-    const { companyId, id: userId, role } = req.user!;
+    const { companyId, role } = req.user!;
     const taskId = typeof req.params.id === "string" ? req.params.id : req.params.id?.[0];
     if (!taskId) return res.status(400).json({ message: "Invalid task id" });
 
-    const existing = await service.getTaskById({ companyId, taskId });
-    if (!canEditTask(existing, userId, role)) {
-      return res.status(403).json({ message: "Solo el responsable de la tarea o un administrador pueden borrarla" });
+    if (String(role).toUpperCase() !== "ADMIN") {
+      return res.status(403).json({ message: "Solo los administradores pueden eliminar tareas" });
     }
 
     await service.deleteTask({ companyId, taskId });
