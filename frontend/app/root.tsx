@@ -46,6 +46,7 @@ function AppShell() {
     { to: "/my-tasks", label: "Mis tareas" },
     { to: "/projects", label: "Proyectos" },
     { to: "/users", label: "Usuarios", hide: isGuest },
+    { to: "/import", label: "Importar CSV", hide: isGuest },
   ];
   const navItems = allNavItems.filter((item) => !item.hide);
 

@@ -43,6 +43,11 @@ export default [
     file: "./pages/UsersPage.jsx",
   },
   {
+    path: "/import",
+    id: "import",
+    file: "./pages/ImportPage.jsx",
+  },
+  {
     path: "*",
     id: "404",
     file: "./pages/NotFoundPage.jsx",
