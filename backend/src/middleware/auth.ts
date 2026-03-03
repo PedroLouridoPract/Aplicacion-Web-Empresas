@@ -19,11 +19,18 @@ declare global {
 
 export function authRequired(req: Request, res: Response, next: NextFunction) {
   const header = req.headers.authorization;
-  if (!header?.startsWith("Bearer ")) {
+  let token: string | undefined;
+
+  if (header?.startsWith("Bearer ")) {
+    token = header.slice("Bearer ".length);
+  } else if (typeof req.query.token === "string" && req.query.token) {
+    token = req.query.token;
+  }
+
+  if (!token) {
     return res.status(401).json({ message: "Missing Bearer token" });
   }
 
-  const token = header.slice("Bearer ".length);
   try {
     const payload = jwt.verify(token, env.JWT_SECRET) as AuthUser;
     req.user = payload;

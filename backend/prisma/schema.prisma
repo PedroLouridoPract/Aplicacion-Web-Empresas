@@ -52,6 +52,7 @@ model User {
   lockedTasks     Task[]           @relation("TaskLocker")
   comments        Comment[]
   notifications   Notification[]
+  attachments     Attachment[]
 }
 
 model Project {
@@ -102,9 +103,25 @@ model Task {
   updatedAt    DateTime   @updatedAt
 
   comments     Comment[]
+  attachments  Attachment[]
 
   @@index([companyId, projectId, status, orderIndex])
   @@index([companyId, assigneeId, dueDate])
+}
+
+model Attachment {
+  id           String   @id @default(cuid())
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  originalName String
+  mimeType     String
+  size         Int
+  data         Bytes
+  uploadedById String?
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@index([taskId])
 }
 
 model Comment {

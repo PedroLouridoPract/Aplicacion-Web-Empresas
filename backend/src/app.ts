@@ -13,6 +13,7 @@ import { dashboardRoutes } from "./modules/dashboard/dashboard.routes";
 import { commentsRoutes } from "./modules/comments/comments.routes";
 import { importRoutes } from "./modules/import/import.routes";
 import { notificationsRoutes } from "./modules/notifications/notifications.routes";
+import { attachmentsRoutes } from "./modules/attachments/attachments.routes";
 
 export const app = express();
 
@@ -32,6 +33,7 @@ app.use("/dashboard", dashboardRoutes);
 app.use("/comments", commentsRoutes);
 app.use("/import", importRoutes);
 app.use("/notifications", notificationsRoutes);
+app.use(attachmentsRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

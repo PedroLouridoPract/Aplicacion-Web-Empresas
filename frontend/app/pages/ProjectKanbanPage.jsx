@@ -51,6 +51,7 @@ export default function ProjectKanbanPage() {
     assigneeId: "",
     dueDate: "",
     priority: "MEDIUM",
+    files: [],
   });
   const [saving, setSaving] = useState(false);
   const [taskError, setTaskError] = useState("");
@@ -111,7 +112,7 @@ export default function ProjectKanbanPage() {
     setTaskError("");
     setSaving(true);
     try {
-      await apiFetch("/tasks", {
+      const task = await apiFetch("/tasks", {
         method: "POST",
         body: JSON.stringify({
           projectId: id,
@@ -122,7 +123,14 @@ export default function ProjectKanbanPage() {
           priority: taskForm.priority,
         }),
       });
-      setTaskForm({ title: "", description: "", assigneeId: "", dueDate: "", priority: "MEDIUM" });
+
+      if (taskForm.files.length > 0) {
+        const fd = new FormData();
+        for (const f of taskForm.files) fd.append("files", f);
+        await apiFetch(`/tasks/${task.id}/attachments`, { method: "POST", body: fd });
+      }
+
+      setTaskForm({ title: "", description: "", assigneeId: "", dueDate: "", priority: "MEDIUM", files: [] });
       setShowNewTask(false);
       await load();
     } catch (err) {
@@ -189,6 +197,16 @@ export default function ProjectKanbanPage() {
       setEditError(err.message || "Error al guardar la tarea");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDeleteTask(task) {
+    if (!confirm(`¿Eliminar la tarea "${task.title}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await apiFetch(`/tasks/${task.id}`, { method: "DELETE" });
+      await load();
+    } catch (err) {
+      alert(err.message || "Error al eliminar la tarea");
     }
   }
 
@@ -487,6 +505,40 @@ export default function ProjectKanbanPage() {
                   ))}
                 </select>
               </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Archivos adjuntos</label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    multiple
+                    onChange={(e) => setTaskForm((f) => ({ ...f, files: [...f.files, ...Array.from(e.target.files || [])] }))}
+                    className="w-full rounded-lg border border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50 px-4 py-3 text-sm text-slate-600 dark:text-slate-300 file:mr-3 file:rounded-md file:border-0 file:bg-indigo-50 file:px-3 file:py-1 file:text-sm file:font-medium file:text-indigo-600 dark:file:bg-indigo-500/20 dark:file:text-indigo-400 hover:file:bg-indigo-100 dark:hover:file:bg-indigo-500/30 cursor-pointer"
+                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip,.rar"
+                  />
+                </div>
+                {taskForm.files.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {taskForm.files.map((f, i) => (
+                      <span key={i} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 px-2.5 py-1 text-xs text-slate-700 dark:text-slate-200">
+                        {f.type?.startsWith("image/") ? (
+                          <svg className="h-3.5 w-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        ) : (
+                          <svg className="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                        )}
+                        <span className="max-w-[120px] truncate">{f.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => setTaskForm((prev) => ({ ...prev, files: prev.files.filter((_, idx) => idx !== i) }))}
+                          className="ml-0.5 text-slate-400 hover:text-red-500"
+                        >
+                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Máx. 10 MB por archivo. Imágenes, PDF, Office, CSV, ZIP.</p>
+              </div>
               {taskError && (
                 <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">{taskError}</div>
               )}
@@ -532,6 +584,7 @@ export default function ProjectKanbanPage() {
                 activeId={activeId}
                 currentUser={user}
                 onEditTask={startEditTask}
+                onDeleteTask={handleDeleteTask}
               />
             ))}
           </div>

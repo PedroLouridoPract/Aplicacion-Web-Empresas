@@ -26,6 +26,17 @@ const taskSelect = {
   assignee: {
     select: { id: true, name: true, email: true, role: true, avatarUrl: true },
   },
+  attachments: {
+    select: {
+      id: true,
+      originalName: true,
+      mimeType: true,
+      size: true,
+      createdAt: true,
+      uploadedBy: { select: { id: true, name: true } },
+    },
+    orderBy: { createdAt: "desc" as const },
+  },
 };
 
 export async function moveTask(params: {
@@ -161,6 +172,7 @@ export async function updateTask(params: {
 
 export async function deleteTask(params: { companyId: string; taskId: string }) {
   await getTaskById({ companyId: params.companyId, taskId: params.taskId });
+  await prisma.attachment.deleteMany({ where: { taskId: params.taskId } });
   await prisma.comment.deleteMany({ where: { taskId: params.taskId, companyId: params.companyId } });
   await prisma.task.delete({ where: { id: params.taskId } });
 }
