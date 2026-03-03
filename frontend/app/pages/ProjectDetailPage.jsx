@@ -154,17 +154,34 @@ export default function ProjectDetailPage() {
     }
   }
 
-  function startEditTask(t) {
-    setEditingTaskId(t.id);
-    setTaskEditForm({
-      title: t.title || "",
-      description: t.description || "",
-      assigneeId: t.assigneeId || t.assignee?.id || "",
-      dueDate: t.dueDate || t.due_date ? (t.dueDate || t.due_date).slice(0, 10) : "",
-      priority: (t.priority || "MEDIUM").toUpperCase(),
-      status: (t.status || "BACKLOG").toUpperCase().replace("-", "_"),
-      progress: Number(t.progress) || 0,
-    });
+  const [lockError, setLockError] = useState("");
+
+  async function startEditTask(t) {
+    setLockError("");
+    setSaveError("");
+    try {
+      await apiFetch(`/tasks/${t.id}/lock`, { method: "POST" });
+      setEditingTaskId(t.id);
+      setTaskEditForm({
+        title: t.title || "",
+        description: t.description || "",
+        assigneeId: t.assigneeId || t.assignee?.id || "",
+        dueDate: t.dueDate || t.due_date ? (t.dueDate || t.due_date).slice(0, 10) : "",
+        priority: (t.priority || "MEDIUM").toUpperCase(),
+        status: (t.status || "BACKLOG").toUpperCase().replace("-", "_"),
+        progress: Number(t.progress) || 0,
+      });
+    } catch (err) {
+      setLockError(err.message || "No se pudo bloquear la tarea para edición");
+    }
+  }
+
+  async function cancelEditTask() {
+    if (editingTaskId) {
+      try { await apiFetch(`/tasks/${editingTaskId}/lock`, { method: "DELETE" }); } catch {}
+    }
+    setEditingTaskId(null);
+    setTaskEditForm(null);
     setSaveError("");
   }
 
@@ -186,6 +203,7 @@ export default function ProjectDetailPage() {
           progress: taskEditForm.progress,
         }),
       });
+      try { await apiFetch(`/tasks/${editingTaskId}/lock`, { method: "DELETE" }); } catch {}
       setEditingTaskId(null);
       setTaskEditForm(null);
       const [projRes, tasksRes] = await Promise.all([
@@ -536,27 +554,29 @@ export default function ProjectDetailPage() {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Prioridad</label>
-                  <select value={taskEditForm.priority} onChange={(e) => setTaskEditForm((f) => ({ ...f, priority: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
-                    {PRIORITIES.map((p) => (<option key={p.value} value={p.value}>{p.label}</option>))}
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Estado</label>
-                  <select value={taskEditForm.status} onChange={(e) => setTaskEditForm((f) => ({ ...f, status: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
-                    {TASK_STATUSES.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
-                  </select>
-                </div>
-              </div>
-              {saveError && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{saveError}</div>}
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => { setEditingTaskId(null); setTaskEditForm(null); setSaveError(""); }} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
-                <button type="submit" disabled={saving} className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-60">{saving ? "Guardando..." : "Guardar"}</button>
-              </div>
-            </form>
-          </div>
+            </div>
+            {saveError && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">{saveError}</div>}
+            <div className="flex gap-2">
+              <button type="submit" disabled={saving} className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60">
+                {saving ? "Guardando..." : "Guardar"}
+              </button>
+              <button type="button" onClick={cancelEditTask} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {lockError && (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-500/30 dark:bg-amber-500/10">
+          <svg className="h-5 w-5 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <p className="text-sm font-medium text-amber-800 dark:text-amber-300">{lockError}</p>
+          <button type="button" onClick={() => setLockError("")} className="ml-auto text-amber-600 hover:text-amber-800 dark:text-amber-400">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
         </div>
       )}
 
@@ -669,6 +689,7 @@ export default function ProjectDetailPage() {
               <p className="py-6 text-center text-sm text-slate-400 dark:text-slate-500">No se encontraron tareas con los filtros aplicados</p>
             ) : sortedTasks.map((t) => {
               const canEditTask = isAdmin || (user?.id && (t.assigneeId === user.id || t.assignee?.id === user.id));
+              const isLockedByOther = t.lockedById && t.lockedById !== user?.id && t.lockedAt && (Date.now() - new Date(t.lockedAt).getTime() < 5 * 60 * 1000);
               const isExpanded = expandedTaskId === t.id;
               const due = t.dueDate || t.due_date;
               const isDone = (t.status || "").toUpperCase() === "DONE";
@@ -691,7 +712,17 @@ export default function ProjectDetailPage() {
                       <span className="rounded-full bg-slate-200 dark:bg-slate-600 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200">
                         {statusLabel(t.status)}
                       </span>
-                      {canEditTask && (
+                      {isLockedByOther ? (
+                        <span
+                          className="flex items-center gap-1 rounded-lg border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-700 dark:text-amber-400"
+                          title={`Siendo editada por ${t.lockedBy?.name || "otro usuario"}`}
+                        >
+                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                          {t.lockedBy?.name || "En uso"}
+                        </span>
+                      ) : canEditTask && (
                         <span
                           role="button"
                           tabIndex={0}

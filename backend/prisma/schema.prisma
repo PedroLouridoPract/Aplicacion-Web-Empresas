@@ -49,6 +49,7 @@ model User {
   createdAt    DateTime @default(now())
 
   assignedTasks Task[]   @relation("TaskAssignee")
+  lockedTasks   Task[]   @relation("TaskLocker")
   comments      Comment[]
 }
 
@@ -91,6 +92,10 @@ model Task {
   status       TaskStatus @default(BACKLOG)
   progress     Int        @default(0)
   orderIndex   Int        @default(1000)
+
+  lockedById   String?
+  lockedBy     User?      @relation("TaskLocker", fields: [lockedById], references: [id])
+  lockedAt     DateTime?
 
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt

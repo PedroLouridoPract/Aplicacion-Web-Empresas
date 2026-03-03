@@ -17,6 +17,7 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
   const isAdmin = currentUser?.role && String(currentUser.role).toUpperCase() === "ADMIN";
   const isAssignee = currentUser?.id && assigneeId === currentUser.id;
   const canEdit = onEditTask && (isAdmin || isAssignee);
+  const isLockedByOther = task.lockedById && task.lockedById !== currentUser?.id && task.lockedAt && (Date.now() - new Date(task.lockedAt).getTime() < 5 * 60 * 1000);
 
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: String(task.id),
@@ -37,7 +38,17 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
     >
       <div className="flex items-start justify-between gap-2">
         <p className="text-sm font-medium text-slate-800 dark:text-slate-100 min-w-0 flex-1">{task.title}</p>
-        {canEdit && (
+        {isLockedByOther ? (
+          <span
+            className="flex shrink-0 items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-600 dark:bg-amber-500/15 dark:text-amber-400"
+            title={`Siendo editada por ${task.lockedBy?.name || "otro usuario"}`}
+          >
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            {task.lockedBy?.name || "En uso"}
+          </span>
+        ) : canEdit && (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEditTask(task); }}
