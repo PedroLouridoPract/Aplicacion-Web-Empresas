@@ -3,9 +3,13 @@ import { prisma } from "../../db/prisma";
 const taskSelect = {
   id: true,
   title: true,
+  summary: true,
   description: true,
   assigneeId: true,
+  creatorName: true,
+  reporterName: true,
   dueDate: true,
+  resolvedAt: true,
   priority: true,
   status: true,
   progress: true,
@@ -33,7 +37,13 @@ export async function moveTask(params: {
 
   return prisma.task.update({
     where: { id: params.taskId },
-    data: { status: params.status, orderIndex: params.orderIndex },
+    data: {
+      status: params.status,
+      orderIndex: params.orderIndex,
+      ...(params.status === "DONE"
+        ? { progress: 100, resolvedAt: new Date() }
+        : { resolvedAt: null }),
+    },
     select: taskSelect,
   });
 }
@@ -99,20 +109,7 @@ export async function listTasksAssignedToMe(params: { companyId: string; userId:
   return prisma.task.findMany({
     where: { companyId: params.companyId, assigneeId: params.userId },
     select: {
-      id: true,
-      title: true,
-      description: true,
-      assigneeId: true,
-      dueDate: true,
-      priority: true,
-      status: true,
-      progress: true,
-      orderIndex: true,
-      projectId: true,
-      companyId: true,
-      createdAt: true,
-      updatedAt: true,
-      assignee: { select: { id: true, name: true, email: true, role: true } },
+      ...taskSelect,
       project: { select: { id: true, name: true } },
     },
     orderBy: [{ dueDate: "asc" }, { updatedAt: "desc" }],
@@ -142,9 +139,17 @@ export async function updateTask(params: {
     if (!assignee) throw Object.assign(new Error("El usuario asignado no existe en tu empresa"), { statusCode: 400 });
   }
 
+  const data: Record<string, unknown> = { ...params.data };
+  if (data.status === "DONE") {
+    data.progress = 100;
+    data.resolvedAt = new Date();
+  } else if (data.status) {
+    data.resolvedAt = null;
+  }
+
   return prisma.task.update({
     where: { id: params.taskId },
-    data: params.data,
+    data,
     select: taskSelect,
   });
 }

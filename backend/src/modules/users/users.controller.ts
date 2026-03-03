@@ -51,6 +51,8 @@ export async function update(req: Request, res: Response, next: NextFunction) {
       data: {
         ...(role != null && { role }),
         ...(parsed.name != null && { name: parsed.name }),
+        ...(parsed.email != null && { email: parsed.email }),
+        ...(parsed.password != null && { password: parsed.password }),
       },
     });
     res.json(user);

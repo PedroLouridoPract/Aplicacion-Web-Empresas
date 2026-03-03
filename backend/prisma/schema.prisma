@@ -41,8 +41,8 @@ model User {
   companyId    String
   company      Company  @relation(fields: [companyId], references: [id])
   name         String
-  email        String   @unique
-  passwordHash String
+  email        String?  @unique
+  passwordHash String   @default("")
   role         Role     @default(MEMBER)
   createdAt    DateTime @default(now())
 
@@ -56,6 +56,7 @@ model Project {
   company     Company  @relation(fields: [companyId], references: [id])
   name        String
   description String?
+  leadName    String?
   startDate   DateTime?
   endDate     DateTime?
   status      String   @default("ACTIVE")
@@ -67,45 +68,51 @@ model Project {
 }
 
 model Task {
-  id          String     @id @default(cuid())
-  companyId   String
-  company     Company    @relation(fields: [companyId], references: [id])
-  projectId   String
-  project     Project    @relation(fields: [projectId], references: [id])
+  id           String     @id @default(cuid())
+  companyId    String
+  company      Company    @relation(fields: [companyId], references: [id])
+  projectId    String
+  project      Project    @relation(fields: [projectId], references: [id])
 
-  title       String
-  description String?
-  assigneeId  String?
-  assignee    User?      @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  title        String
+  summary      String?
+  description  String?
+  assigneeId   String?
+  assignee     User?      @relation("TaskAssignee", fields: [assigneeId], references: [id])
 
-  dueDate     DateTime?
-  priority    Priority   @default(MEDIUM)
-  status      TaskStatus @default(BACKLOG)
-  progress    Int        @default(0) // 0..100
-  orderIndex  Int        @default(1000)
+  creatorName  String?
+  reporterName String?
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  dueDate      DateTime?
+  resolvedAt   DateTime?
+  priority     Priority   @default(MEDIUM)
+  status       TaskStatus @default(BACKLOG)
+  progress     Int        @default(0)
+  orderIndex   Int        @default(1000)
 
-  comments    Comment[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  comments     Comment[]
 
   @@index([companyId, projectId, status, orderIndex])
   @@index([companyId, assigneeId, dueDate])
 }
 
 model Comment {
-  id        String   @id @default(cuid())
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id])
+  id         String   @id @default(cuid())
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id])
 
-  taskId    String
-  task      Task     @relation(fields: [taskId], references: [id])
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id])
 
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
+  authorId   String?
+  author     User?    @relation(fields: [authorId], references: [id])
+  authorName String?
 
-  body      String
-  createdAt DateTime @default(now())
+  body       String
+  createdAt  DateTime @default(now())
 
   @@index([companyId, taskId])
 }

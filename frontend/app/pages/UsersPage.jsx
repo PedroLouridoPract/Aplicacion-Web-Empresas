@@ -271,17 +271,24 @@ export default function UsersPage() {
             </div>
           )}
         </div>
-
-        {/* Selected user detail panel */}
-        {selectedUser && (
-          <div className="hidden w-80 shrink-0 lg:block">
-            <div className="content-card p-6">
-              <div className="flex flex-col items-center text-center">
-                <Avatar name={selectedUser.name} size="lg" />
-                <h3 className="mt-3 text-base font-semibold text-slate-800 dark:text-slate-100">{selectedUser.name}</h3>
-                <span className={`mt-1.5 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${roleStyles[(selectedUser.role || "").toLowerCase()] || roleStyles.member}`}>
-                  {roleLabels[(selectedUser.role || "").toLowerCase()] || selectedUser.role}
-                </span>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {users.map((u) => {
+            const isSelf = user?.id === u.id;
+            return (
+            <div
+              key={u.id}
+              className={`flex flex-wrap items-center gap-4 rounded-2xl border bg-white dark:bg-slate-800 p-5 shadow-sm transition hover:shadow-md ${isSelf ? "border-indigo-200 dark:border-indigo-500/30 ring-1 ring-indigo-100 dark:ring-indigo-500/20" : "border-slate-200/80 dark:border-slate-700"}`}
+            >
+              <Avatar name={u.name} />
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-800 dark:text-slate-100">
+                  {u.name}
+                  {isSelf && <span className="ml-1.5 text-xs font-normal text-indigo-500 dark:text-indigo-400">(Tú)</span>}
+                </p>
+                <p className="truncate text-sm text-slate-500 dark:text-slate-400">
+                  {u.email || <span className="italic text-amber-500 dark:text-amber-400">Sin email asignado</span>}
+                </p>
               </div>
               <div className="mt-6 space-y-4">
                 <div>
