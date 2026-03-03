@@ -41,7 +41,7 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEditTask(task); }}
-            className="shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
+            className="shrink-0 rounded-md bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold text-indigo-600 transition hover:bg-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:hover:bg-indigo-500/30"
             title="Editar tarea"
           >
             Editar
@@ -66,9 +66,14 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
         <span className={`rounded-md px-2 py-0.5 font-medium ${priorityClass}`}>
           {(task.priority || "medium").toLowerCase()}
         </span>
-        <span className="text-slate-400 dark:text-slate-500">
-          {task.due_date || task.dueDate ? new Date(task.due_date || task.dueDate).toLocaleDateString("es-ES", { day: "2-digit", month: "short" }) : "—"}
+        <span className="text-amber-600 dark:text-amber-400 font-medium" title="Fecha límite">
+          {task.due_date || task.dueDate ? new Date(task.due_date || task.dueDate).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
         </span>
+        {task.createdAt && (
+          <span className="text-indigo-500 dark:text-indigo-400 font-medium" title="Fecha de creación">
+            {new Date(task.createdAt).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+          </span>
+        )}
       </div>
 
       <div className="mt-2.5">
