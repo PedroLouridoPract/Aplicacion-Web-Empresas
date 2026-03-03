@@ -12,6 +12,7 @@ import { profileRoutes } from "./modules/users/profile.routes";
 import { dashboardRoutes } from "./modules/dashboard/dashboard.routes";
 import { commentsRoutes } from "./modules/comments/comments.routes";
 import { importRoutes } from "./modules/import/import.routes";
+import { notificationsRoutes } from "./modules/notifications/notifications.routes";
 
 export const app = express();
 
@@ -30,6 +31,7 @@ app.use("/profile", profileRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/comments", commentsRoutes);
 app.use("/import", importRoutes);
+app.use("/notifications", notificationsRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
