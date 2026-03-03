@@ -2,6 +2,7 @@ import React, { useMemo, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
+import Avatar from "../components/Avatar";
 
 const TASK_PRIORITIES = [
   { value: "HIGH", label: "Alta" },
@@ -75,9 +76,7 @@ function TaskRow({ task }) {
       </td>
       <td className="px-5 py-3 overflow-hidden">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 text-[10px] font-bold text-white">
-            {assigneeName.charAt(0).toUpperCase()}
-          </span>
+          <Avatar name={assigneeName} src={task.assignee?.avatarUrl} size="xs" />
           <span className="text-sm text-slate-700 dark:text-slate-200 truncate">{assigneeName}</span>
         </div>
       </td>

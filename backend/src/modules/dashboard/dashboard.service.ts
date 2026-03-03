@@ -87,7 +87,7 @@ export async function getProductivity(params: { companyId: string; projectId?: s
   // Lista de usuarios de la empresa (y con esto armamos la tabla)
   const users = await prisma.user.findMany({
     where: { companyId: params.companyId },
-    select: { id: true, name: true, email: true, role: true },
+    select: { id: true, name: true, email: true, role: true, avatarUrl: true },
     orderBy: { name: "asc" },
   });
 

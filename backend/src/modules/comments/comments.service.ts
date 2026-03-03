@@ -17,7 +17,7 @@ export async function listByTask(params: { companyId: string; taskId: string }) 
     where: { companyId: params.companyId, taskId: params.taskId },
     orderBy: { createdAt: "asc" },
     include: {
-      author: { select: { id: true, name: true, email: true } },
+      author: { select: { id: true, name: true, email: true, avatarUrl: true } },
     },
   });
 }
@@ -38,7 +38,7 @@ export async function create(params: {
       body: params.body,
     },
     include: {
-      author: { select: { id: true, name: true, email: true } },
+      author: { select: { id: true, name: true, email: true, avatarUrl: true } },
     },
   });
 }

@@ -53,9 +53,13 @@ export default function UserMenu() {
         aria-expanded={open}
         aria-haspopup="true"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-semibold text-white shadow-sm">
-          {getInitials(user.name)}
-        </span>
+        {user.avatarUrl ? (
+          <img src={user.avatarUrl} alt={user.name} className="h-9 w-9 shrink-0 rounded-lg object-cover shadow-sm" />
+        ) : (
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-semibold text-white shadow-sm">
+            {getInitials(user.name)}
+          </span>
+        )}
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">{user.name}</p>
           <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</p>

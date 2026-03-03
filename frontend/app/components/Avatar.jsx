@@ -23,8 +23,9 @@ function getColorForName(name) {
 }
 
 const SIZES = {
-  xs: "h-8 w-8 text-xs",
-  sm: "h-9 w-9 text-xs",
+  "2xs": "h-5 w-5 text-[10px]",
+  xs: "h-6 w-6 text-[10px]",
+  sm: "h-8 w-8 text-xs",
   md: "h-10 w-10 text-sm",
   lg: "h-14 w-14 text-lg",
   xl: "h-28 w-28 text-4xl",

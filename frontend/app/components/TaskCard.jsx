@@ -1,6 +1,7 @@
 import React from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import Avatar from "./Avatar";
 
 const priorityStyles = {
   high: "bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300",
@@ -55,9 +56,7 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
 
       {assigneeName && (
         <div className="mt-2 flex items-center gap-1.5">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 text-[10px] font-bold text-white">
-            {assigneeName.charAt(0).toUpperCase()}
-          </span>
+          <Avatar name={assigneeName} src={task.assignee?.avatarUrl} size="2xs" />
           <span className="text-xs text-slate-500 dark:text-slate-400">{assigneeName}</span>
         </div>
       )}

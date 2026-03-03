@@ -10,6 +10,7 @@ export async function listUsersByCompany(companyId: string) {
       email: true,
       phone: true,
       role: true,
+      avatarUrl: true,
       companyId: true,
       createdAt: true,
     },

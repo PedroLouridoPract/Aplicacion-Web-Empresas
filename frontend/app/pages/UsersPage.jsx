@@ -202,7 +202,7 @@ export default function UsersPage() {
                       >
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
-                            <Avatar name={u.name} size="xs" />
+                            <Avatar name={u.name} src={u.avatarUrl} size="sm" />
                             <div>
                               <p className="font-medium text-slate-800 dark:text-slate-100">
                                 {u.name}
@@ -266,7 +266,7 @@ export default function UsersPage() {
           <div className="hidden w-80 shrink-0 lg:block">
             <div className="content-card p-6">
               <div className="flex flex-col items-center text-center">
-                <Avatar name={selectedUser.name} size="lg" />
+                <Avatar name={selectedUser.name} src={selectedUser.avatarUrl} size="lg" />
                 <h3 className="mt-3 text-base font-semibold text-slate-800 dark:text-slate-100">{selectedUser.name}</h3>
                 <span className={`mt-1.5 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${roleStyles[(selectedUser.role || "").toLowerCase()] || roleStyles.member}`}>
                   {roleLabels[(selectedUser.role || "").toLowerCase()] || selectedUser.role}

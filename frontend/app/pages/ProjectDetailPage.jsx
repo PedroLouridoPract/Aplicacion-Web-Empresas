@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
+import Avatar from "../components/Avatar";
 
 const PRIORITIES = [
   { value: "HIGH", label: "Alta" },
@@ -430,51 +431,96 @@ export default function ProjectDetailPage() {
       </div>
 
       {showNewTask && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { setShowNewTask(false); setTaskError(""); }}>
-          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Crear tarea</h3>
-              <button type="button" onClick={() => { setShowNewTask(false); setTaskError(""); }} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+        <div className="content-card p-6">
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Crear tarea</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Añade una tarea al proyecto y asígnala a alguien</p>
+          <form onSubmit={handleCreateTask} className="mt-5 flex flex-col gap-4">
+            <div>
+              <label htmlFor="task-title" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Título *</label>
+              <input
+                id="task-title"
+                type="text"
+                required
+                value={taskForm.title}
+                onChange={(e) => setTaskForm((f) => ({ ...f, title: e.target.value }))}
+                placeholder="Ej: Revisar maquetas"
+                className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
+            <div>
+              <label htmlFor="task-desc" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Descripción</label>
+              <textarea
+                id="task-desc"
+                value={taskForm.description}
+                onChange={(e) => setTaskForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="Opcional"
+                rows={2}
+                className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
+            <div>
+              <label htmlFor="task-assignee" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Asignar a</label>
+              <select
+                id="task-assignee"
+                value={taskForm.assigneeId}
+                onChange={(e) => setTaskForm((f) => ({ ...f, assigneeId: e.target.value }))}
+                className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              >
+                <option value="">Sin asignar</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name} {u.email ? `(${u.email})` : ""}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="task-due" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Fecha límite</label>
+              <input
+                id="task-due"
+                type="date"
+                min={today}
+                value={taskForm.dueDate}
+                onChange={(e) => setTaskForm((f) => ({ ...f, dueDate: e.target.value }))}
+                className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Prioridad</label>
+              <div className="flex gap-2">
+                {PRIORITIES.map((p) => (
+                  <label key={p.value} className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="radio"
+                      name="priority"
+                      value={p.value}
+                      checked={taskForm.priority === p.value}
+                      onChange={(e) => setTaskForm((f) => ({ ...f, priority: e.target.value }))}
+                      className="text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span className="text-sm text-slate-700 dark:text-slate-200">{p.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            {taskError && (
+              <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">{taskError}</div>
+            )}
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={saving}
+                className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60"
+              >
+                {saving ? "Creando..." : "Crear tarea"}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowNewTask(false); setTaskError(""); }}
+                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+              >
+                Cancelar
               </button>
             </div>
-            <form onSubmit={handleCreateTask} className="flex flex-col gap-4">
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Título *</label>
-                <input type="text" required value={taskForm.title} onChange={(e) => setTaskForm((f) => ({ ...f, title: e.target.value }))} placeholder="Ej: Revisar maquetas" className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Descripción</label>
-                <textarea value={taskForm.description} onChange={(e) => setTaskForm((f) => ({ ...f, description: e.target.value }))} placeholder="Opcional" rows={2} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Asignar a</label>
-                <select value={taskForm.assigneeId} onChange={(e) => setTaskForm((f) => ({ ...f, assigneeId: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
-                  <option value="">Sin asignar</option>
-                  {users.map((u) => (<option key={u.id} value={u.id}>{u.name} {u.email ? `(${u.email})` : ""}</option>))}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha límite</label>
-                  <input type="date" min={today} value={taskForm.dueDate} onChange={(e) => setTaskForm((f) => ({ ...f, dueDate: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Prioridad</label>
-                  <select value={taskForm.priority} onChange={(e) => setTaskForm((f) => ({ ...f, priority: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
-                    {PRIORITIES.map((p) => (<option key={p.value} value={p.value}>{p.label}</option>))}
-                  </select>
-                </div>
-              </div>
-              {taskError && (
-                <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{taskError}</div>
-              )}
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => { setShowNewTask(false); setTaskError(""); }} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
-                <button type="submit" disabled={saving} className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-60">{saving ? "Creando..." : "Crear tarea"}</button>
-              </div>
-            </form>
-          </div>
+          </form>
         </div>
       )}
 
@@ -815,9 +861,7 @@ export default function ProjectDetailPage() {
                                 <li key={c.id} className="rounded-lg border border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2">
                                   <div className="flex items-center justify-between gap-2">
                                     <div className="flex items-center gap-2">
-                                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
-                                        {authorDisplay.charAt(0).toUpperCase()}
-                                      </span>
+                                      <Avatar name={authorDisplay} src={c.author?.avatarUrl} size="xs" />
                                       <span className="text-xs font-medium text-slate-700 dark:text-slate-200">{authorDisplay}</span>
                                       <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(c.createdAt).toLocaleString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
                                     </div>

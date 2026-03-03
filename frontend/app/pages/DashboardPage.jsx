@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
+import Avatar from "../components/Avatar";
 
 const kpiConfig = [
   {
@@ -380,9 +381,7 @@ export default function DashboardPage() {
                 const pct = Math.round((done / maxDone) * 100);
                 return (
                   <div key={u.id ?? u.user_id ?? u.name} className="flex items-center gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 text-[10px] font-bold text-white">
-                      {(u.name || "?").charAt(0).toUpperCase()}
-                    </span>
+                    <Avatar name={u.name} src={u.avatarUrl} size="xs" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between text-sm">
                         <span className="truncate font-medium text-slate-700 dark:text-slate-200">{u.name}</span>
@@ -416,9 +415,7 @@ export default function DashboardPage() {
                 const inProgress = m.inProgressNow ?? m.in_progress ?? 0;
                 return (
                   <div key={u.id ?? u.user_id ?? u.name} className="flex items-center gap-3 rounded-lg px-2 py-1.5 transition hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 text-xs font-bold text-white">
-                      {(u.name || "?").charAt(0).toUpperCase()}
-                    </span>
+                    <Avatar name={u.name} src={u.avatarUrl} size="sm" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">{u.name}</p>
                       <p className="text-xs text-slate-400 dark:text-slate-500">

@@ -95,7 +95,7 @@ const taskSelect = {
   createdAt: true,
   updatedAt: true,
   assignee: {
-    select: { id: true, name: true, email: true, role: true },
+    select: { id: true, name: true, email: true, role: true, avatarUrl: true },
   },
 };
 
