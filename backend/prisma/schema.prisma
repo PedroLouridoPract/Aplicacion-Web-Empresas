@@ -48,9 +48,10 @@ model User {
   role         Role     @default(MEMBER)
   createdAt    DateTime @default(now())
 
-  assignedTasks Task[]   @relation("TaskAssignee")
-  lockedTasks   Task[]   @relation("TaskLocker")
-  comments      Comment[]
+  assignedTasks   Task[]           @relation("TaskAssignee")
+  lockedTasks     Task[]           @relation("TaskLocker")
+  comments        Comment[]
+  notifications   Notification[]
 }
 
 model Project {
@@ -122,4 +123,16 @@ model Comment {
   createdAt  DateTime @default(now())
 
   @@index([companyId, taskId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  message   String
+  taskId    String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read, createdAt])
 }

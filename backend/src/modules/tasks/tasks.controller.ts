@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { moveTaskSchema, createTaskSchema, updateTaskSchema, assertFutureDate } from "./tasks.schemas";
 import * as service from "./tasks.service";
+import { createNotification } from "../notifications/notifications.service";
 
 function canEditTask(task: { assigneeId: string | null }, userId: string, role: string) {
   const r = String(role).toUpperCase();
@@ -66,6 +67,15 @@ export async function create(req: Request, res: Response, next: NextFunction) {
         progress: parsed.progress,
       },
     });
+
+    if (parsed.assigneeId && parsed.assigneeId !== userId) {
+      createNotification({
+        userId: parsed.assigneeId,
+        message: `Te han asignado la tarea "${parsed.title}"`,
+        taskId: task.id,
+      }).catch(() => {});
+    }
+
     res.status(201).json(task);
   } catch (err) {
     next(err);
@@ -148,6 +158,24 @@ export async function update(req: Request, res: Response, next: NextFunction) {
       taskId,
       data,
     });
+
+    const newAssignee = data.assigneeId as string | undefined | null;
+    if (newAssignee && newAssignee !== existing.assigneeId && newAssignee !== userId) {
+      createNotification({
+        userId: newAssignee,
+        message: `Te han asignado la tarea "${existing.title}"`,
+        taskId,
+      }).catch(() => {});
+    }
+
+    if (newAssignee && newAssignee !== existing.assigneeId && newAssignee === userId) {
+      createNotification({
+        userId: newAssignee,
+        message: `Te has asignado la tarea "${existing.title}"`,
+        taskId,
+      }).catch(() => {});
+    }
+
     res.json(task);
   } catch (err) {
     next(err);
