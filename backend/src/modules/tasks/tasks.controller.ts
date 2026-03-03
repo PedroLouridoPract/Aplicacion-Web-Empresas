@@ -3,7 +3,8 @@ import { moveTaskSchema, createTaskSchema, updateTaskSchema, assertFutureDate } 
 import * as service from "./tasks.service";
 
 function canEditTask(task: { assigneeId: string | null }, userId: string, role: string) {
-  return String(role).toUpperCase() === "ADMIN" || task.assigneeId === userId;
+  const r = String(role).toUpperCase();
+  return r === "ADMIN" || r === "MEMBER";
 }
 
 export async function list(req: Request, res: Response, next: NextFunction) {
@@ -43,9 +44,14 @@ export async function getById(req: Request, res: Response, next: NextFunction) {
 
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
-    const { companyId } = req.user!;
+    const { companyId, id: userId, role } = req.user!;
     const parsed = createTaskSchema.parse(req.body);
     assertFutureDate(parsed.dueDate, "fecha limite");
+
+    if (String(role).toUpperCase() === "MEMBER" && parsed.assigneeId && parsed.assigneeId !== userId) {
+      return res.status(403).json({ message: "Solo puedes asignarte tareas a ti mismo" });
+    }
+
     const dueDate = parsed.dueDate ? new Date(parsed.dueDate) : null;
     const task = await service.createTask({
       companyId,
@@ -107,12 +113,25 @@ export async function update(req: Request, res: Response, next: NextFunction) {
     }
 
     const parsed = updateTaskSchema.parse(req.body);
-    if (parsed.dueDate) assertFutureDate(parsed.dueDate, "fecha limite");
-    const dueDate = parsed.dueDate !== undefined ? (parsed.dueDate ? new Date(parsed.dueDate) : null) : undefined;
-    const task = await service.updateTask({
-      companyId,
-      taskId,
-      data: {
+    const isMember = String(role).toUpperCase() === "MEMBER";
+
+    if (isMember && parsed.assigneeId !== undefined && parsed.assigneeId !== null && parsed.assigneeId !== userId) {
+      return res.status(403).json({ message: "Solo puedes asignar tareas a ti mismo" });
+    }
+
+    let data: Record<string, unknown>;
+
+    if (isMember) {
+      const isAssignee = existing.assigneeId === userId;
+      data = {
+        ...(parsed.assigneeId !== undefined && { assigneeId: parsed.assigneeId }),
+        ...(isAssignee && parsed.status != null && { status: parsed.status }),
+        ...(isAssignee && parsed.progress != null && { progress: parsed.progress }),
+      };
+    } else {
+      if (parsed.dueDate) assertFutureDate(parsed.dueDate, "fecha limite");
+      const dueDate = parsed.dueDate !== undefined ? (parsed.dueDate ? new Date(parsed.dueDate) : null) : undefined;
+      data = {
         ...(parsed.title != null && { title: parsed.title }),
         ...(parsed.description !== undefined && { description: parsed.description }),
         ...(parsed.assigneeId !== undefined && { assigneeId: parsed.assigneeId }),
@@ -121,7 +140,13 @@ export async function update(req: Request, res: Response, next: NextFunction) {
         ...(parsed.status != null && { status: parsed.status }),
         ...(parsed.progress != null && { progress: parsed.progress }),
         ...(parsed.orderIndex != null && { orderIndex: parsed.orderIndex }),
-      },
+      };
+    }
+
+    const task = await service.updateTask({
+      companyId,
+      taskId,
+      data,
     });
     res.json(task);
   } catch (err) {

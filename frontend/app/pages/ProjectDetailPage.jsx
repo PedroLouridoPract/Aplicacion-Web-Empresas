@@ -69,26 +69,27 @@ export default function ProjectDetailPage() {
   const [newComment, setNewComment] = useState("");
   const [sendingComment, setSendingComment] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      setError("");
-      setLoading(true);
-      try {
-        const [projRes, tasksRes, usersRes] = await Promise.all([
-          apiFetch(`/projects/${id}`),
-          apiFetch(`/projects/${id}/tasks`).catch(() => []),
-          apiFetch("/users").catch(() => []),
-        ]);
-        setProject(projRes.project ?? projRes);
-        setTasks(Array.isArray(tasksRes) ? tasksRes : []);
-        setUsers(Array.isArray(usersRes) ? usersRes : (usersRes?.users ?? []));
-      } catch (err) {
-        setError(err.message || "Error cargando proyecto");
-      } finally {
-        setLoading(false);
-      }
+  async function loadData() {
+    setError("");
+    setLoading(true);
+    try {
+      const [projRes, tasksRes, usersRes] = await Promise.all([
+        apiFetch(`/projects/${id}`),
+        apiFetch(`/projects/${id}/tasks`).catch(() => []),
+        apiFetch("/users").catch(() => []),
+      ]);
+      setProject(projRes.project ?? projRes);
+      setTasks(Array.isArray(tasksRes) ? tasksRes : []);
+      setUsers(Array.isArray(usersRes) ? usersRes : (usersRes?.users ?? []));
+    } catch (err) {
+      setError(err.message || "Error cargando proyecto");
+    } finally {
+      setLoading(false);
     }
-    load();
+  }
+
+  useEffect(() => {
+    loadData();
   }, [id]);
 
   async function handleCreateTask(e) {
@@ -478,39 +479,40 @@ export default function ProjectDetailPage() {
       )}
 
       {editingTaskId && taskEditForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { setEditingTaskId(null); setTaskEditForm(null); setSaveError(""); }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={cancelEditTask} onKeyDown={(e) => { if (e.key === "Escape") cancelEditTask(); }} tabIndex={-1} ref={(el) => el?.focus()}>
           <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Editar tarea</h3>
-              <button type="button" onClick={() => { setEditingTaskId(null); setTaskEditForm(null); setSaveError(""); }} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300">
+              <button type="button" onClick={cancelEditTask} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
               </button>
             </div>
             <form onSubmit={handleSaveTask} className="flex flex-col gap-4">
+              {(() => { const memberIsAssignee = !isAdmin && taskEditForm.assigneeId === user?.id; const canEditField = isAdmin; const canEditProgress = isAdmin || memberIsAssignee; return (<>
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Título</label>
-                <input type="text" required value={taskEditForm.title} onChange={(e) => setTaskEditForm((f) => ({ ...f, title: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+                <input type="text" required value={taskEditForm.title} onChange={(e) => setTaskEditForm((f) => ({ ...f, title: e.target.value }))} disabled={!canEditField} className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Descripción</label>
-                <textarea value={taskEditForm.description} onChange={(e) => setTaskEditForm((f) => ({ ...f, description: e.target.value }))} rows={2} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+                <textarea value={taskEditForm.description} onChange={(e) => setTaskEditForm((f) => ({ ...f, description: e.target.value }))} rows={2} disabled={!canEditField} className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Asignar a</label>
                 <select value={taskEditForm.assigneeId} onChange={(e) => setTaskEditForm((f) => ({ ...f, assigneeId: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
                   <option value="">Sin asignar</option>
-                  {users.map((u) => (<option key={u.id} value={u.id}>{u.name}</option>))}
+                  {(isAdmin ? users : users.filter((u) => u.id === user?.id)).map((u) => (<option key={u.id} value={u.id}>{u.name}</option>))}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha límite</label>
-                  <input type="date" min={today} value={taskEditForm.dueDate} onChange={(e) => setTaskEditForm((f) => ({ ...f, dueDate: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+                  <input type="date" min={today} value={taskEditForm.dueDate} onChange={(e) => setTaskEditForm((f) => ({ ...f, dueDate: e.target.value }))} disabled={!canEditField} className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Progreso</label>
                   <div className="flex items-center gap-3">
-                    <input type="range" min={0} max={100} value={taskEditForm.progress} onChange={(e) => setTaskEditForm((f) => ({ ...f, progress: Number(e.target.value) }))} className="flex-1 accent-indigo-600" />
+                    <input type="range" min={0} max={100} value={taskEditForm.progress} onChange={(e) => setTaskEditForm((f) => ({ ...f, progress: Number(e.target.value) }))} disabled={!canEditProgress} className={`flex-1 accent-indigo-600 ${!canEditProgress ? "opacity-60 cursor-not-allowed" : ""}`} />
                     <span className="w-10 text-right text-sm font-semibold text-indigo-600 dark:text-indigo-400">{taskEditForm.progress}%</span>
                   </div>
                 </div>
@@ -518,17 +520,18 @@ export default function ProjectDetailPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Prioridad</label>
-                  <select value={taskEditForm.priority} onChange={(e) => setTaskEditForm((f) => ({ ...f, priority: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                  <select value={taskEditForm.priority} onChange={(e) => setTaskEditForm((f) => ({ ...f, priority: e.target.value }))} disabled={!canEditField} className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`}>
                     {PRIORITIES.map((p) => (<option key={p.value} value={p.value}>{p.label}</option>))}
                   </select>
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Estado</label>
-                  <select value={taskEditForm.status} onChange={(e) => setTaskEditForm((f) => ({ ...f, status: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                  <select value={taskEditForm.status} onChange={(e) => setTaskEditForm((f) => ({ ...f, status: e.target.value }))} disabled={!canEditProgress} className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${!canEditProgress ? "opacity-60 cursor-not-allowed" : ""}`}>
                     {TASK_STATUSES.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
                   </select>
                 </div>
               </div>
+              </>); })()}
               {saveError && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{saveError}</div>}
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={cancelEditTask} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
@@ -540,14 +543,30 @@ export default function ProjectDetailPage() {
       )}
 
       {lockError && (
-        <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-500/30 dark:bg-amber-500/10">
-          <svg className="h-5 w-5 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-          <p className="text-sm font-medium text-amber-800 dark:text-amber-300">{lockError}</p>
-          <button type="button" onClick={() => setLockError("")} className="ml-auto text-amber-600 hover:text-amber-800 dark:text-amber-400">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          onClick={() => setLockError("")}
+          onKeyDown={(e) => { if (e.key === "Escape") setLockError(""); }}
+          tabIndex={-1}
+          ref={(el) => el?.focus()}
+        >
+          <div className="w-full max-w-sm rounded-xl border border-amber-200 dark:border-amber-500/30 bg-white dark:bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex flex-col items-center gap-4 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-500/20">
+                <svg className="h-6 w-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{lockError}</p>
+              <button
+                type="button"
+                onClick={() => setLockError("")}
+                className="rounded-lg bg-amber-500 px-5 py-2 text-sm font-semibold text-white transition hover:bg-amber-600"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -659,8 +678,7 @@ export default function ProjectDetailPage() {
             {sortedTasks.length === 0 ? (
               <p className="py-6 text-center text-sm text-slate-400 dark:text-slate-500">No se encontraron tareas con los filtros aplicados</p>
             ) : sortedTasks.map((t) => {
-              const canEditTask = isAdmin || (user?.id && (t.assigneeId === user.id || t.assignee?.id === user.id));
-              const isLockedByOther = t.lockedById && t.lockedById !== user?.id && t.lockedAt && (Date.now() - new Date(t.lockedAt).getTime() < 5 * 60 * 1000);
+              const canEditTask = isAdmin || role === "MEMBER";
               const isExpanded = expandedTaskId === t.id;
               const due = t.dueDate || t.due_date;
               const isDone = (t.status || "").toUpperCase() === "DONE";
@@ -683,17 +701,7 @@ export default function ProjectDetailPage() {
                       <span className="rounded-full bg-slate-200 dark:bg-slate-600 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200">
                         {statusLabel(t.status)}
                       </span>
-                      {isLockedByOther ? (
-                        <span
-                          className="flex items-center gap-1 rounded-lg border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-700 dark:text-amber-400"
-                          title={`Siendo editada por ${t.lockedBy?.name || "otro usuario"}`}
-                        >
-                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                          </svg>
-                          {t.lockedBy?.name || "En uso"}
-                        </span>
-                      ) : canEditTask && (
+                      {canEditTask && (
                         <span
                           role="button"
                           tabIndex={0}
