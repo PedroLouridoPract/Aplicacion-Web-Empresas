@@ -10,10 +10,14 @@ function taskWhere(params: { companyId: string; projectId?: string }) {
   };
 }
 
-export async function getSummary(params: { companyId: string; projectId?: string }) {
+export async function getSummary(params: { companyId: string; projectId?: string; days?: number }) {
   const now = new Date();
 
-  const baseWhere = taskWhere(params);
+  const baseWhere: Record<string, unknown> = { ...taskWhere(params) };
+  if (params.days) {
+    const from = new Date(now.getTime() - params.days * 24 * 60 * 60 * 1000);
+    baseWhere.createdAt = { gte: from };
+  }
 
   const [totalTasks, overdueTasks, byStatus, byPriority] = await Promise.all([
     prisma.task.count({ where: baseWhere }),
@@ -21,7 +25,7 @@ export async function getSummary(params: { companyId: string; projectId?: string
       where: {
         ...baseWhere,
         status: { not: "DONE" },
-        dueDate: { lt: now },
+        dueDate: { not: null, lt: now },
       },
     }),
     prisma.task.groupBy({
@@ -87,14 +91,17 @@ export async function getProductivity(params: { companyId: string; projectId?: s
     orderBy: { name: "asc" },
   });
 
-  // 1) DONE en ventana (últimos N días) por usuario
+  // 1) DONE en ventana (últimos N días) por usuario — usa resolvedAt si existe, sino updatedAt
   const doneAgg = await prisma.task.groupBy({
     by: ["assigneeId"],
     where: {
       ...baseWhere,
       status: "DONE",
-      updatedAt: { gte: from, lte: now }, // aproximación de "completadas recientemente"
       assigneeId: { not: null },
+      OR: [
+        { resolvedAt: { gte: from, lte: now } },
+        { resolvedAt: null, updatedAt: { gte: from, lte: now } },
+      ],
     },
     _count: { _all: true },
   });
@@ -110,13 +117,13 @@ export async function getProductivity(params: { companyId: string; projectId?: s
     _count: { _all: true },
   });
 
-  // 3) OVERDUE actuales por usuario
+  // 3) OVERDUE actuales por usuario (solo tareas con dueDate definido)
   const overdueAgg = await prisma.task.groupBy({
     by: ["assigneeId"],
     where: {
       ...baseWhere,
       status: { not: "DONE" },
-      dueDate: { lt: now },
+      dueDate: { not: null, lt: now },
       assigneeId: { not: null },
     },
     _count: { _all: true },

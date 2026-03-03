@@ -6,7 +6,10 @@ export async function summary(req: Request, res: Response, next: NextFunction) {
     const { companyId } = req.user!;
     const projectId = typeof req.query.projectId === "string" ? req.query.projectId : undefined;
 
-    const data = await service.getSummary({ companyId, projectId });
+    const daysRaw = typeof req.query.days === "string" ? Number(req.query.days) : undefined;
+    const days = daysRaw && Number.isFinite(daysRaw) && daysRaw > 0 && daysRaw <= 365 ? Math.floor(daysRaw) : undefined;
+
+    const data = await service.getSummary({ companyId, projectId, days });
     const counts = data.counts?.byStatus ?? {};
     res.json({
       ...data,

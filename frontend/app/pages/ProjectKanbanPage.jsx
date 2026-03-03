@@ -56,7 +56,7 @@ export default function ProjectKanbanPage() {
   const [taskEditForm, setTaskEditForm] = useState(null);
   const [editError, setEditError] = useState("");
 
-  const [filters, setFilters] = useState({ priority: "", assignee: "" });
+  const [filters, setFilters] = useState({ priority: "", assignee: "", dateFrom: "", dateTo: "" });
 
   const grouped = useMemo(() => {
     const map = Object.fromEntries(STATUSES.map((s) => [s.key, []]));
@@ -64,6 +64,12 @@ export default function ProjectKanbanPage() {
       if (filters.priority && (t.priority || "").toUpperCase() !== filters.priority) continue;
       if (filters.assignee === "unassigned" && (t.assigneeId || t.assignee?.id) != null) continue;
       if (filters.assignee && filters.assignee !== "unassigned" && String(t.assigneeId ?? t.assignee?.id ?? "") !== filters.assignee) continue;
+      if (filters.dateFrom || filters.dateTo) {
+        const taskDate = t.createdAt ? t.createdAt.slice(0, 10) : null;
+        if (!taskDate) continue;
+        if (filters.dateFrom && taskDate < filters.dateFrom) continue;
+        if (filters.dateTo && taskDate > filters.dateTo) continue;
+      }
       map[t.status]?.push(t);
     }
     for (const k of Object.keys(map)) {
@@ -250,9 +256,23 @@ export default function ProjectKanbanPage() {
             <option key={u.id} value={u.id}>{u.name}</option>
           ))}
         </select>
+        <span className="text-xs text-slate-400 dark:text-slate-500">Desde</span>
+        <input
+          type="date"
+          value={filters.dateFrom}
+          onChange={(e) => setFilters((f) => ({ ...f, dateFrom: e.target.value }))}
+          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+        />
+        <span className="text-xs text-slate-400 dark:text-slate-500">Hasta</span>
+        <input
+          type="date"
+          value={filters.dateTo}
+          onChange={(e) => setFilters((f) => ({ ...f, dateTo: e.target.value }))}
+          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+        />
         <button
           type="button"
-          onClick={() => setFilters({ priority: "", assignee: "" })}
+          onClick={() => setFilters({ priority: "", assignee: "", dateFrom: "", dateTo: "" })}
           className="rounded-lg px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
         >
           Limpiar

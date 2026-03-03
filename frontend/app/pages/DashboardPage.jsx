@@ -79,30 +79,34 @@ export default function DashboardPage() {
   const isAdmin = role === "ADMIN";
 
   const [summary, setSummary] = useState(null);
-  const [prod, setProd] = useState([]);
+  const [prodBar, setProdBar] = useState([]);
+  const [prodArea, setProdArea] = useState([]);
+  const [pieSummary, setPieSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
 
+  const [barPeriod, setBarPeriod] = useState("monthly");
+  const [areaPeriod, setAreaPeriod] = useState("monthly");
+  const [piePeriod, setPiePeriod] = useState("monthly");
+
+  const periodDays = { weekly: 7, monthly: 30, total: 365 };
+
   useEffect(() => {
-    if (booting || !user) {
-      setLoading(false);
-      return;
-    }
-    if (!isAdmin) {
-      setLoading(false);
-      setForbidden(false);
-      return;
-    }
+    if (booting || !user) { setLoading(false); return; }
+    if (!isAdmin) { setLoading(false); setForbidden(false); return; }
     setForbidden(false);
     async function load() {
       setLoading(true);
       try {
         const [s, p] = await Promise.all([
           apiFetch("/dashboard/summary"),
-          apiFetch("/dashboard/productivity"),
+          apiFetch(`/dashboard/productivity?days=30`),
         ]);
         setSummary(s);
-        setProd(Array.isArray(p) ? p : (p?.perUser ?? []));
+        setPieSummary(s);
+        const list = Array.isArray(p) ? p : (p?.perUser ?? []);
+        setProdBar(list);
+        setProdArea(list);
       } catch (err) {
         if (err?.status === 403) setForbidden(true);
       } finally {
@@ -112,19 +116,47 @@ export default function DashboardPage() {
     load();
   }, [booting, user, isAdmin]);
 
+  useEffect(() => {
+    if (!isAdmin || !summary) return;
+    let cancelled = false;
+    apiFetch(`/dashboard/productivity?days=${periodDays[barPeriod]}`)
+      .then((p) => { if (!cancelled) setProdBar(Array.isArray(p) ? p : (p?.perUser ?? [])); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [barPeriod]);
+
+  useEffect(() => {
+    if (!isAdmin || !summary) return;
+    let cancelled = false;
+    apiFetch(`/dashboard/productivity?days=${periodDays[areaPeriod]}`)
+      .then((p) => { if (!cancelled) setProdArea(Array.isArray(p) ? p : (p?.perUser ?? [])); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [areaPeriod]);
+
+  useEffect(() => {
+    if (!isAdmin || !summary) return;
+    let cancelled = false;
+    apiFetch(`/dashboard/summary?days=${periodDays[piePeriod]}`)
+      .then((s) => { if (!cancelled) setPieSummary(s); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [piePeriod]);
+
   const total = summary ? (summary.done ?? 0) + (summary.in_progress ?? 0) + (summary.backlog ?? 0) + (summary.overdue ?? 0) : 0;
 
-  const chartData = summary
+  const pieTotal = pieSummary ? (pieSummary.done ?? 0) + (pieSummary.in_progress ?? 0) + (pieSummary.backlog ?? 0) + (pieSummary.overdue ?? 0) : 0;
+  const chartData = pieSummary
     ? [
-        { name: "Finalizadas", value: summary.done ?? 0 },
-        { name: "En progreso", value: summary.in_progress ?? 0 },
-        { name: "Backlog", value: summary.backlog ?? 0 },
-        { name: "Atrasadas", value: summary.overdue ?? 0 },
+        { name: "Finalizadas", value: pieSummary.done ?? 0 },
+        { name: "En progreso", value: pieSummary.in_progress ?? 0 },
+        { name: "Backlog", value: pieSummary.backlog ?? 0 },
+        { name: "Atrasadas", value: pieSummary.overdue ?? 0 },
       ]
     : [];
 
-  const prodList = Array.isArray(prod) ? prod : [];
-  const prodChartData = prodList.map((item) => {
+  const barList = Array.isArray(prodBar) ? prodBar : [];
+  const prodChartData = barList.map((item) => {
     const u = item.user ?? item;
     const m = item.metrics ?? item;
     return {
@@ -135,7 +167,8 @@ export default function DashboardPage() {
     };
   });
 
-  const areaChartData = prodList.map((item) => {
+  const areaList = Array.isArray(prodArea) ? prodArea : [];
+  const areaChartData = areaList.map((item) => {
     const u = item.user ?? item;
     const m = item.metrics ?? item;
     return {
@@ -144,6 +177,8 @@ export default function DashboardPage() {
       Activas: m.inProgressNow ?? m.in_progress ?? 0,
     };
   });
+
+  const prodList = Array.isArray(prodBar) ? prodBar : [];
 
   if (!isAdmin || forbidden) {
     return <Navigate to="/my-tasks" replace />;
@@ -198,9 +233,16 @@ export default function DashboardPage() {
                 <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Productividad del equipo</h2>
                 <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">Tareas por usuario</p>
               </div>
+              <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                {[{ key: "weekly", label: "Semanal" }, { key: "monthly", label: "Mensual" }, { key: "total", label: "Total" }].map(({ key, label }) => (
+                  <button key={key} type="button" onClick={() => setBarPeriod(key)}
+                    className={`px-2.5 py-1 text-[11px] font-medium transition ${barPeriod === key ? "bg-indigo-600 text-white" : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
+                  >{label}</button>
+                ))}
+              </div>
             </div>
             {prodChartData.length > 0 ? (
-              <div className="mt-4 h-56">
+              <div className="mt-4 h-56" key={barPeriod}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={prodChartData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -227,13 +269,16 @@ export default function DashboardPage() {
                 <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Actividad por miembro</h2>
                 <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">Completadas vs activas</p>
               </div>
-              <div className="flex items-center gap-3 text-xs">
-                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Completadas</span>
-                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-blue-500" /> Activas</span>
+              <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                {[{ key: "weekly", label: "Semanal" }, { key: "monthly", label: "Mensual" }, { key: "total", label: "Total" }].map(({ key, label }) => (
+                  <button key={key} type="button" onClick={() => setAreaPeriod(key)}
+                    className={`px-2.5 py-1 text-[11px] font-medium transition ${areaPeriod === key ? "bg-indigo-600 text-white" : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
+                  >{label}</button>
+                ))}
               </div>
             </div>
             {areaChartData.length > 0 ? (
-              <div className="mt-4 h-56">
+              <div className="mt-4 h-56" key={areaPeriod}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={areaChartData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
                     <defs>
@@ -271,8 +316,15 @@ export default function DashboardPage() {
           <div className="content-card p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Distribución por estado</h2>
+              <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                {[{ key: "weekly", label: "7d" }, { key: "monthly", label: "30d" }, { key: "total", label: "Todo" }].map(({ key, label }) => (
+                  <button key={key} type="button" onClick={() => setPiePeriod(key)}
+                    className={`px-2 py-1 text-[10px] font-medium transition ${piePeriod === key ? "bg-indigo-600 text-white" : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
+                  >{label}</button>
+                ))}
+              </div>
             </div>
-            {chartData.length > 0 && total > 0 ? (
+            {chartData.length > 0 && pieTotal > 0 ? (
               <div className="mt-3 flex items-center gap-4">
                 <div className="h-40 w-40 shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
