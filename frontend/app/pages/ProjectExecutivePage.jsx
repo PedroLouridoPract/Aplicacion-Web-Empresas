@@ -350,7 +350,7 @@ export default function ProjectExecutivePage() {
       <CustomSelect
         value={filters.status}
         onChange={(val) => setFilters((f) => ({ ...f, status: val }))}
-        options={STATUS_OPTIONS}
+        options={statusOptions}
         size="sm"
       />
       <CustomSelect

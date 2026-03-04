@@ -321,7 +321,7 @@ export default function ProjectDetailPage() {
       <CustomSelect
         value={filterStatus}
         onChange={(val) => setFilterStatus(val)}
-        options={[{ value: "", label: "Todos los estados" }, ...TASK_STATUSES]}
+        options={[{ value: "", label: "Todos los estados" }, ...statusOptions]}
         size="sm"
       />
       <CustomSelect
@@ -656,7 +656,7 @@ export default function ProjectDetailPage() {
                   <CustomSelect
                     value={taskEditForm.status}
                     onChange={(val) => setTaskEditForm((f) => ({ ...f, status: val }))}
-                    options={TASK_STATUSES}
+                    options={statusOptions}
                     disabled={!canEditProgress}
                     className="w-full"
                   />
