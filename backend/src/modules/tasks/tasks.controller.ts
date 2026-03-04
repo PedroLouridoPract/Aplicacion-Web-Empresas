@@ -64,6 +64,7 @@ export async function create(req: Request, res: Response, next: NextFunction) {
         dueDate,
         priority: parsed.priority as "HIGH" | "MEDIUM" | "LOW",
         status: parsed.status as "BACKLOG" | "IN_PROGRESS" | "REVIEW" | "DONE",
+        customStatus: parsed.customStatus ?? null,
         progress: parsed.progress,
       },
     });
@@ -98,6 +99,8 @@ export async function move(req: Request, res: Response, next: NextFunction) {
       taskId,
       companyId,
       status: parsed.status,
+      customStatus: parsed.customStatus,
+      columnKey: parsed.columnKey,
       orderIndex: parsed.orderIndex,
     });
     res.json({ task: updated });
@@ -136,6 +139,7 @@ export async function update(req: Request, res: Response, next: NextFunction) {
       data = {
         ...(parsed.assigneeId !== undefined && { assigneeId: parsed.assigneeId }),
         ...(isAssignee && parsed.status != null && { status: parsed.status }),
+        ...(isAssignee && parsed.customStatus !== undefined && { customStatus: parsed.customStatus }),
         ...(isAssignee && parsed.progress != null && { progress: parsed.progress }),
       };
     } else {
@@ -148,6 +152,7 @@ export async function update(req: Request, res: Response, next: NextFunction) {
         ...(dueDate !== undefined && { dueDate }),
         ...(parsed.priority != null && { priority: parsed.priority }),
         ...(parsed.status != null && { status: parsed.status }),
+        ...(parsed.customStatus !== undefined && { customStatus: parsed.customStatus }),
         ...(parsed.progress != null && { progress: parsed.progress }),
         ...(parsed.orderIndex != null && { orderIndex: parsed.orderIndex }),
       };

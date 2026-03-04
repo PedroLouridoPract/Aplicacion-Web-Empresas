@@ -14,6 +14,7 @@ const taskSelect = {
   resolvedAt: true,
   priority: true,
   status: true,
+  customStatus: true,
   progress: true,
   orderIndex: true,
   projectId: true,
@@ -39,10 +40,20 @@ const taskSelect = {
   },
 };
 
+const BASE_STATUS_KEYS = ["backlog", "in_progress", "review", "done"];
+const KEY_TO_ENUM: Record<string, "BACKLOG" | "IN_PROGRESS" | "REVIEW" | "DONE"> = {
+  backlog: "BACKLOG",
+  in_progress: "IN_PROGRESS",
+  review: "REVIEW",
+  done: "DONE",
+};
+
 export async function moveTask(params: {
   taskId: string;
   companyId: string;
-  status: "BACKLOG" | "IN_PROGRESS" | "REVIEW" | "DONE";
+  status?: "BACKLOG" | "IN_PROGRESS" | "REVIEW" | "DONE";
+  customStatus?: string | null;
+  columnKey?: string;
   orderIndex: number;
 }) {
   const task = await prisma.task.findFirst({
@@ -51,12 +62,29 @@ export async function moveTask(params: {
   });
   if (!task) throw Object.assign(new Error("La tarea no existe o no pertenece a tu empresa"), { statusCode: 404 });
 
+  let status: "BACKLOG" | "IN_PROGRESS" | "REVIEW" | "DONE";
+  let customStatus: string | null = null;
+
+  if (params.columnKey) {
+    if (BASE_STATUS_KEYS.includes(params.columnKey)) {
+      status = KEY_TO_ENUM[params.columnKey];
+      customStatus = null;
+    } else {
+      status = "BACKLOG";
+      customStatus = params.columnKey;
+    }
+  } else {
+    status = params.status ?? "BACKLOG";
+    customStatus = params.customStatus ?? null;
+  }
+
   return prisma.task.update({
     where: { id: params.taskId },
     data: {
-      status: params.status,
+      status,
+      customStatus,
       orderIndex: params.orderIndex,
-      ...(params.status === "DONE"
+      ...(status === "DONE" && !customStatus
         ? { progress: 100, resolvedAt: new Date() }
         : { resolvedAt: null }),
     },
@@ -74,6 +102,7 @@ export async function createTask(params: {
     dueDate?: Date | null;
     priority?: "HIGH" | "MEDIUM" | "LOW";
     status?: "BACKLOG" | "IN_PROGRESS" | "REVIEW" | "DONE";
+    customStatus?: string | null;
     progress?: number;
   };
 }) {
@@ -105,6 +134,7 @@ export async function createTask(params: {
       dueDate: params.data.dueDate ?? null,
       priority: params.data.priority ?? "MEDIUM",
       status: params.data.status ?? "BACKLOG",
+      customStatus: params.data.customStatus ?? null,
       progress: params.data.progress ?? 0,
       orderIndex,
     },

@@ -8,6 +8,11 @@ import {
   useSensors,
   closestCenter,
 } from "@dnd-kit/core";
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
 import KanbanColumn from "../components/KanbanColumn";
@@ -16,25 +21,18 @@ import ConfirmModal from "../components/ConfirmModal";
 import TaskDetailPopup from "../components/TaskDetailPopup";
 import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner, useStickyCompact, stickyTransition } from "../components/ProjectNavButtons";
 
-const STATUSES = [
-  { key: "backlog", label: "Backlog" },
-  { key: "in_progress", label: "En proceso" },
-  { key: "review", label: "En revisión" },
-  { key: "done", label: "Finalizado" },
-];
-
 const PRIORITIES = [
   { value: "HIGH", label: "Alta" },
   { value: "MEDIUM", label: "Media" },
   { value: "LOW", label: "Baja" },
 ];
 
-const TASK_STATUSES = [
-  { value: "BACKLOG", label: "Backlog" },
-  { value: "IN_PROGRESS", label: "En proceso" },
-  { value: "REVIEW", label: "En revisión" },
-  { value: "DONE", label: "Finalizado" },
-];
+const BASE_STATUS_KEYS = new Set(["backlog", "in_progress", "review", "done"]);
+
+function getTaskColumnKey(task) {
+  if (task.customStatus) return task.customStatus;
+  return (task.status || "backlog").toLowerCase();
+}
 
 export default function ProjectKanbanPage() {
   const { id } = useParams();
@@ -43,8 +41,10 @@ export default function ProjectKanbanPage() {
   const isAdmin = user?.role && String(user.role).toUpperCase() === "ADMIN";
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
+  const [columns, setColumns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState(null);
+  const [dragType, setDragType] = useState(null);
   const [showNewTask, setShowNewTask] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
   const [taskForm, setTaskForm] = useState({
@@ -63,6 +63,14 @@ export default function ProjectKanbanPage() {
   const [editError, setEditError] = useState("");
   const [selectedTask, setSelectedTask] = useState(null);
 
+  const [showNewColumn, setShowNewColumn] = useState(false);
+  const [newColumnLabel, setNewColumnLabel] = useState("");
+  const [newColumnColor, setNewColumnColor] = useState("");
+  const [columnSaving, setColumnSaving] = useState(false);
+  const [columnError, setColumnError] = useState("");
+  const [deleteColumnConfirm, setDeleteColumnConfirm] = useState({ open: false, columnId: null, label: "" });
+  const [deletingColumn, setDeletingColumn] = useState(false);
+
   const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState(() => ({
     priority: searchParams.get("priority") || "",
@@ -71,8 +79,13 @@ export default function ProjectKanbanPage() {
     dateTo: "",
   }));
 
+  const statuses = useMemo(
+    () => columns.map((c) => ({ key: c.key, label: c.label })),
+    [columns]
+  );
+
   const grouped = useMemo(() => {
-    const map = Object.fromEntries(STATUSES.map((s) => [s.key, []]));
+    const map = Object.fromEntries(columns.map((c) => [c.key, []]));
     for (const t of tasks) {
       if (filters.priority && (t.priority || "").toUpperCase() !== filters.priority) continue;
       if (filters.assignee === "unassigned" && (t.assigneeId || t.assignee?.id) != null) continue;
@@ -83,13 +96,27 @@ export default function ProjectKanbanPage() {
         if (filters.dateFrom && taskDate < filters.dateFrom) continue;
         if (filters.dateTo && taskDate > filters.dateTo) continue;
       }
-      map[t.status]?.push(t);
+      const colKey = getTaskColumnKey(t);
+      if (map[colKey]) {
+        map[colKey].push(t);
+      } else if (map.backlog) {
+        map.backlog.push(t);
+      }
     }
     for (const k of Object.keys(map)) {
-      map[k].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+      map[k].sort((a, b) => (a.order_index ?? a.orderIndex ?? 0) - (b.order_index ?? b.orderIndex ?? 0));
     }
     return map;
-  }, [tasks, filters]);
+  }, [tasks, filters, columns]);
+
+  const loadColumns = useCallback(async () => {
+    try {
+      const cols = await apiFetch(`/projects/${id}/columns`);
+      setColumns(Array.isArray(cols) ? cols : []);
+    } catch {
+      setColumns([]);
+    }
+  }, [id]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -100,15 +127,15 @@ export default function ProjectKanbanPage() {
       ]);
       setTasks(Array.isArray(tasksRes) ? tasksRes : tasksRes);
       setUsers(Array.isArray(usersRes) ? usersRes : (usersRes?.users ?? []));
+      await loadColumns();
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, loadColumns]);
 
   useEffect(() => {
     load();
   }, [load]);
-
 
   async function handleCreateTask(e) {
     e.preventDefault();
@@ -157,7 +184,7 @@ export default function ProjectKanbanPage() {
         assigneeId: task.assigneeId || task.assignee?.id || "",
         dueDate: task.dueDate || task.due_date ? (task.dueDate || task.due_date).slice(0, 10) : "",
         priority: (task.priority || "MEDIUM").toUpperCase(),
-        status: (task.status || "backlog").toUpperCase().replace("-", "_"),
+        status: getTaskColumnKey(task),
         progress: Number(task.progress) || 0,
       });
     } catch (err) {
@@ -180,17 +207,22 @@ export default function ProjectKanbanPage() {
     setEditError("");
     setSaving(true);
     try {
+      const selectedKey = taskEditForm.status;
+      const isBase = BASE_STATUS_KEYS.has(selectedKey);
+      const body = {
+        title: taskEditForm.title.trim(),
+        description: taskEditForm.description.trim() || null,
+        assigneeId: taskEditForm.assigneeId || null,
+        dueDate: taskEditForm.dueDate || null,
+        priority: taskEditForm.priority,
+        status: isBase ? selectedKey.toUpperCase() : "BACKLOG",
+        customStatus: isBase ? null : selectedKey,
+        progress: taskEditForm.progress,
+      };
+
       await apiFetch(`/tasks/${editingTask.id}`, {
         method: "PATCH",
-        body: JSON.stringify({
-          title: taskEditForm.title.trim(),
-          description: taskEditForm.description.trim() || null,
-          assigneeId: taskEditForm.assigneeId || null,
-          dueDate: taskEditForm.dueDate || null,
-          priority: taskEditForm.priority,
-          status: taskEditForm.status,
-          progress: taskEditForm.progress,
-        }),
+        body: JSON.stringify(body),
       });
       try { await apiFetch(`/tasks/${editingTask.id}/lock`, { method: "DELETE" }); } catch {}
       setEditingTask(null);
@@ -229,46 +261,143 @@ export default function ProjectKanbanPage() {
   }
 
   const moveTask = useCallback(
-    async (taskId, newStatus) => {
+    async (taskId, newColumnKey) => {
       setMoveError("");
-      const dest = grouped[newStatus] || [];
+      const dest = grouped[newColumnKey] || [];
       const newOrder =
-        dest.length ? (dest[dest.length - 1].order_index ?? dest.length - 1) + 1 : 0;
+        dest.length ? (dest[dest.length - 1].order_index ?? dest[dest.length - 1].orderIndex ?? dest.length - 1) + 1 : 0;
       try {
         await apiFetch(`/tasks/${taskId}/move`, {
           method: "PATCH",
-          body: JSON.stringify({ status: newStatus, order_index: newOrder }),
+          body: JSON.stringify({ columnKey: newColumnKey, order_index: newOrder }),
         });
         await load();
       } catch (err) {
-        setMoveError(err.message || "No puedes mover esta tarea. Solo el responsable o un admin pueden modificarla.");
+        setMoveError(err.message || "No puedes mover esta tarea.");
       }
     },
     [grouped, load]
   );
 
+  // Column management
+  async function handleCreateColumn(e) {
+    e.preventDefault();
+    setColumnError("");
+    setColumnSaving(true);
+    try {
+      await apiFetch(`/projects/${id}/columns`, {
+        method: "POST",
+        body: JSON.stringify({ label: newColumnLabel.trim(), color: newColumnColor || undefined }),
+      });
+      setNewColumnLabel("");
+      setNewColumnColor("");
+      setShowNewColumn(false);
+      await loadColumns();
+    } catch (err) {
+      setColumnError(err.message || "Error al crear columna");
+    } finally {
+      setColumnSaving(false);
+    }
+  }
+
+  async function handleRenameColumn(columnId, newLabel) {
+    try {
+      await apiFetch(`/columns/${columnId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ label: newLabel }),
+      });
+      await loadColumns();
+    } catch (err) {
+      setMoveError(err.message || "Error al renombrar columna");
+    }
+  }
+
+  function handleDeleteColumnClick(columnId) {
+    const col = columns.find((c) => c.id === columnId);
+    setDeleteColumnConfirm({ open: true, columnId, label: col?.label || "" });
+  }
+
+  async function confirmDeleteColumn() {
+    if (!deleteColumnConfirm.columnId) return;
+    setDeletingColumn(true);
+    try {
+      await apiFetch(`/columns/${deleteColumnConfirm.columnId}`, { method: "DELETE" });
+      setDeleteColumnConfirm({ open: false, columnId: null, label: "" });
+      await load();
+    } catch (err) {
+      setMoveError(err.message || "Error al eliminar columna");
+    } finally {
+      setDeletingColumn(false);
+    }
+  }
+
+  // DnD
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
     })
   );
 
+  const columnSortableIds = useMemo(
+    () => columns.map((c) => `col-${c.id}`),
+    [columns]
+  );
+
   function handleDragStart(ev) {
-    setActiveId(ev.active.id);
+    const activeIdStr = String(ev.active.id);
+    setActiveId(activeIdStr);
+    setDragType(activeIdStr.startsWith("col-") ? "column" : "task");
   }
 
-  function handleDragEnd(ev) {
+  async function handleDragEnd(ev) {
     const { active, over } = ev;
     setActiveId(null);
+    setDragType(null);
     if (!over || active.id === over.id) return;
-    const taskId = active.id;
+
+    const activeIdStr = String(active.id);
+
+    if (activeIdStr.startsWith("col-")) {
+      const oldIndex = columnSortableIds.indexOf(activeIdStr);
+      const newIndex = columnSortableIds.indexOf(String(over.id));
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(columns, oldIndex, newIndex);
+      setColumns(reordered);
+
+      try {
+        await apiFetch(`/projects/${id}/columns/reorder`, {
+          method: "PATCH",
+          body: JSON.stringify({ orderedIds: reordered.map((c) => c.id) }),
+        });
+      } catch (err) {
+        setMoveError(err.message || "Error al reordenar columnas");
+        await loadColumns();
+      }
+      return;
+    }
+
+    const taskId = activeIdStr;
     const newStatus = String(over.id);
-    if (STATUSES.some((s) => s.key === newStatus)) {
+    const col = columns.find((c) => c.key === newStatus);
+    if (col) {
       moveTask(taskId, newStatus);
     }
   }
 
-  const activeTask = activeId ? tasks.find((t) => String(t.id) === activeId) : null;
+  const activeTask = activeId && dragType === "task"
+    ? tasks.find((t) => String(t.id) === activeId)
+    : null;
+
+  const COLUMN_COLORS = [
+    { value: "", label: "Violeta (predeterminado)" },
+    { value: "blue", label: "Azul" },
+    { value: "purple", label: "Púrpura" },
+    { value: "pink", label: "Rosa" },
+    { value: "orange", label: "Naranja" },
+    { value: "teal", label: "Verde azulado" },
+    { value: "cyan", label: "Cian" },
+  ];
 
   return (
     <div className="flex flex-col gap-6">
@@ -283,6 +412,16 @@ export default function ProjectKanbanPage() {
             <p className="text-xs text-slate-400 dark:text-slate-500">Arrastra las tarjetas entre columnas</p>
           </div>
           <ProjectNavButtons projectId={id} current="kanban" />
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => { setShowNewColumn(true); setColumnError(""); }}
+              className="flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 transition hover:border-indigo-400 hover:text-indigo-600 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+              Columna
+            </button>
+          )}
           <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} />
         </div>
 
@@ -423,8 +562,8 @@ export default function ProjectKanbanPage() {
                     disabled={!canEditProgress}
                     className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${!canEditProgress ? "opacity-60 cursor-not-allowed" : ""}`}
                   >
-                    {TASK_STATUSES.map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
+                    {columns.map((col) => (
+                      <option key={col.key} value={col.key}>{col.label}</option>
                     ))}
                   </select>
                 </div>
@@ -581,6 +720,57 @@ export default function ProjectKanbanPage() {
         </div>
       )}
 
+      {/* New Column Modal */}
+      {showNewColumn && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowNewColumn(false)}>
+          <div className="w-full max-w-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Nueva columna</h3>
+              <button type="button" onClick={() => setShowNewColumn(false)} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <form onSubmit={handleCreateColumn} className="flex flex-col gap-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Nombre *</label>
+                <input
+                  type="text"
+                  required
+                  value={newColumnLabel}
+                  onChange={(e) => setNewColumnLabel(e.target.value)}
+                  placeholder="Ej: QA, Diseño, Pendiente cliente..."
+                  autoFocus
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Color</label>
+                <select
+                  value={newColumnColor}
+                  onChange={(e) => setNewColumnColor(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                >
+                  {COLUMN_COLORS.map((c) => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+              {columnError && (
+                <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{columnError}</div>
+              )}
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setShowNewColumn(false)} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={columnSaving} className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-60">
+                  {columnSaving ? "Creando..." : "Crear columna"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <ProjectLoadingSpinner />
       ) : (
@@ -590,30 +780,42 @@ export default function ProjectKanbanPage() {
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {STATUSES.map((s) => (
-              <KanbanColumn
-                key={s.key}
-                title={s.label}
-                statusKey={s.key}
-                tasks={grouped[s.key] || []}
-                statuses={STATUSES}
-                onMove={moveTask}
-                activeId={activeId}
-                currentUser={user}
-                onEditTask={startEditTask}
-                onDeleteTask={handleDeleteTask}
-                onTaskClick={setSelectedTask}
-              />
-            ))}
-          </div>
+          <SortableContext items={columnSortableIds} strategy={horizontalListSortingStrategy}>
+            <div
+              className="grid gap-5"
+              style={{
+                gridTemplateColumns: `repeat(${columns.length}, minmax(240px, 1fr))`,
+              }}
+            >
+              {columns.map((col) => (
+                <KanbanColumn
+                  key={col.id}
+                  column={col}
+                  title={col.label}
+                  statusKey={col.key}
+                  tasks={grouped[col.key] || []}
+                  statuses={statuses}
+                  onMove={moveTask}
+                  activeId={activeId}
+                  currentUser={user}
+                  onEditTask={startEditTask}
+                  onDeleteTask={handleDeleteTask}
+                  onTaskClick={setSelectedTask}
+                  isAdmin={isAdmin}
+                  onRenameColumn={handleRenameColumn}
+                  onDeleteColumn={handleDeleteColumnClick}
+                  isSortingColumns={dragType === "column"}
+                />
+              ))}
+            </div>
+          </SortableContext>
 
           <DragOverlay>
             {activeTask ? (
               <div className="rotate-2 scale-105 opacity-90">
                 <TaskCard
                   task={activeTask}
-                  statuses={STATUSES}
+                  statuses={statuses}
                   onMove={() => {}}
                   isDragging={false}
                 />
@@ -638,6 +840,23 @@ export default function ProjectKanbanPage() {
         onConfirm={confirmDeleteTask}
         onCancel={() => { setDeleteConfirm({ open: false, task: null }); setDeleteError(""); }}
       />
+
+      <ConfirmModal
+        open={deleteColumnConfirm.open}
+        title="Eliminar columna"
+        message={
+          deleteColumnConfirm.label
+            ? `¿Eliminar la columna "${deleteColumnConfirm.label}"? Las tareas en esta columna serán movidas a Backlog.`
+            : ""
+        }
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        variant="danger"
+        loading={deletingColumn}
+        onConfirm={confirmDeleteColumn}
+        onCancel={() => setDeleteColumnConfirm({ open: false, columnId: null, label: "" })}
+      />
+
       {deleteError && !deleteConfirm.open && (
         <div className="fixed bottom-6 right-6 z-50 rounded-lg border border-red-200 dark:border-red-500/30 bg-white dark:bg-slate-900 px-4 py-3 shadow-lg">
           <div className="flex items-center gap-3">
