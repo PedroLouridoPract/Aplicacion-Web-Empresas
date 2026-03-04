@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
 import Avatar from "../components/Avatar";
@@ -303,8 +303,12 @@ export default function AbsencesPage() {
   const [files, setFiles] = useState([]);
   const [selectedAbsence, setSelectedAbsence] = useState(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const loadingRef = React.useRef(false);
+
+  async function load(silent = false) {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    if (!silent) setLoading(true);
     try {
       const params = new URLSearchParams();
       if (filterType) params.set("type", filterType);
@@ -313,15 +317,26 @@ export default function AbsencesPage() {
       const data = await apiFetch(`/absences${qs ? `?${qs}` : ""}`);
       setAbsences(Array.isArray(data) ? data : []);
     } catch {
-      setAbsences([]);
+      if (!silent) setAbsences([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
+      loadingRef.current = false;
     }
-  }, [filterType, filterStatus]);
+  }
 
   useEffect(() => {
     load();
-  }, [load]);
+  }, [filterType, filterStatus]);
+
+  useEffect(() => {
+    const interval = setInterval(() => load(true), 15000);
+    function onFocus() { load(true); }
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [filterType, filterStatus]);
 
   const filtered = useMemo(() => absences, [absences]);
 
