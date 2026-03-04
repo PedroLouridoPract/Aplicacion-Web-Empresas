@@ -137,14 +137,16 @@ export async function downloadAttachment(req: Request, res: Response, next: Next
 
     const file = await service.getAbsenceAttachmentData({ companyId, attachmentId: attId });
 
+    const buf = Buffer.from(file.data);
+
     res.set({
       "Content-Type": file.mimeType,
-      "Content-Disposition": `inline; filename="${encodeURIComponent(file.originalName)}"`,
-      "Content-Length": String(file.size),
+      "Content-Disposition": `attachment; filename="${encodeURIComponent(file.originalName)}"`,
+      "Content-Length": String(buf.length),
       "Cache-Control": "private, max-age=86400",
     });
 
-    res.send(file.data);
+    res.end(buf);
   } catch (err) {
     next(err);
   }

@@ -162,6 +162,13 @@ export async function listTasksAssignedToMe(params: { companyId: string; userId:
   });
 }
 
+const KEY_TO_STATUS: Record<string, "BACKLOG" | "IN_PROGRESS" | "REVIEW" | "DONE"> = {
+  backlog: "BACKLOG",
+  in_progress: "IN_PROGRESS",
+  review: "REVIEW",
+  done: "DONE",
+};
+
 export async function updateTask(params: {
   companyId: string;
   taskId: string;
@@ -172,6 +179,7 @@ export async function updateTask(params: {
     dueDate?: Date | null;
     priority?: "HIGH" | "MEDIUM" | "LOW";
     status?: "BACKLOG" | "IN_PROGRESS" | "REVIEW" | "DONE";
+    customStatus?: string | null;
     progress?: number;
     orderIndex?: number;
   };
@@ -186,6 +194,18 @@ export async function updateTask(params: {
   }
 
   const data: Record<string, unknown> = { ...params.data };
+
+  if (data.customStatus !== undefined) {
+    const cs = data.customStatus as string | null;
+    if (cs && KEY_TO_STATUS[cs]) {
+      data.status = KEY_TO_STATUS[cs];
+      data.customStatus = null;
+    } else if (cs) {
+      data.status = "BACKLOG";
+      data.customStatus = cs;
+    }
+  }
+
   if (data.status === "DONE") {
     data.progress = 100;
     data.resolvedAt = new Date();

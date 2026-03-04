@@ -43,12 +43,69 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "2-digit" });
 }
 
-function getDownloadUrl(absenceId, attId) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  return `${API_BASE}/absences/${absenceId}/attachments/${attId}/download${token ? `?token=${token}` : ""}`;
+function useAttachmentBlob(absenceId, attId, mimeType) {
+  const [url, setUrl] = React.useState(null);
+  React.useEffect(() => {
+    if (!absenceId || !attId) return;
+    let revoked = false;
+    const token = localStorage.getItem("token");
+    fetch(`${API_BASE}/absences/${absenceId}/attachments/${attId}/download`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((r) => r.blob())
+      .then((blob) => {
+        if (revoked) return;
+        setUrl(URL.createObjectURL(blob));
+      })
+      .catch(() => {});
+    return () => {
+      revoked = true;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [absenceId, attId]);
+  return url;
+}
+
+function downloadAttachment(absenceId, attId, fileName) {
+  const token = localStorage.getItem("token");
+  fetch(`${API_BASE}/absences/${absenceId}/attachments/${attId}/download`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+    .then((r) => r.blob())
+    .then((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName || "archivo";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    })
+    .catch(() => {});
+}
+
+function AttachmentImage({ absenceId, attId, alt, onPreview }) {
+  const blobUrl = useAttachmentBlob(absenceId, attId);
+  if (!blobUrl) {
+    return (
+      <div className="flex items-center justify-center h-48 bg-slate-50 dark:bg-slate-800">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-500" />
+      </div>
+    );
+  }
+  return (
+    <img
+      src={blobUrl}
+      alt={alt}
+      className="max-h-48 w-full object-contain bg-slate-50 dark:bg-slate-800 cursor-pointer"
+      onClick={() => onPreview?.({ data: blobUrl, name: alt })}
+    />
+  );
 }
 
 function AbsenceDetailModal({ absence, onClose, isAdmin, currentUserId, onApprove, onReject, onDelete }) {
+  const [previewImage, setPreviewImage] = React.useState(null);
   const atts = absence.attachments || [];
 
   function formatBytes(bytes) {
@@ -119,13 +176,7 @@ function AbsenceDetailModal({ absence, onClose, isAdmin, currentUserId, onApprov
               {atts.map((att) => (
                 <div key={att.id} className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
                   {isImage(att.mimeType) && (
-                    <a href={getDownloadUrl(absence.id, att.id)} target="_blank" rel="noopener noreferrer">
-                      <img
-                        src={getDownloadUrl(absence.id, att.id)}
-                        alt={att.originalName}
-                        className="max-h-48 w-full object-contain bg-slate-50 dark:bg-slate-800"
-                      />
-                    </a>
+                    <AttachmentImage absenceId={absence.id} attId={att.id} alt={att.originalName} onPreview={setPreviewImage} />
                   )}
                   <div className="flex items-center gap-3 px-3 py-2 bg-white dark:bg-slate-900">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-500/10">
@@ -143,17 +194,16 @@ function AbsenceDetailModal({ absence, onClose, isAdmin, currentUserId, onApprov
                       <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{att.originalName}</p>
                       <p className="text-xs text-slate-400 dark:text-slate-500">{formatBytes(att.size)}</p>
                     </div>
-                    <a
-                      href={getDownloadUrl(absence.id, att.id)}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => downloadAttachment(absence.id, att.id, att.originalName)}
                       className="shrink-0 rounded-md bg-slate-100 dark:bg-slate-800 p-1.5 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300 transition"
                       title="Descargar"
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                       </svg>
-                    </a>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -192,6 +242,37 @@ function AbsenceDetailModal({ absence, onClose, isAdmin, currentUserId, onApprov
           </div>
         )}
       </div>
+
+      {previewImage && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setPreviewImage(null)}>
+          <div className="relative max-h-[90vh] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
+            <img src={previewImage.data} alt={previewImage.name} className="max-h-[85vh] max-w-[85vw] rounded-lg object-contain shadow-2xl" />
+            <div className="absolute -top-3 -right-3 flex gap-1.5">
+              <a
+                href={previewImage.data}
+                download={previewImage.name}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                title="Descargar"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </a>
+              <button
+                type="button"
+                onClick={() => setPreviewImage(null)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-lg text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/30 dark:hover:text-red-400 transition"
+                title="Cerrar"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="mt-2 text-center text-sm text-white/70 truncate">{previewImage.name}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
