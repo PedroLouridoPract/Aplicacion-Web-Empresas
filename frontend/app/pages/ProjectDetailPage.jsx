@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
 import Avatar from "../components/Avatar";
+import ConfirmModal from "../components/ConfirmModal";
 import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner, useStickyCompact, stickyTransition } from "../components/ProjectNavButtons";
 
 const PRIORITIES = [
@@ -73,6 +74,26 @@ export default function ProjectDetailPage() {
   const [loadingComments, setLoadingComments] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [sendingComment, setSendingComment] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, task: null });
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  async function handleDeleteTask() {
+    const task = deleteConfirm.task;
+    if (!task) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await apiFetch(`/tasks/${task.id}`, { method: "DELETE" });
+      const tasksRes = await apiFetch(`/projects/${id}/tasks`);
+      setTasks(Array.isArray(tasksRes) ? tasksRes : []);
+      setDeleteConfirm({ open: false, task: null });
+    } catch (err) {
+      setDeleteError(err.message || "Error al eliminar la tarea");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function loadData() {
     setError("");
@@ -752,24 +773,16 @@ export default function ProjectDetailPage() {
                         <span
                           role="button"
                           tabIndex={0}
-                          onClick={async (e) => {
+                          onClick={(e) => {
                             e.stopPropagation();
-                            if (!confirm(`¿Eliminar la tarea "${t.title}"? Esta acción no se puede deshacer.`)) return;
-                            try {
-                              await apiFetch(`/tasks/${t.id}`, { method: "DELETE" });
-                              const tasksRes = await apiFetch(`/projects/${id}/tasks`);
-                              setTasks(Array.isArray(tasksRes) ? tasksRes : []);
-                            } catch (err) { alert(err.message || "Error al eliminar la tarea"); }
+                            setDeleteConfirm({ open: true, task: t });
+                            setDeleteError("");
                           }}
-                          onKeyDown={async (e) => {
+                          onKeyDown={(e) => {
                             if (e.key !== "Enter") return;
                             e.stopPropagation();
-                            if (!confirm(`¿Eliminar la tarea "${t.title}"? Esta acción no se puede deshacer.`)) return;
-                            try {
-                              await apiFetch(`/tasks/${t.id}`, { method: "DELETE" });
-                              const tasksRes = await apiFetch(`/projects/${id}/tasks`);
-                              setTasks(Array.isArray(tasksRes) ? tasksRes : []);
-                            } catch (err) { alert(err.message || "Error al eliminar la tarea"); }
+                            setDeleteConfirm({ open: true, task: t });
+                            setDeleteError("");
                           }}
                           className="rounded-lg border border-red-200 dark:border-red-500/30 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer"
                           title="Eliminar tarea"
@@ -1001,6 +1014,32 @@ export default function ProjectDetailPage() {
         </div>
         );
       })()}
+
+      <ConfirmModal
+        open={deleteConfirm.open}
+        title="Eliminar tarea"
+        message={
+          deleteConfirm.task
+            ? `¿Eliminar la tarea "${deleteConfirm.task.title}"? Esta acción no se puede deshacer.`
+            : ""
+        }
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        variant="danger"
+        loading={deleting}
+        onConfirm={handleDeleteTask}
+        onCancel={() => { setDeleteConfirm({ open: false, task: null }); setDeleteError(""); }}
+      />
+      {deleteError && !deleteConfirm.open && (
+        <div className="fixed bottom-6 right-6 z-50 rounded-lg border border-red-200 dark:border-red-500/30 bg-white dark:bg-slate-900 px-4 py-3 shadow-lg">
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-red-600 dark:text-red-400">{deleteError}</span>
+            <button type="button" onClick={() => setDeleteError("")} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
