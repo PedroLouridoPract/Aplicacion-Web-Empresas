@@ -97,6 +97,7 @@ export async function createAbsence(params: {
         userId: admin.id,
         message: `${params.employeeName} ha solicitado una ausencia: ${typeLabel}`,
         absenceId: absence.id,
+        category: "absence_requests",
       }).catch(() => {});
     }
   }
@@ -160,6 +161,7 @@ export async function updateAbsenceStatus(params: {
     userId: absence.employeeId,
     message: `Tu solicitud de ${absType} (${dateRange}) ha sido ${statusLabel}`,
     absenceId: params.absenceId,
+    category: "absence_status",
   }).catch(() => {});
 
   return updated;
@@ -195,6 +197,7 @@ export async function bulkUpdateStatus(params: {
       userId: a.employeeId,
       message: `Tu solicitud de ${absType} (${dateRange}) ha sido ${statusLabel}`,
       absenceId: a.id,
+      category: "absence_status",
     }).catch(() => {});
   }
 

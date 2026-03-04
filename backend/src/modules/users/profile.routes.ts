@@ -19,3 +19,5 @@ profileRoutes.get("/me", authRequired, ctrl.getProfile);
 profileRoutes.patch("/me", authRequired, ctrl.updateProfile);
 profileRoutes.patch("/me/password", authRequired, ctrl.changePassword);
 profileRoutes.post("/me/avatar", authRequired, upload.single("avatar"), ctrl.uploadAvatar);
+profileRoutes.get("/me/notification-preferences", authRequired, ctrl.getNotificationPreferences);
+profileRoutes.patch("/me/notification-preferences", authRequired, ctrl.updateNotificationPreferences);

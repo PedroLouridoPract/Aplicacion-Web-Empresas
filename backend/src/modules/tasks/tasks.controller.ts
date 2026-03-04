@@ -74,6 +74,7 @@ export async function create(req: Request, res: Response, next: NextFunction) {
         userId: parsed.assigneeId,
         message: `Te han asignado la tarea "${parsed.title}"`,
         taskId: task.id,
+        category: "task_assignment",
       }).catch(() => {});
     }
 
@@ -170,6 +171,7 @@ export async function update(req: Request, res: Response, next: NextFunction) {
         userId: newAssignee,
         message: `Te han asignado la tarea "${existing.title}"`,
         taskId,
+        category: "task_assignment",
       }).catch(() => {});
     }
 
@@ -178,6 +180,7 @@ export async function update(req: Request, res: Response, next: NextFunction) {
         userId: newAssignee,
         message: `Te has asignado la tarea "${existing.title}"`,
         taskId,
+        category: "task_assignment",
       }).catch(() => {});
     }
 

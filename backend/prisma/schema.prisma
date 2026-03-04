@@ -54,16 +54,17 @@ model Company {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  companyId    String
-  company      Company  @relation(fields: [companyId], references: [id])
-  name         String
-  email        String?  @unique
-  passwordHash String   @default("")
-  phone        String?
-  avatarUrl    String?
-  role         Role     @default(MEMBER)
-  createdAt    DateTime @default(now())
+  id                      String   @id @default(cuid())
+  companyId               String
+  company                 Company  @relation(fields: [companyId], references: [id])
+  name                    String
+  email                   String?  @unique
+  passwordHash            String   @default("")
+  phone                   String?
+  avatarUrl               String?
+  role                    Role     @default(MEMBER)
+  notificationPreferences Json     @default("{}")
+  createdAt               DateTime @default(now())
 
   assignedTasks   Task[]           @relation("TaskAssignee")
   lockedTasks     Task[]           @relation("TaskLocker")

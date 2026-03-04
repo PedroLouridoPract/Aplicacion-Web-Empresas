@@ -68,6 +68,7 @@ export async function create(params: {
         userId: parent.authorId,
         message: `${authorName} respondió a tu comentario en "${task.title}"`,
         taskId: params.taskId,
+        category: "task_comments",
       });
     }
   }
@@ -86,6 +87,7 @@ export async function create(params: {
           userId: u.id,
           message: `${authorName} te mencionó en un comentario en "${task.title}"`,
           taskId: params.taskId,
+          category: "task_comments",
         })
       )
     );
@@ -129,6 +131,7 @@ export async function edit(params: {
           userId: u.id,
           message: `${authorName} te mencionó en un comentario editado en "${comment.task.title}"`,
           taskId: comment.taskId,
+          category: "task_comments",
         })
       )
     );

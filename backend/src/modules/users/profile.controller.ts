@@ -113,3 +113,34 @@ export async function uploadAvatar(req: Request, res: Response, next: NextFuncti
     next(err);
   }
 }
+
+export async function getNotificationPreferences(req: Request, res: Response, next: NextFunction) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { notificationPreferences: true },
+    });
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+    res.json(user.notificationPreferences || {});
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateNotificationPreferences(req: Request, res: Response, next: NextFunction) {
+  try {
+    const prefs = req.body;
+    if (typeof prefs !== "object" || prefs === null || Array.isArray(prefs)) {
+      return res.status(400).json({ message: "Formato de preferencias inválido" });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { notificationPreferences: prefs },
+      select: { notificationPreferences: true },
+    });
+    res.json(user.notificationPreferences);
+  } catch (err) {
+    next(err);
+  }
+}
