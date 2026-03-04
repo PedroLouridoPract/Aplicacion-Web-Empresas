@@ -243,7 +243,12 @@ export async function getAllMetrics(params: { companyId: string; days: number })
   const from = new Date(now.getTime() - daysMs);
   const from7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  const [tasks, users] = await Promise.all([
+  const [columns, tasks, users] = await Promise.all([
+    prisma.kanbanColumn.findMany({
+      where: { project: { companyId: params.companyId } },
+      orderBy: { position: "asc" },
+      select: { key: true, label: true, color: true, isBase: true, position: true },
+    }),
     prisma.task.findMany({
       where: { companyId: params.companyId },
       select: {
@@ -258,6 +263,21 @@ export async function getAllMetrics(params: { companyId: string; days: number })
     }),
   ]);
 
+  const uniqueCols = new Map<string, { key: string; label: string; color: string | null; isBase: boolean; position: number }>();
+  for (const c of columns) {
+    if (!uniqueCols.has(c.key)) {
+      uniqueCols.set(c.key, { key: c.key, label: c.label, color: c.color, isBase: c.isBase, position: c.position });
+    }
+  }
+  const colList = [...uniqueCols.values()].sort((a, b) => {
+    if (a.isBase && !b.isBase) return -1;
+    if (!a.isBase && b.isBase) return 1;
+    return a.position - b.position;
+  });
+  const colKeys = new Set(colList.map((c) => c.key));
+  const colCounts = new Map<string, number>();
+  for (const c of colList) colCounts.set(c.key, 0);
+
   let totalProgress = 0;
   let progressCount = 0;
   let resolutionHoursTotal = 0;
@@ -267,14 +287,15 @@ export async function getAllMetrics(params: { companyId: string; days: number })
   let velocity30d = 0;
 
   const priorityCounts: Record<string, number> = { HIGH: 0, MEDIUM: 0, LOW: 0 };
-  const statusCounts: Record<string, number> = { BACKLOG: 0, IN_PROGRESS: 0, REVIEW: 0, DONE: 0 };
   const userMap = new Map<string, { total: number; done: number; inProgress: number; overdue: number }>();
 
   const trendCreated = new Map<string, number>();
   const trendCompleted = new Map<string, number>();
 
   for (const t of tasks) {
-    statusCounts[t.status] = (statusCounts[t.status] ?? 0) + 1;
+    let colKey = t.customStatus || STATUS_KEY_MAP[t.status] || "backlog";
+    if (!colKeys.has(colKey)) colKey = "backlog";
+    colCounts.set(colKey, (colCounts.get(colKey) ?? 0) + 1);
 
     if (t.progress != null) {
       totalProgress += t.progress;
@@ -315,6 +336,14 @@ export async function getAllMetrics(params: { companyId: string; days: number })
     }
   }
 
+  const byColumn = colList.map((c) => ({
+    key: c.key,
+    label: c.label,
+    color: c.color ?? null,
+    count: colCounts.get(c.key) ?? 0,
+    isBase: c.isBase,
+  }));
+
   const userIndex = new Map(users.map((u) => [u.id, u]));
   const byUser = [...userMap.entries()]
     .map(([uid, m]) => {
@@ -344,12 +373,7 @@ export async function getAllMetrics(params: { companyId: string; days: number })
     avgProgress: progressCount > 0 ? Math.round(totalProgress / progressCount) : 0,
     avgResolutionHours: resolutionCount > 0 ? Math.round((resolutionHoursTotal / resolutionCount) * 10) / 10 : null,
     velocity: { last7d: velocity7d, last30d: velocity30d },
-    byColumn: [
-      { key: "backlog", label: "Backlog", color: null, count: statusCounts.BACKLOG, isBase: true },
-      { key: "in_progress", label: "En progreso", color: null, count: statusCounts.IN_PROGRESS, isBase: true },
-      { key: "review", label: "En revisión", color: null, count: statusCounts.REVIEW, isBase: true },
-      { key: "done", label: "Finalizado", color: null, count: statusCounts.DONE, isBase: true },
-    ],
+    byColumn,
     byPriority: priorityCounts,
     byUser,
     trend,
