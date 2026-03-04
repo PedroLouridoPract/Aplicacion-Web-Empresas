@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
@@ -27,6 +27,65 @@ const STATUS_KEY_MAP = {
   REVIEW: "review",
   DONE: "done",
 };
+
+function extractInlineImages(html) {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  const imgs = div.querySelectorAll("img[src^='data:']");
+  const files = [];
+  imgs.forEach((img, i) => {
+    const src = img.getAttribute("src");
+    const match = src.match(/^data:(image\/\w+);base64,(.+)$/);
+    if (!match) return;
+    const mime = match[1];
+    const ext = mime.split("/")[1] || "png";
+    const byteStr = atob(match[2]);
+    const ab = new ArrayBuffer(byteStr.length);
+    const u8 = new Uint8Array(ab);
+    for (let j = 0; j < byteStr.length; j++) u8[j] = byteStr.charCodeAt(j);
+    const blob = new Blob([ab], { type: mime });
+    const file = new File([blob], `pasted-image-${i + 1}.${ext}`, { type: mime });
+    files.push(file);
+    const placeholder = document.createTextNode(`{{IMG:${i}}}`);
+    img.parentNode.replaceChild(placeholder, img);
+  });
+  let richText = div.innerHTML
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<div>/gi, "\n")
+    .replace(/<\/div>/gi, "")
+    .replace(/<[^>]+>/g, "")
+    .trim();
+  return { text: richText, pastedFiles: files };
+}
+
+async function descriptionToEditableHtml(description) {
+  if (!description) return "";
+  const ATT_RE = /\{\{ATT:([a-zA-Z0-9_-]+)\}\}/g;
+  const ids = [];
+  let m;
+  while ((m = ATT_RE.exec(description)) !== null) ids.push(m[1]);
+  if (ids.length === 0) return description.replace(/\n/g, "<br>");
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const base = (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE_URL) || "http://localhost:3000";
+  const blobMap = {};
+  await Promise.all(ids.map(async (attId) => {
+    try {
+      const res = await fetch(`${base}/attachments/${attId}/download`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const blob = await res.blob();
+      blobMap[attId] = URL.createObjectURL(blob);
+    } catch { /* ignore */ }
+  }));
+
+  return description.replace(/\{\{ATT:([a-zA-Z0-9_-]+)\}\}/g, (_match, attId) => {
+    const src = blobMap[attId] || "";
+    return src
+      ? `<img src="${src}" data-att-id="${attId}" style="max-width:100%;border-radius:8px;margin:8px 0;display:block" />`
+      : `{{ATT:${attId}}}`;
+  }).replace(/\n/g, "<br>");
+}
 
 function getTaskColumnKey(task) {
   if (task.customStatus) return task.customStatus;
@@ -83,6 +142,43 @@ export default function ProjectDetailPage() {
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, task: null });
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const editDescRef = useRef(null);
+
+  const handleEditDescPaste = useCallback((e) => {
+    const items = Array.from(e.clipboardData?.items || []);
+    const imageItem = items.find((it) => it.type.startsWith("image/"));
+    if (imageItem) {
+      e.preventDefault();
+      const file = imageItem.getAsFile();
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = document.createElement("img");
+        img.src = reader.result;
+        img.style.maxWidth = "100%";
+        img.style.borderRadius = "8px";
+        img.style.margin = "8px 0";
+        img.style.display = "block";
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
+          range.deleteContents();
+          const br1 = document.createElement("br");
+          const br2 = document.createElement("br");
+          range.insertNode(br2);
+          range.insertNode(img);
+          range.insertNode(br1);
+          range.setStartAfter(br2);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } else {
+          editDescRef.current?.appendChild(img);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  }, []);
 
   async function handleDeleteTask() {
     const task = deleteConfirm.task;
@@ -190,6 +286,17 @@ export default function ProjectDetailPage() {
     }
   }
 
+  useEffect(() => {
+    if (!editingTaskId || !taskEditForm) return;
+    let cancelled = false;
+    descriptionToEditableHtml(taskEditForm.description || "").then((html) => {
+      if (!cancelled && editDescRef.current) {
+        editDescRef.current.innerHTML = html;
+      }
+    });
+    return () => { cancelled = true; };
+  }, [editingTaskId]);
+
   async function cancelEditTask() {
     if (editingTaskId) {
       try { await apiFetch(`/tasks/${editingTaskId}/lock`, { method: "DELETE" }); } catch {}
@@ -210,11 +317,29 @@ export default function ProjectDetailPage() {
         ? { status: taskEditForm.status.toUpperCase().replace("-", "_"), customStatus: null }
         : { customStatus: taskEditForm.status };
 
+      const editHtml = editDescRef.current?.innerHTML || "";
+      const existingAtts = [];
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = editHtml;
+      tempDiv.querySelectorAll("img[data-att-id]").forEach((img) => {
+        const attId = img.getAttribute("data-att-id");
+        if (attId) {
+          existingAtts.push(attId);
+          const placeholder = document.createTextNode(`{{ATT:${attId}}}`);
+          img.parentNode.replaceChild(placeholder, img);
+        }
+      });
+      const cleanedHtml = tempDiv.innerHTML;
+
+      const { text: descText, pastedFiles } = extractInlineImages(cleanedHtml);
+
+      let finalDesc = descText || null;
+
       await apiFetch(`/tasks/${editingTaskId}`, {
         method: "PATCH",
         body: JSON.stringify({
           title: taskEditForm.title.trim(),
-          description: taskEditForm.description.trim() || null,
+          description: finalDesc,
           assigneeId: taskEditForm.assigneeId || null,
           startDate: taskEditForm.startDate || null,
           dueDate: taskEditForm.dueDate || null,
@@ -223,6 +348,27 @@ export default function ProjectDetailPage() {
           progress: taskEditForm.progress,
         }),
       });
+
+      if (pastedFiles.length > 0) {
+        const fd = new FormData();
+        for (const f of pastedFiles) fd.append("files", f);
+        const uploadedAtts = await apiFetch(`/tasks/${editingTaskId}/attachments`, { method: "POST", body: fd });
+
+        if (finalDesc && finalDesc.includes("{{IMG:")) {
+          const atts = Array.isArray(uploadedAtts) ? uploadedAtts : [];
+          pastedFiles.forEach((pf, idx) => {
+            const matched = atts.find((a) => a.originalName === pf.name);
+            if (matched) {
+              finalDesc = finalDesc.replace(`{{IMG:${idx}}}`, `{{ATT:${matched.id}}}`);
+            }
+          });
+          await apiFetch(`/tasks/${editingTaskId}`, {
+            method: "PATCH",
+            body: JSON.stringify({ description: finalDesc }),
+          });
+        }
+      }
+
       try { await apiFetch(`/tasks/${editingTaskId}/lock`, { method: "DELETE" }); } catch {}
       setEditingTaskId(null);
       setTaskEditForm(null);
@@ -449,7 +595,14 @@ export default function ProjectDetailPage() {
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Descripción</label>
-                <textarea value={taskEditForm.description} onChange={(e) => setTaskEditForm((f) => ({ ...f, description: e.target.value }))} rows={2} disabled={!canEditField} className={`w-full rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
+                <div
+                  ref={editDescRef}
+                  contentEditable={canEditField}
+                  suppressContentEditableWarning
+                  onPaste={canEditField ? handleEditDescPaste : undefined}
+                  data-placeholder="Descripción de la tarea (opcional)"
+                  className={`w-full min-h-[80px] max-h-[200px] overflow-y-auto rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 whitespace-pre-wrap break-words empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:dark:text-slate-500 empty:before:pointer-events-none ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`}
+                />
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Asignar a</label>
