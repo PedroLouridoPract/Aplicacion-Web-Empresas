@@ -32,6 +32,11 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
     </svg>
   ),
+  "/holidays": (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+    </svg>
+  ),
 };
 
 function getPageTitle(pathname: string): string {
@@ -44,6 +49,7 @@ function getPageTitle(pathname: string): string {
   if (pathname === "/users") return "Empleados";
   if (pathname === "/profile") return "Mi perfil";
   if (pathname === "/import") return "Importar CSV";
+  if (pathname === "/holidays") return "Calendario de festivos";
   return "Siweb";
 }
 
@@ -96,6 +102,7 @@ function AppShell() {
     { to: "/projects", label: "Proyectos" },
     { to: "/users", label: "Empleados", hide: isGuest },
     { to: "/import", label: "Importar", hide: isGuest },
+    { to: "/holidays", label: "Calendario festivos" },
   ];
   const navItems = allNavItems.filter((item) => !item.hide);
 

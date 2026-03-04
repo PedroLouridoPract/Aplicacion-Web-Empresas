@@ -57,6 +57,11 @@ export default [
     file: "./pages/ImportPage.jsx",
   },
   {
+    path: "/holidays",
+    id: "holidays",
+    file: "./pages/HolidaysCalendarPage.jsx",
+  },
+  {
     path: "*",
     id: "404",
     file: "./pages/NotFoundPage.jsx",
