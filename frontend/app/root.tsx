@@ -1,10 +1,32 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Links, Navigate, Outlet, Scripts, useLocation } from "react-router";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { ThemeProvider, useTheme } from "./theme/ThemeContext";
 import { getColorForName } from "./components/Avatar";
 import NotificationBell from "./components/NotificationBell";
 import "./app.css";
+
+function LiveClock() {
+  const [time, setTime] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const h = String(time.getHours()).padStart(2, "0");
+  const m = String(time.getMinutes()).padStart(2, "0");
+  const s = String(time.getSeconds()).padStart(2, "0");
+
+  return (
+    <div className="flex items-center gap-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 shadow-sm px-3 py-1.5">
+      <span className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+      <span className="text-xs font-semibold tabular-nums text-slate-700 dark:text-slate-200 tracking-wide">
+        {h}:{m}:{s}
+      </span>
+    </div>
+  );
+}
 
 const NAV_ICONS: Record<string, React.ReactNode> = {
   "/dashboard": (
@@ -227,6 +249,7 @@ function AppShell() {
       <div className="relative flex flex-1 flex-col overflow-hidden">
         {/* Top-right icons */}
         <div className="absolute right-6 top-5 z-20 flex items-center gap-3">
+          <LiveClock />
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 shadow-sm">
             <NotificationBell />
           </div>
