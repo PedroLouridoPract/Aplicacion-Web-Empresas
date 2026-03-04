@@ -54,9 +54,26 @@ export async function create(params: {
     },
   });
 
+  const authorName = comment.author?.name ?? "Alguien";
+  const notifiedIds = new Set<string>();
+
+  if (params.parentId) {
+    const parent = await prisma.comment.findUnique({
+      where: { id: params.parentId },
+      select: { authorId: true },
+    });
+    if (parent?.authorId && parent.authorId !== params.userId) {
+      notifiedIds.add(parent.authorId);
+      await createNotification({
+        userId: parent.authorId,
+        message: `${authorName} respondió a tu comentario en "${task.title}"`,
+        taskId: params.taskId,
+      });
+    }
+  }
+
   if (params.mentionedUserIds?.length) {
-    const authorName = comment.author?.name ?? "Alguien";
-    const uniqueIds = [...new Set(params.mentionedUserIds)].filter(id => id !== params.userId);
+    const uniqueIds = [...new Set(params.mentionedUserIds)].filter(id => id !== params.userId && !notifiedIds.has(id));
 
     const validUsers = await prisma.user.findMany({
       where: { id: { in: uniqueIds }, companyId: params.companyId },
@@ -75,6 +92,49 @@ export async function create(params: {
   }
 
   return comment;
+}
+
+export async function edit(params: {
+  companyId: string;
+  userId: string;
+  commentId: string;
+  body: string;
+  mentionedUserIds?: string[];
+}) {
+  const comment = await prisma.comment.findFirst({
+    where: { id: params.commentId, companyId: params.companyId },
+    include: { author: { select: authorSelect }, task: { select: { title: true } } },
+  });
+  if (!comment) throw Object.assign(new Error("Comentario no encontrado"), { statusCode: 404 });
+  if (comment.authorId !== params.userId) {
+    throw Object.assign(new Error("Solo el autor puede editar su comentario"), { statusCode: 403 });
+  }
+
+  const updated = await prisma.comment.update({
+    where: { id: params.commentId },
+    data: { body: params.body, editedAt: new Date() } as any,
+    include: { author: { select: authorSelect } },
+  });
+
+  if (params.mentionedUserIds?.length) {
+    const authorName = comment.author?.name ?? "Alguien";
+    const uniqueIds = [...new Set(params.mentionedUserIds)].filter(id => id !== params.userId);
+    const validUsers = await prisma.user.findMany({
+      where: { id: { in: uniqueIds }, companyId: params.companyId },
+      select: { id: true },
+    });
+    await Promise.all(
+      validUsers.map(u =>
+        createNotification({
+          userId: u.id,
+          message: `${authorName} te mencionó en un comentario editado en "${comment.task.title}"`,
+          taskId: comment.taskId,
+        })
+      )
+    );
+  }
+
+  return updated;
 }
 
 export async function remove(params: {

@@ -57,34 +57,251 @@ function parseReactions(reactionsStr) {
   try { return JSON.parse(reactionsStr); } catch { return {}; }
 }
 
-function CommentItem({ comment, isReply, userId, isAdmin, canComment, onDelete, onReply, onReact, users }) {
+function SingleComment({ comment, userId, isAdmin, canComment, onDelete, onReply, onReact, onEdit, isReply, users }) {
   const authorDisplay = comment.author?.name || comment.authorName || "Usuario";
-  const canDelete = isAdmin || (comment.authorId && comment.authorId === userId);
+  const canDeleteThis = isAdmin || (comment.authorId && comment.authorId === userId);
+  const canEditThis = comment.authorId && comment.authorId === userId;
   let attachments = [];
   if (comment.attachments) {
     try { attachments = JSON.parse(comment.attachments); } catch {}
   }
   const reactions = parseReactions(comment.reactions);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editMentionShow, setEditMentionShow] = useState(false);
+  const [editMentionFilter, setEditMentionFilter] = useState("");
+  const [editMentionIndex, setEditMentionIndex] = useState(0);
+  const menuRef = useRef(null);
+  const editRef = useRef(null);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showMenu]);
+
+  const startEdit = () => {
+    setEditing(true);
+    setShowMenu(false);
+    setTimeout(() => {
+      if (editRef.current) {
+        editRef.current.innerHTML = bodyToEditableHTML(comment.body);
+        placeCaretAtEnd(editRef.current);
+      }
+    }, 0);
+  };
+
+  const cancelEdit = () => {
+    setEditing(false);
+    setEditMentionShow(false);
+  };
+
+  const saveEdit = async () => {
+    const el = editRef.current;
+    if (!el) return;
+    const raw = getTextFromEditable(el).trim();
+    if (!raw || raw === comment.body) { cancelEdit(); return; }
+    setEditSaving(true);
+    try {
+      await onEdit(comment.id, raw);
+      setEditing(false);
+    } catch {
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  const editMentionUsers = (users || []).filter(
+    (u) => u.id !== userId && u.name.toLowerCase().includes(editMentionFilter)
+  );
+
+  const checkEditMention = () => {
+    if (!editRef.current) return;
+    const textBefore = getCaretTextBefore(editRef.current);
+    const atMatch = textBefore.match(/@([\w\s\u00C0-\u024F]*)$/);
+    if (atMatch) {
+      setEditMentionShow(true);
+      setEditMentionFilter(atMatch[1].trim().toLowerCase());
+      setEditMentionIndex(0);
+    } else {
+      setEditMentionShow(false);
+    }
+  };
+
+  const insertEditMention = (mentionUser) => {
+    const el = editRef.current;
+    if (!el) return;
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    const textBefore = getCaretTextBefore(el);
+    const atPos = textBefore.lastIndexOf("@");
+    if (atPos === -1) return;
+    const charsToDelete = textBefore.length - atPos;
+    for (let i = 0; i < charsToDelete; i++) document.execCommand("delete", false);
+    const chip = document.createElement("span");
+    chip.contentEditable = "false";
+    chip.dataset.mentionId = mentionUser.id;
+    chip.dataset.mentionName = mentionUser.name;
+    chip.className = "inline-flex items-center rounded bg-indigo-100 dark:bg-indigo-500/20 px-1.5 py-0.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 mx-0.5 select-none";
+    chip.textContent = `@${mentionUser.name}`;
+    const newRange = sel.getRangeAt(0);
+    newRange.insertNode(chip);
+    newRange.setStartAfter(chip);
+    newRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+    const space = document.createTextNode("\u00A0");
+    newRange.insertNode(space);
+    newRange.setStartAfter(space);
+    newRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+    setEditMentionShow(false);
+  };
+
+  const handleEditKeyDown = (e) => {
+    if (editMentionShow && editMentionUsers.length > 0) {
+      if (e.key === "ArrowDown") { e.preventDefault(); setEditMentionIndex((i) => Math.min(i + 1, editMentionUsers.length - 1)); return; }
+      if (e.key === "ArrowUp") { e.preventDefault(); setEditMentionIndex((i) => Math.max(i - 1, 0)); return; }
+      if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); insertEditMention(editMentionUsers[editMentionIndex]); return; }
+      if (e.key === "Escape") { setEditMentionShow(false); return; }
+    }
+    if (e.key === "Enter" && !e.shiftKey && !editMentionShow) { e.preventDefault(); saveEdit(); }
+    if (e.key === "Escape") cancelEdit();
+  };
+
+  const handleEditPaste = (e) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData("text/plain");
+    document.execCommand("insertText", false, text);
+  };
 
   return (
-    <div className={isReply ? "ml-8 mt-2" : ""}>
-      <div className="rounded-lg border border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2">
+    <div className="px-3 py-2 flex gap-3">
+      {/* Avatar column */}
+      <div className="flex flex-col items-center shrink-0">
+        <Avatar name={authorDisplay} src={comment.author?.avatarUrl} size="xs" />
+      </div>
+      {/* Content column */}
+      <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Avatar name={authorDisplay} src={comment.author?.avatarUrl} size="xs" />
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-medium text-slate-700 dark:text-slate-200">{authorDisplay}</span>
             <span className="text-xs text-slate-400 dark:text-slate-500">
               {new Date(comment.createdAt).toLocaleString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
             </span>
+            {comment.editedAt && (
+              <span className="text-xs italic text-slate-400 dark:text-slate-500">(editado)</span>
+            )}
           </div>
-          {canDelete && (
-            <button type="button" onClick={() => onDelete(comment.id)} className="text-xs text-red-500 hover:text-red-700 dark:text-red-400" title="Borrar">
-              Borrar
-            </button>
+          {(canDeleteThis || canEditThis) && (
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setShowMenu((v) => !v)}
+                className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-700 transition"
+                title="Opciones"
+              >
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                  <circle cx="10" cy="4" r="1.5" />
+                  <circle cx="10" cy="10" r="1.5" />
+                  <circle cx="10" cy="16" r="1.5" />
+                </svg>
+              </button>
+              {showMenu && (
+                <div className="absolute right-0 top-full mt-1 w-36 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl z-[50] py-1">
+                  {canEditThis && (
+                    <button
+                      type="button"
+                      onClick={startEdit}
+                      className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                    >
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Editar
+                    </button>
+                  )}
+                  {canDeleteThis && (
+                    <button
+                      type="button"
+                      onClick={() => { setShowMenu(false); setShowDeleteConfirm(true); }}
+                      className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition"
+                    >
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Eliminar
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
-        <p className="mt-1 text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{renderCommentBody(comment.body)}</p>
+
+        {editing ? (
+          <div className="mt-1 space-y-1.5">
+            <div className="relative">
+              <div
+                ref={editRef}
+                contentEditable
+                suppressContentEditableWarning
+                role="textbox"
+                onInput={checkEditMention}
+                onKeyDown={handleEditKeyDown}
+                onPaste={handleEditPaste}
+                className="mention-input w-full min-h-[38px] max-h-32 overflow-y-auto rounded-lg border border-indigo-300 dark:border-indigo-500 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 whitespace-pre-wrap break-words"
+              />
+              {editMentionShow && editMentionUsers.length > 0 && (
+                <ul className="absolute bottom-full left-0 mb-1 w-64 max-h-40 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg z-[50]">
+                  {editMentionUsers.map((u, idx) => (
+                    <li key={u.id}>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => insertEditMention(u)}
+                        className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition ${
+                          idx === editMentionIndex
+                            ? "bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300"
+                            : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+                        }`}
+                      >
+                        <Avatar name={u.name} src={u.avatarUrl} size="2xs" />
+                        <span>{u.name}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={saveEdit}
+                disabled={editSaving}
+                className="rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-indigo-700 disabled:opacity-60 transition"
+              >
+                {editSaving ? "..." : "Guardar"}
+              </button>
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="rounded-md border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-0.5 text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{renderCommentBody(comment.body)}</p>
+        )}
 
         {attachments.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
@@ -106,7 +323,6 @@ function CommentItem({ comment, isReply, userId, isAdmin, canComment, onDelete, 
           </div>
         )}
 
-        {/* Reactions display */}
         {Object.keys(reactions).length > 0 && (
           <div className="mt-1.5 flex flex-wrap gap-1">
             {Object.entries(reactions).map(([emoji, userIds]) => {
@@ -130,27 +346,25 @@ function CommentItem({ comment, isReply, userId, isAdmin, canComment, onDelete, 
           </div>
         )}
 
-        {/* Action buttons */}
-        {canComment && (
-          <div className="mt-1.5 flex items-center gap-1">
+        {canComment && !editing && (
+          <div className="mt-1 flex items-center gap-1">
             {!isReply && (
               <button
                 type="button"
                 onClick={() => onReply(comment.id)}
-                className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-700 transition"
+                className="flex h-6 items-center gap-1 rounded px-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-700 transition text-xs"
                 title="Responder"
               >
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                 </svg>
-                Responder
               </button>
             )}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setShowEmojiPicker((v) => !v)}
-                className="flex items-center rounded px-1.5 py-0.5 text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-700 transition"
+                className="flex h-6 items-center gap-1 rounded px-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-700 transition text-xs"
                 title="Reaccionar"
               >
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -179,27 +393,112 @@ function CommentItem({ comment, isReply, userId, isAdmin, canComment, onDelete, 
         )}
       </div>
 
-      {/* Replies */}
-      {comment.replies?.length > 0 && (
-        <div className="space-y-2 mt-2">
-          {comment.replies.map((reply) => (
-            <CommentItem
-              key={reply.id}
-              comment={reply}
-              isReply
-              userId={userId}
-              isAdmin={isAdmin}
-              canComment={canComment}
-              onDelete={onDelete}
-              onReply={onReply}
-              onReact={onReact}
-              users={users}
-            />
-          ))}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="w-full max-w-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-500/20">
+                <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-100">¿Borrar este comentario?</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Esta acción no se puede deshacer.</p>
+              <div className="flex gap-2 mt-1 w-full">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowDeleteConfirm(false); onDelete(comment.id); }}
+                  className="flex-1 rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
+                >
+                  Borrar
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
+}
+
+function CommentItem({ comment, userId, isAdmin, canComment, onDelete, onReply, onReact, onEdit, users }) {
+  const hasReplies = comment.replies?.length > 0;
+
+  return (
+    <div className="rounded-lg border border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50">
+      <div className="relative">
+        {hasReplies && (
+          <div className="absolute left-[22px] top-[36px] bottom-0 w-px bg-slate-300 dark:bg-slate-600" />
+        )}
+        <SingleComment
+          comment={comment}
+          userId={userId}
+          isAdmin={isAdmin}
+          canComment={canComment}
+          onDelete={onDelete}
+          onReply={onReply}
+          onReact={onReact}
+          onEdit={onEdit}
+          isReply={false}
+          users={users}
+        />
+      </div>
+      {hasReplies &&
+        comment.replies.map((reply, idx) => (
+          <div key={reply.id} className="relative">
+            {idx < comment.replies.length - 1 && (
+              <div className="absolute left-[22px] top-0 bottom-0 w-px bg-slate-300 dark:bg-slate-600" />
+            )}
+            <div className="absolute left-[22px] top-[18px] w-[24px] h-px bg-slate-300 dark:bg-slate-600" />
+            {idx === comment.replies.length - 1 && (
+              <div className="absolute left-[22px] top-0 h-[18px] w-px bg-slate-300 dark:bg-slate-600" />
+            )}
+            <div className="pl-[36px]">
+              <SingleComment
+                comment={reply}
+                userId={userId}
+                isAdmin={isAdmin}
+                canComment={canComment}
+                onDelete={onDelete}
+                onReply={onReply}
+                onReact={onReact}
+                onEdit={onEdit}
+                isReply
+                users={users}
+              />
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  );
+}
+
+function bodyToEditableHTML(body) {
+  const regex = new RegExp(MENTION_REGEX.source, "g");
+  let html = "";
+  let lastIndex = 0;
+  let match;
+  while ((match = regex.exec(body)) !== null) {
+    if (match.index > lastIndex) {
+      html += body.slice(lastIndex, match.index).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    const name = match[1];
+    const id = match[2];
+    html += `<span contenteditable="false" data-mention-id="${id}" data-mention-name="${name}" class="inline-flex items-center rounded bg-indigo-100 dark:bg-indigo-500/20 px-1.5 py-0.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 mx-0.5 select-none">@${name}</span>`;
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < body.length) {
+    html += body.slice(lastIndex).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  return html;
 }
 
 function getTextFromEditable(el) {
@@ -469,7 +768,6 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
   };
 
   const handleDeleteComment = async (commentId) => {
-    if (!confirm("¿Borrar este comentario?")) return;
     try {
       await apiFetch(`/comments/${commentId}`, { method: "DELETE" });
       await loadComments();
@@ -478,10 +776,26 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
     }
   };
 
+  const handleEditComment = async (commentId, newBody) => {
+    const mentionedUserIds = extractMentionIds(newBody);
+    await apiFetch(`/comments/${commentId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        body: newBody,
+        mentionedUserIds: mentionedUserIds.length > 0 ? mentionedUserIds : undefined,
+      }),
+    });
+    await loadComments();
+  };
+
   const handleReply = (commentId) => {
     setReplyingTo(commentId);
+
     setTimeout(() => {
-      if (inputRef.current) placeCaretAtEnd(inputRef.current);
+      const el = inputRef.current;
+      if (!el) return;
+      el.innerHTML = "";
+      el.focus();
     }, 0);
   };
 
@@ -722,13 +1036,13 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
                   <CommentItem
                     key={c.id}
                     comment={c}
-                    isReply={false}
                     userId={user?.id}
                     isAdmin={isAdmin}
                     canComment={canComment}
                     onDelete={handleDeleteComment}
                     onReply={handleReply}
                     onReact={handleReact}
+                    onEdit={handleEditComment}
                     users={users}
                   />
                 ))}

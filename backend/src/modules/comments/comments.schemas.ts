@@ -8,6 +8,11 @@ export const createCommentSchema = z.object({
   parentId: z.string().optional(),
 });
 
+export const editCommentSchema = z.object({
+  body: z.string().min(1).max(5000),
+  mentionedUserIds: z.array(z.string()).optional(),
+});
+
 export const toggleReactionSchema = z.object({
   emoji: z.string().min(1).max(10),
 });

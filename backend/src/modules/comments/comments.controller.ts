@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import * as service from "./comments.service";
-import { createCommentSchema, toggleReactionSchema } from "./comments.schemas";
+import { createCommentSchema, editCommentSchema, toggleReactionSchema } from "./comments.schemas";
 
 export async function listByTask(req: Request, res: Response, next: NextFunction) {
   try {
@@ -31,6 +31,26 @@ export async function create(req: Request, res: Response, next: NextFunction) {
     });
 
     res.status(201).json({ comment });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function edit(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { companyId, id: userId } = req.user!;
+    const commentId = typeof req.params.id === "string" ? req.params.id : req.params.id?.[0];
+    if (!commentId) return res.status(400).json({ message: "Invalid comment id" });
+
+    const parsed = editCommentSchema.parse(req.body);
+    const comment = await service.edit({
+      companyId,
+      userId,
+      commentId,
+      body: parsed.body,
+      mentionedUserIds: parsed.mentionedUserIds,
+    });
+    res.json({ comment });
   } catch (err) {
     next(err);
   }
