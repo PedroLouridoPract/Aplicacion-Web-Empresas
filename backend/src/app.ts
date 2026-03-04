@@ -15,6 +15,7 @@ import { importRoutes } from "./modules/import/import.routes";
 import { notificationsRoutes } from "./modules/notifications/notifications.routes";
 import { attachmentsRoutes } from "./modules/attachments/attachments.routes";
 import { kanbanColumnsRoutes } from "./modules/kanban-columns/kanban-columns.routes";
+import { absencesRoutes } from "./modules/absences/absences.routes";
 
 export const app = express();
 
@@ -36,6 +37,7 @@ app.use("/import", importRoutes);
 app.use("/notifications", notificationsRoutes);
 app.use(attachmentsRoutes);
 app.use(kanbanColumnsRoutes);
+app.use("/absences", absencesRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

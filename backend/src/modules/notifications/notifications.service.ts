@@ -4,12 +4,14 @@ export async function createNotification(params: {
   userId: string;
   message: string;
   taskId?: string;
+  absenceId?: string;
 }) {
   return prisma.notification.create({
     data: {
       userId: params.userId,
       message: params.message,
       taskId: params.taskId ?? null,
+      absenceId: params.absenceId ?? null,
     },
   });
 }

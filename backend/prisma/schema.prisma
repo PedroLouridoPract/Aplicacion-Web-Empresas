@@ -25,6 +25,23 @@ enum Priority {
   LOW
 }
 
+enum AbsenceType {
+  BAJA_MEDICA
+  HORAS_MEDICO
+  VACACIONES
+  ASUNTOS_PROPIOS
+  MATERNIDAD_PATERNIDAD
+  FALLECIMIENTO
+  MUDANZA
+  OTRO
+}
+
+enum AbsenceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Company {
   id        String   @id @default(cuid())
   name      String
@@ -53,6 +70,8 @@ model User {
   comments        Comment[]
   notifications   Notification[]
   attachments     Attachment[]
+  absences        Absence[]        @relation("AbsenceEmployee")
+  reviewedAbsences Absence[]       @relation("AbsenceReviewer")
 }
 
 model Project {
@@ -153,13 +172,14 @@ model Comment {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  message   String
-  taskId    String?
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  message    String
+  taskId     String?
+  absenceId  String?
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
 
   @@index([userId, read, createdAt])
 }
@@ -177,4 +197,40 @@ model KanbanColumn {
 
   @@unique([projectId, key])
   @@index([projectId, position])
+}
+
+model Absence {
+  id           String        @id @default(cuid())
+  companyId    String
+  employeeId   String
+  employee     User          @relation("AbsenceEmployee", fields: [employeeId], references: [id])
+  type         AbsenceType
+  status       AbsenceStatus @default(PENDING)
+  startDate    DateTime
+  endDate      DateTime?
+  duration     String?
+  comments     String?
+  reviewerId   String?
+  reviewer     User?         @relation("AbsenceReviewer", fields: [reviewerId], references: [id])
+  reviewedAt   DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  attachments  AbsenceAttachment[]
+
+  @@index([companyId, status])
+  @@index([companyId, employeeId])
+}
+
+model AbsenceAttachment {
+  id           String   @id @default(cuid())
+  absenceId    String
+  absence      Absence  @relation(fields: [absenceId], references: [id], onDelete: Cascade)
+  originalName String
+  mimeType     String
+  size         Int
+  data         Bytes
+  createdAt    DateTime @default(now())
+
+  @@index([absenceId])
 }
