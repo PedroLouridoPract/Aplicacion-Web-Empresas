@@ -62,6 +62,11 @@ export default [
     file: "./pages/HolidaysCalendarPage.jsx",
   },
   {
+    path: "/absences",
+    id: "absences",
+    file: "./pages/AbsencesPage.jsx",
+  },
+  {
     path: "*",
     id: "404",
     file: "./pages/NotFoundPage.jsx",
