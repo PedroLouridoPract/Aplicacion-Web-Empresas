@@ -55,6 +55,7 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
   const [taskType, setTaskType] = useState("tarea");
   const [priority, setPriority] = useState("MEDIUM");
   const [title, setTitle] = useState("");
+  const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [startTime, setStartTime] = useState(() => nowHHmm());
   const [endTime, setEndTime] = useState("");
@@ -76,6 +77,7 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
       setTaskType("tarea");
       setPriority("MEDIUM");
       setTitle("");
+      setStartDate("");
       setDueDate("");
       setStartTime(nowHHmm());
       setEndTime("");
@@ -174,6 +176,7 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
             title: title.trim(),
             description: descText || null,
             assigneeId: assigneeId || null,
+            startDate: startDate || null,
             dueDate: dueDate || null,
             priority,
           }),
@@ -259,16 +262,36 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
             />
           </div>
 
-          {/* Fecha + Hora inicio + Hora fin */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Fechas + Horas */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-2 block text-sm font-bold text-gray-800 dark:text-slate-200">Fecha</label>
+              <label className="mb-2 block text-sm font-bold text-gray-800 dark:text-slate-200">Fecha inicio</label>
+              <div className="relative">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full rounded-xl border-2 border-[#f2f2f2] bg-[#f2f2f2] dark:bg-slate-800 dark:border-slate-700 px-3 py-2.5 text-sm text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#5F96F9] focus:border-[#5F96F9] transition-all cursor-pointer"
+                />
+                {startDate && (
+                  <button
+                    type="button"
+                    onClick={() => setStartDate("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                )}
+              </div>
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-bold text-gray-800 dark:text-slate-200">Fecha fin</label>
               <div className="relative">
                 <input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  min={today}
+                  min={startDate || today}
                   className="w-full rounded-xl border-2 border-[#f2f2f2] bg-[#f2f2f2] dark:bg-slate-800 dark:border-slate-700 px-3 py-2.5 text-sm text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#5F96F9] focus:border-[#5F96F9] transition-all cursor-pointer"
                 />
                 {dueDate && (
@@ -282,16 +305,16 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
                 )}
               </div>
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-2 block text-sm font-bold text-gray-800 dark:text-slate-200">Hora inicio</label>
-              <div className="relative">
-                <input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full rounded-xl border-2 border-[#f2f2f2] bg-[#f2f2f2] dark:bg-slate-800 dark:border-slate-700 px-3 py-2.5 text-sm text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#5F96F9] focus:border-[#5F96F9] transition-all"
-                />
-              </div>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-full rounded-xl border-2 border-[#f2f2f2] bg-[#f2f2f2] dark:bg-slate-800 dark:border-slate-700 px-3 py-2.5 text-sm text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#5F96F9] focus:border-[#5F96F9] transition-all"
+              />
             </div>
             <div>
               <label className="mb-2 block text-sm font-bold text-gray-800 dark:text-slate-200">Hora fin</label>

@@ -335,7 +335,6 @@ export default function ProjectExecutivePage() {
         options={[{ value: "", label: "Cualquier responsable" }, { value: "unassigned", label: "Sin asignar" }, ...users.map((u) => ({ value: u.id, label: u.name }))]}
         size="sm"
       />
-      <button type="button" onClick={() => setFilters({ priority: "", status: "", assignee: "" })} className="rounded-lg px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200">Limpiar</button>
     </>
   );
 

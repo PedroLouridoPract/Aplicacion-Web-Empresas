@@ -256,9 +256,6 @@ export default function ProjectCalendarPage() {
         placeholder="Todos los miembros"
         size="sm"
       />
-      {(priorityFilter || assigneeFilter) && (
-        <button type="button" onClick={() => { setPriorityFilter(null); setAssigneeFilter(""); }} className="rounded-lg px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200">Limpiar</button>
-      )}
     </>
   );
 

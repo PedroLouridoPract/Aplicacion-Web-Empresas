@@ -138,7 +138,7 @@ function AppShell() {
   const pageTitle = getPageTitle(loc.pathname);
 
   return (
-    <div className="flex h-screen bg-slate-100/80 dark:bg-slate-950">
+    <div className="flex h-screen bg-[#f4f9fd] dark:bg-slate-950">
       {/* Collapsible sidebar */}
       <div className="relative shrink-0 p-3 pr-0">
         <aside
@@ -269,7 +269,7 @@ function AppShell() {
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-7xl px-6 pt-[37px] pb-6 lg:px-8">
+          <div className="mx-auto px-[170px] pt-[37px] pb-6">
             <h1 className="mb-4 text-2xl font-bold text-slate-800 dark:text-slate-100">{pageTitle}</h1>
             <Outlet />
           </div>

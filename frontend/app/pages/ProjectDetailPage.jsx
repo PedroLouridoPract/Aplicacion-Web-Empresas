@@ -66,6 +66,7 @@ export default function ProjectDetailPage() {
   const [error, setError] = useState("");
   const [showNewTask, setShowNewTask] = useState(false);
 
+  const [searchOpen, setSearchOpen] = useState(false);
   const [filterKey, setFilterKey] = useState("");
   const [filterId, setFilterId] = useState("");
   const [filterType, setFilterType] = useState("");
@@ -178,6 +179,7 @@ export default function ProjectDetailPage() {
         title: t.title || "",
         description: t.description || "",
         assigneeId: t.assigneeId || t.assignee?.id || "",
+        startDate: t.startDate ? t.startDate.slice(0, 10) : "",
         dueDate: t.dueDate || t.due_date ? (t.dueDate || t.due_date).slice(0, 10) : "",
         priority: (t.priority || "MEDIUM").toUpperCase(),
         status: getTaskColumnKey(t),
@@ -214,6 +216,7 @@ export default function ProjectDetailPage() {
           title: taskEditForm.title.trim(),
           description: taskEditForm.description.trim() || null,
           assigneeId: taskEditForm.assigneeId || null,
+          startDate: taskEditForm.startDate || null,
           dueDate: taskEditForm.dueDate || null,
           priority: taskEditForm.priority,
           ...statusPayload,
@@ -272,37 +275,42 @@ export default function ProjectDetailPage() {
 
   const filterElements = () => (
     <>
-      <div className="flex-1 max-w-sm relative">
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-        <input type="text" placeholder="Buscar por clave o ID..." value={filterKey} onChange={(e) => setFilterKey(e.target.value)} className={`w-full rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 pl-9 pr-4 py-2 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20`} />
+      <div className={`relative h-12 flex items-center rounded-xl border-2 shadow-sm bg-white dark:bg-slate-800 overflow-hidden transition-all duration-300 ease-in-out ${searchOpen ? "w-80 border-[#5F96F9]" : "w-12 border-gray-200 dark:border-slate-700"}`}>
+        {searchOpen && (
+          <input
+            type="text"
+            placeholder="Buscar..."
+            value={filterKey}
+            onChange={(e) => setFilterKey(e.target.value)}
+            autoFocus
+            onBlur={() => { if (!filterKey) setSearchOpen(false); }}
+            className="absolute left-0 top-0 h-full w-full pl-4 pr-12 text-sm bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-200 placeholder-gray-400 focus:outline-none focus:ring-0 transition-all duration-300"
+          />
+        )}
+        <div className={`${searchOpen ? "absolute right-0 top-0" : ""} h-full flex items-center`}>
+          <button
+            type="button"
+            onClick={() => { if (searchOpen && filterKey) { setFilterKey(""); } else { setSearchOpen(!searchOpen); } }}
+            className={`w-12 h-12 flex items-center justify-center cursor-pointer transition-colors ${searchOpen ? "bg-blue-50 dark:bg-slate-700" : "hover:bg-slate-50 dark:hover:bg-slate-700"}`}
+            title="Buscar"
+          >
+            <svg className="w-5 h-5 text-gray-700 dark:text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 11.5C2 6.25 6.25 2 11.5 2" />
+              <path d="M21 11.5C21 16.75 16.75 21 11.5 21C7.76 21 4.52 18.84 2.97 15.69" />
+              <path d="M14 5H20" />
+              <path d="M14 8H17" />
+              <path d="M22 22L20 20" />
+            </svg>
+          </button>
+        </div>
       </div>
-      <CustomSelect
-        value={filterType}
-        onChange={(val) => setFilterType(val)}
-        options={[{ value: "", label: "Todos los tipos" }, ...[...new Set(tasks.map((t) => parseTaskTitle(t.title).type).filter(Boolean))].sort().map((tp) => ({ value: tp, label: tp }))]}
-        size="sm"
-      />
       <CustomSelect
         value={filterStatus}
         onChange={(val) => setFilterStatus(val)}
         options={[{ value: "", label: "Todos los estados" }, ...statusOptions]}
         size="sm"
       />
-      <CustomSelect
-        value={filterAssign}
-        onChange={(val) => setFilterAssign(val)}
-        options={[{ value: "", label: "Cualquier asignación" }, { value: "assigned", label: "Asignadas" }, { value: "unassigned", label: "Sin asignar" }]}
-        size="sm"
-      />
-      <CustomSelect
-        value={sortOrder}
-        onChange={(val) => setSortOrder(val)}
-        options={[{ value: "asc", label: "Ascendente" }, { value: "desc", label: "Descendente" }]}
-        size="sm"
-      />
-      {(filterKey || filterType || filterStatus || filterAssign) && (
-        <button type="button" onClick={() => { setFilterKey(""); setFilterType(""); setFilterStatus(""); setFilterAssign(""); }} className="rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 transition hover:bg-slate-200 dark:hover:bg-slate-600">Limpiar</button>
-      )}
+    
     </>
   );
 
@@ -455,9 +463,15 @@ export default function ProjectDetailPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha límite</label>
-                  <input type="date" min={today} value={taskEditForm.dueDate} onChange={(e) => setTaskEditForm((f) => ({ ...f, dueDate: e.target.value }))} disabled={!canEditField} className={`w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha inicio</label>
+                  <input type="date" value={taskEditForm.startDate} onChange={(e) => setTaskEditForm((f) => ({ ...f, startDate: e.target.value }))} disabled={!canEditField} className={`w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
                 </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha fin</label>
+                  <input type="date" min={taskEditForm.startDate || today} value={taskEditForm.dueDate} onChange={(e) => setTaskEditForm((f) => ({ ...f, dueDate: e.target.value }))} disabled={!canEditField} className={`w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Progreso</label>
                   <div className="flex items-center gap-3">
@@ -552,7 +566,7 @@ export default function ProjectDetailPage() {
         const hasActiveFilters = filterKey || filterType || filterStatus || filterAssign;
 
         return (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex items-center justify-between px-1 mb-2">
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Tareas del proyecto ({tasks.length})</h2>
             {hasActiveFilters && (
@@ -567,40 +581,63 @@ export default function ProjectDetailPage() {
           ) : sortedTasks.map((t) => {
             const canEditTask = isAdmin || role === "MEMBER";
             const parsed = parseTaskTitle(t.title);
+            const isDone = Number(t.progress) === 100;
+            const prio = (t.priority || "MEDIUM").toUpperCase();
+            const prioStyles = {
+              HIGH: "bg-red-50 text-red-600",
+              MEDIUM: "bg-blue-50 text-blue-600",
+              LOW: "bg-green-50 text-green-600",
+            };
             return (
-              <div key={t.id} className="group flex items-center gap-6 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700/50 px-6 py-5 transition duration-300 hover:bg-slate-50/60 dark:hover:bg-slate-700/40 cursor-pointer" onClick={() => setSelectedTask(t)}>
-                <div className="min-w-0 w-56 shrink-0">
-                  <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{t.title}</p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">{t.description || ""}</p>
-                </div>
-                <span className="text-xs text-slate-500 dark:text-slate-400 w-24 shrink-0 truncate">{parsed.type || "—"}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 w-24 shrink-0">{t.dueDate || t.due_date ? new Date(t.dueDate || t.due_date).toLocaleDateString("es-ES") : "—"}</span>
-                <span className="text-xs font-medium text-indigo-500 dark:text-indigo-400 w-16 shrink-0">{priorityLabel(t.priority)}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{statusLabelForTask(t)}</span>
-                <div className="ml-auto flex items-center gap-2 shrink-0">
-                  {canEditTask && (
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      onClick={(e) => { e.stopPropagation(); startEditTask(t); }}
-                      onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); startEditTask(t); } }}
-                      className="rounded-lg bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      Editar
-                    </span>
-                  )}
-                  {isAdmin && (
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ open: true, task: t }); setDeleteError(""); }}
-                      onKeyDown={(e) => { if (e.key !== "Enter") return; e.stopPropagation(); setDeleteConfirm({ open: true, task: t }); setDeleteError(""); }}
-                      className="rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 p-1.5 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Eliminar tarea"
-                    >
-                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </span>
-                  )}
+              <div key={t.id} className={`rounded-2xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-md overflow-hidden transition-all duration-200 ${isDone ? "opacity-60" : ""}`}>
+                <div className="flex items-center py-5 px-6 group cursor-pointer" onClick={() => setSelectedTask(t)}>
+                  <div className="flex items-center w-full gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3">
+                        <span className={`font-semibold text-gray-900 dark:text-slate-100 truncate ${isDone ? "line-through" : ""}`}>{t.title}</span>
+                      </div>
+                    </div>
+                    <div className="w-36 shrink-0 text-sm">
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-400 dark:text-slate-500 text-xs">Inicio:</span>
+                        <span className="text-gray-500 dark:text-slate-400">{t.startDate ? new Date(t.startDate).toLocaleDateString("es-ES") : "—"}</span>
+                      </div>
+                    </div>
+                    <div className="w-36 shrink-0 text-sm">
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-400 dark:text-slate-500 text-xs">Fin:</span>
+                        <span className="text-gray-500 dark:text-slate-400">{t.dueDate || t.due_date ? new Date(t.dueDate || t.due_date).toLocaleDateString("es-ES") : "—"}</span>
+                      </div>
+                    </div>
+                    <div className="w-20 shrink-0">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${prioStyles[prio] || prioStyles.MEDIUM}`}>{priorityLabel(t.priority)}</span>
+                    </div>
+                    <div className="w-28 shrink-0 text-sm text-gray-500 dark:text-slate-400 truncate">
+                      {t.assignee?.name || "—"}
+                    </div>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      {canEditTask && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); startEditTask(t); }}
+                          className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 cursor-pointer transition"
+                          title="Editar"
+                        >
+                          <svg className="w-5 h-5 text-gray-700 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M17.37 10.17L18.71 8.75C20.13 7.25 20.77 5.54 18.56 3.45C16.35 1.37 14.68 2.1 13.26 3.6L5.05 12.29C4.74 12.62 4.44 13.27 4.38 13.72L4.01 16.96C3.88 18.13 4.72 18.93 5.88 18.73L9.1 18.18C9.55 18.1 10.18 17.77 10.49 17.43L14.44 13.25" /><path d="M11.89 5.05C12.32 7.81 14.56 9.92 17.34 10.2" /><path d="M3 22H14" /><path d="M18 22H21" /></svg>
+                        </button>
+                      )}
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ open: true, task: t }); setDeleteError(""); }}
+                          className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer transition"
+                          title="Eliminar tarea"
+                        >
+                          <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             );

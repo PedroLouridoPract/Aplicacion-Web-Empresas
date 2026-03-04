@@ -132,3 +132,18 @@ a, button {
 .mention-input:focus {
   outline: none;
 }
+
+.custom-select-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-select-dropdown::-webkit-scrollbar-track {
+  background: #F3F4F6;
+  border-radius: 10px;
+}
+.custom-select-dropdown::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 10px;
+}
+.custom-select-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}

@@ -109,6 +109,7 @@ model Task {
   creatorName  String?
   reporterName String?
 
+  startDate    DateTime?
   dueDate      DateTime?
   resolvedAt   DateTime?
   priority     Priority   @default(MEDIUM)

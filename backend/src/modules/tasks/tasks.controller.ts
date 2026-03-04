@@ -53,6 +53,7 @@ export async function create(req: Request, res: Response, next: NextFunction) {
       return res.status(403).json({ message: "Solo puedes asignarte tareas a ti mismo" });
     }
 
+    const startDate = parsed.startDate ? new Date(parsed.startDate) : null;
     const dueDate = parsed.dueDate ? new Date(parsed.dueDate) : null;
     const task = await service.createTask({
       companyId,
@@ -61,6 +62,7 @@ export async function create(req: Request, res: Response, next: NextFunction) {
         title: parsed.title,
         description: parsed.description ?? null,
         assigneeId: parsed.assigneeId ?? null,
+        startDate,
         dueDate,
         priority: parsed.priority as "HIGH" | "MEDIUM" | "LOW",
         status: parsed.status as "BACKLOG" | "IN_PROGRESS" | "REVIEW" | "DONE",
@@ -145,11 +147,13 @@ export async function update(req: Request, res: Response, next: NextFunction) {
       };
     } else {
       if (parsed.dueDate) assertFutureDate(parsed.dueDate, "fecha limite");
+      const startDate = parsed.startDate !== undefined ? (parsed.startDate ? new Date(parsed.startDate) : null) : undefined;
       const dueDate = parsed.dueDate !== undefined ? (parsed.dueDate ? new Date(parsed.dueDate) : null) : undefined;
       data = {
         ...(parsed.title != null && { title: parsed.title }),
         ...(parsed.description !== undefined && { description: parsed.description }),
         ...(parsed.assigneeId !== undefined && { assigneeId: parsed.assigneeId }),
+        ...(startDate !== undefined && { startDate }),
         ...(dueDate !== undefined && { dueDate }),
         ...(parsed.priority != null && { priority: parsed.priority }),
         ...(parsed.status != null && { status: parsed.status }),

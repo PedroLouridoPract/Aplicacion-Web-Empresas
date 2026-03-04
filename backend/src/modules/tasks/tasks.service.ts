@@ -10,6 +10,7 @@ const taskSelect = {
   assigneeId: true,
   creatorName: true,
   reporterName: true,
+  startDate: true,
   dueDate: true,
   resolvedAt: true,
   priority: true,
@@ -99,6 +100,7 @@ export async function createTask(params: {
     title: string;
     description?: string | null;
     assigneeId?: string | null;
+    startDate?: Date | null;
     dueDate?: Date | null;
     priority?: "HIGH" | "MEDIUM" | "LOW";
     status?: "BACKLOG" | "IN_PROGRESS" | "REVIEW" | "DONE";
@@ -131,6 +133,7 @@ export async function createTask(params: {
       title: params.data.title,
       description: params.data.description ?? null,
       assigneeId: params.data.assigneeId ?? null,
+      startDate: params.data.startDate ?? null,
       dueDate: params.data.dueDate ?? null,
       priority: params.data.priority ?? "MEDIUM",
       status: params.data.status ?? "BACKLOG",
@@ -176,6 +179,7 @@ export async function updateTask(params: {
     title?: string;
     description?: string | null;
     assigneeId?: string | null;
+    startDate?: Date | null;
     dueDate?: Date | null;
     priority?: "HIGH" | "MEDIUM" | "LOW";
     status?: "BACKLOG" | "IN_PROGRESS" | "REVIEW" | "DONE";
