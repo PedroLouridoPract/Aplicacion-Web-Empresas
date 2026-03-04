@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import {
-  BarChart,
-  Bar,
   AreaChart,
   Area,
   XAxis,
@@ -13,11 +11,10 @@ import {
   Pie,
   Cell,
   CartesianGrid,
-  Legend,
 } from "recharts";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
-import Avatar from "../components/Avatar";
+import TaskDetailPopup from "../components/TaskDetailPopup";
 
 const BASE_COLUMN_COLORS = {
   backlog: "#94a3b8",
@@ -26,8 +23,7 @@ const BASE_COLUMN_COLORS = {
   done: "#10b981",
 };
 
-const PRIORITY_COLORS = { HIGH: "#ef4444", MEDIUM: "#f59e0b", LOW: "#94a3b8" };
-const PRIORITY_LABELS = { HIGH: "Alta", MEDIUM: "Media", LOW: "Baja" };
+
 
 const FALLBACK_COLORS = [
   "#8b5cf6", "#ec4899", "#14b8a6", "#f97316", "#06b6d4",
@@ -115,6 +111,150 @@ function ProjectDropdown({ projects, selected, onChange }) {
   );
 }
 
+const RANGE_OPTIONS = [
+  { key: "12months", label: "Últimos 12 meses" },
+  { key: "thisMonth", label: "Este mes" },
+  { key: "thisYear", label: "Este año" },
+  { key: "custom", label: "Rango personalizado" },
+];
+
+function RangeDropdown({ rangeKey, customFrom, customTo, onSelect }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function close(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
+  let label = RANGE_OPTIONS.find((o) => o.key === rangeKey)?.label ?? "Últimos 12 meses";
+  if (rangeKey === "custom" && customFrom && customTo) {
+    const fmt = (d) => d.split("-").reverse().join("/");
+    label = `${fmt(customFrom)} – ${fmt(customTo)}`;
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-200/70 dark:hover:bg-slate-700 transition min-w-[180px] cursor-pointer"
+      >
+        <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+        </svg>
+        <span className="truncate flex-1 text-left">{label}</span>
+        <svg className={`h-4 w-4 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1.5 z-50 w-56 rounded-2xl bg-white dark:bg-slate-800 shadow-lg ring-1 ring-slate-200/60 dark:ring-slate-700 py-1.5">
+          {RANGE_OPTIONS.map((opt) => (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => {
+                onSelect(opt.key);
+                setOpen(false);
+              }}
+              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 ${
+                rangeKey === opt.key
+                  ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium"
+                  : "text-slate-700 dark:text-slate-200"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ColumnFilterDropdown({ columns, selected, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function close(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
+  const allSelected = columns.length > 0 && selected.length === columns.length;
+  const label = allSelected || selected.length === 0
+    ? "Todos"
+    : selected.length === 1
+      ? columns.find((c) => c.key === selected[0])?.name ?? "1 estado"
+      : `${selected.length} estados`;
+
+  function toggle(key) {
+    onChange((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  }
+
+  function toggleAll() {
+    onChange(allSelected ? [] : columns.map((c) => c.key));
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-200/70 dark:hover:bg-slate-700 transition cursor-pointer"
+      >
+        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+        </svg>
+        <span>{label}</span>
+        <svg className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1 z-50 w-52 rounded-xl bg-white dark:bg-slate-800 shadow-lg ring-1 ring-slate-200/60 dark:ring-slate-700 py-1 max-h-60 overflow-y-auto">
+          <label className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 border-b border-slate-100 dark:border-slate-700">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={toggleAll}
+              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5"
+            />
+            Todos los estados
+          </label>
+          {columns.map((col) => (
+            <label
+              key={col.key}
+              className="flex items-center gap-2.5 px-3 py-2 text-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(col.key)}
+                onChange={() => toggle(col.key)}
+                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5"
+              />
+              <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: col.color }} />
+              <span className="text-slate-700 dark:text-slate-200 truncate">{col.name}</span>
+              <span className="ml-auto text-xs tabular-nums text-slate-400">{col.value}</span>
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { user, booting } = useAuth();
   const role = (user?.role && String(user.role).toUpperCase()) || "";
@@ -125,7 +265,32 @@ export default function DashboardPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [days, setDays] = useState(30);
+  const [rangeKey, setRangeKey] = useState("12months");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+  const [showCustomRange, setShowCustomRange] = useState(false);
+  const [tempFrom, setTempFrom] = useState("");
+  const [tempTo, setTempTo] = useState("");
+  const [selectedColumns, setSelectedColumns] = useState([]);
+  const [pendingTasks, setPendingTasks] = useState([]);
+  const [selectedTask, setSelectedTask] = useState(null);
+
+  const days = useMemo(() => {
+    const today = new Date();
+    if (rangeKey === "12months") return 365;
+    if (rangeKey === "thisMonth") {
+      return today.getDate();
+    }
+    if (rangeKey === "thisYear") {
+      const start = new Date(today.getFullYear(), 0, 1);
+      return Math.ceil((today - start) / (1000 * 60 * 60 * 24)) + 1;
+    }
+    if (rangeKey === "custom" && customFrom && customTo) {
+      const diff = Math.ceil((new Date(customTo) - new Date(customFrom)) / (1000 * 60 * 60 * 24)) + 1;
+      return Math.min(Math.max(diff, 1), 365);
+    }
+    return 365;
+  }, [rangeKey, customFrom, customTo]);
 
   useEffect(() => {
     if (booting || !user || !isAdmin) return;
@@ -136,6 +301,19 @@ export default function DashboardPage() {
       })
       .catch(() => {});
   }, [booting, user, isAdmin]);
+
+  useEffect(() => {
+    if (booting || !user || !isAdmin) return;
+    const url = selectedProject
+      ? `/projects/${selectedProject}/tasks`
+      : "/tasks";
+    apiFetch(url)
+      .then((res) => {
+        const list = Array.isArray(res) ? res : [];
+        setPendingTasks(list.filter((t) => t.status !== "DONE"));
+      })
+      .catch(() => setPendingTasks([]));
+  }, [booting, user, isAdmin, selectedProject]);
 
   useEffect(() => {
     if (booting || !user || !isAdmin) return;
@@ -155,33 +333,97 @@ export default function DashboardPage() {
     return () => { cancelled = true; };
   }, [selectedProject, days, booting, user, isAdmin]);
 
-  const columnChartData = useMemo(() => {
+  const allColumns = useMemo(() => {
     if (!data?.byColumn) return [];
     return data.byColumn.map((c, i) => ({
+      key: c.key || c.label,
       name: c.label,
-      Tareas: c.count,
-      fill: getColumnColor(c, i),
+      value: c.count,
+      color: getColumnColor(c, i),
     }));
   }, [data]);
 
-  const priorityChartData = useMemo(() => {
-    if (!data?.byPriority) return [];
-    return Object.entries(data.byPriority).map(([k, v]) => ({
-      name: PRIORITY_LABELS[k] || k,
-      value: v,
-    }));
-  }, [data]);
+  useEffect(() => {
+    if (allColumns.length > 0) {
+      setSelectedColumns(allColumns.map((c) => c.key));
+    }
+  }, [allColumns]);
+
+  const columnPieData = useMemo(() => {
+    return allColumns.filter((c) => c.value > 0 && selectedColumns.includes(c.key));
+  }, [allColumns, selectedColumns]);
 
   const trendData = useMemo(() => {
     if (!data?.trend) return [];
-    return data.trend.map((t) => ({
-      date: t.date.slice(5),
-      Creadas: t.created,
-      Completadas: t.completed,
-    }));
+    const MONTH_NAMES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    const grouped = {};
+    for (const t of data.trend) {
+      const key = t.date.slice(0, 7);
+      if (!grouped[key]) grouped[key] = { created: 0, completed: 0 };
+      grouped[key].created += t.created;
+      grouped[key].completed += t.completed;
+    }
+    return Object.entries(grouped).map(([key, v]) => {
+      const monthIdx = parseInt(key.slice(5, 7), 10) - 1;
+      return { date: MONTH_NAMES[monthIdx], Creadas: v.created, Completadas: v.completed };
+    });
   }, [data]);
 
+  const navigate = useNavigate();
+
   if (!isAdmin) return <Navigate to="/my-tasks" replace />;
+
+  const quickAccessProjectId = selectedProject || projects[0]?.id;
+  const quickLinks = [
+    {
+      label: "Detalles",
+      sub: "Vista general",
+      path: quickAccessProjectId ? `/projects/${quickAccessProjectId}` : null,
+      iconBg: "bg-indigo-50 dark:bg-indigo-500/10",
+      iconColor: "text-indigo-500",
+      icon: (
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+        </svg>
+      ),
+    },
+    {
+      label: "Kanban",
+      sub: "Tablero visual",
+      path: quickAccessProjectId ? `/projects/${quickAccessProjectId}/kanban` : null,
+      iconBg: "bg-blue-50 dark:bg-blue-500/10",
+      iconColor: "text-blue-500",
+      icon: (
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125c-.621 0-1.125.504-1.125 1.125v12.75c0 .621.504 1.125 1.125 1.125Z" />
+        </svg>
+      ),
+    },
+    {
+      label: "Tabla ejecutiva",
+      sub: "Vista de datos",
+      path: quickAccessProjectId ? `/projects/${quickAccessProjectId}/executive` : null,
+      iconBg: "bg-emerald-50 dark:bg-emerald-500/10",
+      iconColor: "text-emerald-500",
+      icon: (
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M10.875 12h-7.5m8.625 0c-.621 0-1.125.504-1.125 1.125m1.125-1.125h7.5m-8.625 0c.621 0 1.125.504 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m-2.25 0c-.621 0-1.125.504-1.125 1.125" />
+        </svg>
+      ),
+    },
+    {
+      label: "Calendario",
+      sub: "Vista temporal",
+      path: quickAccessProjectId ? `/projects/${quickAccessProjectId}/calendar` : null,
+      iconBg: "bg-amber-50 dark:bg-amber-500/10",
+      iconColor: "text-amber-500",
+      icon: (
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
+        </svg>
+      ),
+    },
+  ];
 
   const kpis = [
     {
@@ -243,8 +485,7 @@ export default function DashboardPage() {
     },
   ];
 
-  const pieColors = ["#ef4444", "#f59e0b", "#94a3b8"];
-  const priorityTotal = priorityChartData.reduce((s, d) => s + d.value, 0);
+  const columnPieTotal = columnPieData.reduce((s, d) => s + d.value, 0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -257,29 +498,50 @@ export default function DashboardPage() {
             onChange={setSelectedProject}
           />
 
-          <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-            {[
-              { d: 7, label: "7d" },
-              { d: 14, label: "14d" },
-              { d: 30, label: "30d" },
-              { d: 90, label: "90d" },
-            ].map(({ d, label }) => (
+          <RangeDropdown
+            rangeKey={rangeKey}
+            customFrom={customFrom}
+            customTo={customTo}
+            onSelect={(key) => {
+              if (key === "custom") {
+                const today = new Date().toISOString().slice(0, 10);
+                const yearAgo = new Date(Date.now() - 365 * 86400000).toISOString().slice(0, 10);
+                setTempFrom(customFrom || yearAgo);
+                setTempTo(customTo || today);
+                setShowCustomRange(true);
+              } else {
+                setRangeKey(key);
+              }
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Accesos rápidos */}
+      {projects.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-3">Accesos rápidos</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {quickLinks.map((link) => (
               <button
-                key={d}
+                key={link.label}
                 type="button"
-                onClick={() => setDays(d)}
-                className={`px-3 py-1.5 text-xs font-medium transition ${
-                  days === d
-                    ? "bg-indigo-600 text-white"
-                    : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"
-                }`}
+                disabled={!link.path}
+                onClick={() => link.path && navigate(link.path)}
+                className="content-card flex items-center gap-3.5 px-5 py-4 text-left transition hover:shadow-md hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer group"
               >
-                {label}
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${link.iconBg} ${link.iconColor} transition group-hover:scale-110`}>
+                  {link.icon}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{link.label}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{link.sub}</p>
+                </div>
               </button>
             ))}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Loading */}
       {loading && !data && (
@@ -318,25 +580,46 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* Charts row: Column distribution + Priority */}
+          {/* Evolution chart + Priority */}
           <div className="grid gap-4 lg:grid-cols-3">
             <div className="content-card p-6 lg:col-span-2">
-              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Distribución por columna</h3>
-              <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">Tareas en cada estado del Kanban</p>
-              {columnChartData.length > 0 ? (
-                <div className="mt-4 h-64">
+              <div className="flex items-start justify-between mb-1">
+                <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Evolución de tareas</h3>
+              </div>
+              <div className="flex items-center gap-5 mb-4">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#5F96F9]" />
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Tareas creadas</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#94a3b8]" />
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Tareas completadas</span>
+                </div>
+              </div>
+              {trendData.length > 0 ? (
+                <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={columnChartData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                      <XAxis dataKey="name" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                      <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
-                      <Tooltip contentStyle={{ borderRadius: "0.5rem", border: "1px solid #e2e8f0", fontSize: "0.8rem" }} />
-                      <Bar dataKey="Tareas" radius={[4, 4, 0, 0]}>
-                        {columnChartData.map((entry, i) => (
-                          <Cell key={i} fill={entry.fill} />
-                        ))}
-                      </Bar>
-                    </BarChart>
+                    <AreaChart data={trendData} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="gradCreated" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#5F96F9" stopOpacity={0.25} />
+                          <stop offset="100%" stopColor="#5F96F9" stopOpacity={0.01} />
+                        </linearGradient>
+                        <linearGradient id="gradDone" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#94a3b8" stopOpacity={0.15} />
+                          <stop offset="100%" stopColor="#94a3b8" stopOpacity={0.01} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid horizontal vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#94a3b8" }} tickLine={false} axisLine={false} interval={0} />
+                      <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} tickLine={false} axisLine={false} allowDecimals={false} />
+                      <Tooltip
+                        contentStyle={{ borderRadius: "0.75rem", border: "1px solid #e2e8f0", fontSize: "0.8rem", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
+                        itemStyle={{ fontSize: "0.75rem" }}
+                      />
+                      <Area type="monotone" dataKey="Creadas" stroke="#5F96F9" strokeWidth={2.5} fill="url(#gradCreated)" dot={false} activeDot={{ r: 4, fill: "#5F96F9", strokeWidth: 2, stroke: "#fff" }} />
+                      <Area type="monotone" dataKey="Completadas" stroke="#94a3b8" strokeWidth={2} strokeDasharray="6 3" fill="url(#gradDone)" dot={false} activeDot={{ r: 4, fill: "#94a3b8", strokeWidth: 2, stroke: "#fff" }} />
+                    </AreaChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
@@ -345,14 +628,21 @@ export default function DashboardPage() {
             </div>
 
             <div className="content-card p-6">
-              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Por prioridad</h3>
-              {priorityTotal > 0 ? (
-                <div className="mt-3 flex flex-col items-center gap-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Por estado</h3>
+                <ColumnFilterDropdown
+                  columns={allColumns}
+                  selected={selectedColumns}
+                  onChange={setSelectedColumns}
+                />
+              </div>
+              {columnPieTotal > 0 ? (
+                <div className="flex flex-col items-center gap-4">
                   <div className="h-44 w-44">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
-                          data={priorityChartData}
+                          data={columnPieData}
                           dataKey="value"
                           nameKey="name"
                           cx="50%"
@@ -362,8 +652,8 @@ export default function DashboardPage() {
                           strokeWidth={2}
                           stroke="#fff"
                         >
-                          {priorityChartData.map((_, i) => (
-                            <Cell key={i} fill={pieColors[i]} />
+                          {columnPieData.map((entry, i) => (
+                            <Cell key={i} fill={entry.color} />
                           ))}
                         </Pie>
                         <Tooltip contentStyle={{ borderRadius: "0.5rem", border: "1px solid #e2e8f0", fontSize: "0.8rem" }} />
@@ -371,9 +661,9 @@ export default function DashboardPage() {
                     </ResponsiveContainer>
                   </div>
                   <div className="flex flex-col gap-2 text-sm w-full">
-                    {priorityChartData.map((d, i) => (
+                    {columnPieData.map((d) => (
                       <div key={d.name} className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full" style={{ background: pieColors[i] }} />
+                        <span className="h-2.5 w-2.5 rounded-full" style={{ background: d.color }} />
                         <span className="text-slate-600 dark:text-slate-300">{d.name}</span>
                         <span className="ml-auto tabular-nums font-medium text-slate-800 dark:text-slate-100">{d.value}</span>
                       </div>
@@ -386,101 +676,104 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Trend chart */}
-          <div className="content-card p-6">
-            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Tendencia</h3>
-            <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">Tareas creadas vs completadas por día</p>
-            {trendData.length > 0 ? (
-              <div className="mt-4 h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trendData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="gradCreated" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#5F96F9" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#5F96F9" stopOpacity={0.02} />
-                      </linearGradient>
-                      <linearGradient id="gradDone" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.02} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                    <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
-                    <Tooltip contentStyle={{ borderRadius: "0.5rem", border: "1px solid #e2e8f0", fontSize: "0.8rem" }} />
-                    <Legend verticalAlign="top" height={30} wrapperStyle={{ fontSize: "0.75rem" }} />
-                    <Area type="monotone" dataKey="Creadas" stroke="#5F96F9" strokeWidth={2} fill="url(#gradCreated)" />
-                    <Area type="monotone" dataKey="Completadas" stroke="#10b981" strokeWidth={2} fill="url(#gradDone)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <p className="mt-8 text-center text-sm text-slate-400">Sin datos</p>
-            )}
-          </div>
+          {/* Users ranking + Pending tasks row */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            {/* Pending tasks */}
+            {pendingTasks.length > 0 && (
+              <div className="content-card p-5 flex flex-col" style={{ maxHeight: 340 }}>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Tareas pendientes</h3>
+                  <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    {pendingTasks.length}
+                  </span>
+                </div>
+                <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5">
+                  {pendingTasks.map((task) => {
+                    const PRIO_COLORS = { HIGH: "#ef4444", MEDIUM: "#f59e0b", LOW: "#94a3b8" };
+                    const PRIO_LABELS = { HIGH: "Alta", MEDIUM: "Media", LOW: "Baja" };
+                    const barColor = PRIO_COLORS[task.priority] || "#94a3b8";
+                    const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
+                    const fmtDate = task.dueDate
+                      ? new Date(task.dueDate).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })
+                      : null;
 
-          {/* Users table */}
-          {data?.byUser?.length > 0 && (
-            <div className="content-card p-6">
-              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-4">Rendimiento por usuario</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-700">
-                      <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400">Usuario</th>
-                      <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-500 dark:text-slate-400">Total</th>
-                      <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-500 dark:text-slate-400">Hechas</th>
-                      <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-500 dark:text-slate-400">En curso</th>
-                      <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-500 dark:text-slate-400">Atrasadas</th>
-                      <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-500 dark:text-slate-400">Progreso</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {data.byUser.map((row) => {
-                      const pct = row.total > 0 ? Math.round((row.done / row.total) * 100) : 0;
+                    return (
+                      <button
+                        key={task.id}
+                        type="button"
+                        onClick={() => setSelectedTask(task)}
+                        className="w-full text-left group shrink-0"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-slate-700 dark:text-slate-200 truncate max-w-[200px] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition font-medium">
+                            {task.title}
+                          </span>
+                          <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                            {fmtDate && (
+                              <span className={`text-[10px] tabular-nums ${isOverdue ? "text-red-500 font-semibold" : "text-slate-400"}`}>
+                                {fmtDate}
+                              </span>
+                            )}
+                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: barColor + "18", color: barColor }}>
+                              {PRIO_LABELS[task.priority] || task.priority}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ width: `${task.progress ?? 0}%`, background: barColor }}
+                          />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Users ranking */}
+            {data?.byUser?.length > 0 && (() => {
+              const BAR_COLORS = ["#5F96F9", "#94a3b8", "#c4b5fd", "#67e8f9", "#a3e635", "#fbbf24", "#f87171"];
+              const sorted = [...data.byUser].sort((a, b) => b.total - a.total);
+              const maxTotal = sorted[0]?.total || 1;
+              const grandTotal = sorted.reduce((s, r) => s + r.total, 0);
+              return (
+                <div className="content-card p-5 flex flex-col" style={{ maxHeight: 340 }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Top rendimiento por usuario</h3>
+                  </div>
+                  <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3">
+                    {sorted.map((row, i) => {
+                      const pct = maxTotal > 0 ? (row.total / maxTotal) * 100 : 0;
+                      const barColor = BAR_COLORS[i % BAR_COLORS.length];
                       return (
-                        <tr key={row.user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                          <td className="px-3 py-3">
-                            <div className="flex items-center gap-2.5">
-                              <Avatar name={row.user.name} src={row.user.avatarUrl} size="xs" />
-                              <span className="font-medium text-slate-700 dark:text-slate-200 truncate max-w-[180px]">
-                                {row.user.name}
-                              </span>
+                        <div key={row.user.id} className="shrink-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate max-w-[160px]">{row.user.name}</span>
+                              <span className="text-[10px] tabular-nums text-slate-400 dark:text-slate-500 shrink-0">{row.total}</span>
                             </div>
-                          </td>
-                          <td className="px-3 py-3 text-right tabular-nums font-medium text-slate-700 dark:text-slate-200">
-                            {row.total}
-                          </td>
-                          <td className="px-3 py-3 text-right tabular-nums font-medium text-emerald-600 dark:text-emerald-400">
-                            {row.done}
-                          </td>
-                          <td className="px-3 py-3 text-right tabular-nums font-medium text-blue-600 dark:text-blue-400">
-                            {row.inProgress}
-                          </td>
-                          <td className="px-3 py-3 text-right tabular-nums font-medium text-red-600 dark:text-red-400">
-                            {row.overdue}
-                          </td>
-                          <td className="px-3 py-3">
-                            <div className="flex items-center justify-end gap-2">
-                              <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                                <div
-                                  className="h-full rounded-full bg-emerald-500 transition-all"
-                                  style={{ width: `${pct}%` }}
-                                />
-                              </div>
-                              <span className="w-8 text-right text-xs tabular-nums font-semibold text-slate-500 dark:text-slate-400">
-                                {pct}%
-                              </span>
-                            </div>
-                          </td>
-                        </tr>
+                            <span className="text-xs font-bold tabular-nums text-slate-800 dark:text-slate-100">{row.done} hechas</span>
+                          </div>
+                          <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-500"
+                              style={{ width: `${pct}%`, background: barColor }}
+                            />
+                          </div>
+                        </div>
                       );
                     })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between shrink-0">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">Total asignadas</span>
+                    <span className="text-xs font-bold tabular-nums text-indigo-600 dark:text-indigo-400">{grandTotal}</span>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
 
           {/* Column cards detail */}
           {data?.byColumn?.length > 0 && (
@@ -515,6 +808,68 @@ export default function DashboardPage() {
         </>
       )}
 
+      {/* Task detail popup */}
+      {selectedTask && (
+        <TaskDetailPopup
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onCommentAdded={() => {}}
+        />
+      )}
+
+      {/* Custom range modal */}
+      {showCustomRange && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowCustomRange(false)}>
+          <div
+            className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-5">Seleccionar rango personalizado</h3>
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-600 dark:text-slate-300">Fecha de inicio</label>
+                <input
+                  type="date"
+                  value={tempFrom}
+                  onChange={(e) => setTempFrom(e.target.value)}
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-600 dark:text-slate-300">Fecha de fin</label>
+                <input
+                  type="date"
+                  value={tempTo}
+                  onChange={(e) => setTempTo(e.target.value)}
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowCustomRange(false)}
+                className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={!tempFrom || !tempTo || tempFrom > tempTo}
+                onClick={() => {
+                  setCustomFrom(tempFrom);
+                  setCustomTo(tempTo);
+                  setRangeKey("custom");
+                  setShowCustomRange(false);
+                }}
+                className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
