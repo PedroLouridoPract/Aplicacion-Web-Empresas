@@ -97,7 +97,7 @@ export default function UsersPage() {
           <button
             type="button"
             onClick={() => { setShowCreate(true); setError(""); }}
-            className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
+            className="rounded-xl bg-indigo-400 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)]"
           >
             + Nuevo empleado
           </button>
@@ -160,7 +160,7 @@ export default function UsersPage() {
               <button
                 type="button"
                 onClick={() => { setShowCreate(false); setError(""); }}
-                className="rounded-full border border-slate-200 dark:border-slate-700 px-5 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+                className="rounded-xl border border-slate-200 dark:border-slate-700 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-all hover:bg-slate-50 dark:hover:bg-slate-700"
               >
                 Cancelar
               </button>

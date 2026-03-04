@@ -445,14 +445,14 @@ function SingleComment({ comment, userId, isAdmin, canComment, onDelete, onReply
                 <button
                   type="button"
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+                  className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-all hover:bg-slate-50 dark:hover:bg-slate-700"
                 >
                   Cancelar
                 </button>
                 <button
                   type="button"
                   onClick={() => { setShowDeleteConfirm(false); onDelete(comment.id); }}
-                  className="flex-1 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
+                  className="flex-1 rounded-xl bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-red-700"
                 >
                   Borrar
                 </button>
@@ -1244,7 +1244,7 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
                   <button
                     type="submit"
                     disabled={sending || (inputEmpty && attachedFiles.length === 0)}
-                    className="rounded-full bg-indigo-400 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60 transition"
+                    className="rounded-xl bg-indigo-400 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-60"
                   >
                     {sending ? "..." : replyingTo ? "Responder" : "Enviar"}
                   </button>

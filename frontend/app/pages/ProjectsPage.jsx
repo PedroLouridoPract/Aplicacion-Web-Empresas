@@ -81,7 +81,7 @@ export default function ProjectsPage() {
           <button
             type="button"
             onClick={() => setShowCreate(!showCreate)}
-            className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
+            className="rounded-xl bg-indigo-400 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)]"
           >
             + Nuevo proyecto
           </button>
@@ -126,8 +126,8 @@ export default function ProjectsPage() {
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowCreate(false)} className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
-                <button type="submit" className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500">Crear proyecto</button>
+                <button type="button" onClick={() => setShowCreate(false)} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-all hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
+                <button type="submit" className="rounded-xl bg-indigo-400 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)]">Crear proyecto</button>
               </div>
             </form>
           </div>

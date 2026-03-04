@@ -436,7 +436,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => { setEditing(true); setProfileMsg({ type: "", text: "" }); }}
-                    className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
+                    className="rounded-xl bg-indigo-400 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)]"
                   >
                     Editar
                   </button>
@@ -453,7 +453,7 @@ export default function ProfilePage() {
                       type="submit"
                       form="profile-form"
                       disabled={saving}
-                      className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-50"
+                      className="rounded-xl bg-indigo-400 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-50"
                     >
                       {saving ? "Guardando..." : "Guardar"}
                     </button>
@@ -594,7 +594,7 @@ export default function ProfilePage() {
                     <button
                       type="submit"
                       disabled={pwSaving}
-                      className="rounded-full bg-indigo-400 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-50"
+                      className="rounded-xl bg-indigo-400 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-50"
                     >
                       {pwSaving ? "Actualizando..." : "Cambiar contraseña"}
                     </button>

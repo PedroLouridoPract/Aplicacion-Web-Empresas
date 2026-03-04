@@ -385,7 +385,7 @@ export default function ImportPage() {
           <button
             onClick={doImport}
             disabled={importing}
-            className="rounded-full bg-indigo-400 px-6 py-2.5 font-semibold text-white shadow-sm transition hover:shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-xl bg-indigo-400 px-6 py-3 font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {importing ? (
               <span className="flex items-center gap-2">
@@ -485,7 +485,7 @@ export default function ImportPage() {
           <div className="mt-6 flex gap-3">
             <button
               onClick={reset}
-              className="rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-100 dark:hover:bg-slate-700"
+              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-all hover:bg-slate-100 dark:hover:bg-slate-700"
             >
               Importar otro archivo
             </button>

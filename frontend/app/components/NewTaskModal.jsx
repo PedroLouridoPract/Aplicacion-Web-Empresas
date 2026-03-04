@@ -215,39 +215,39 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
           {/* Tipo + Prioridad */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Tipo</label>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Tipo</label>
               <CustomSelect value={taskType} onChange={setTaskType} options={TASK_TYPES} className="w-full" />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Priority</label>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Priority</label>
               <CustomSelect value={priority} onChange={setPriority} options={PRIORITIES} className="w-full" />
             </div>
           </div>
 
           {/* Titulo */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Título</label>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Título</label>
             <input
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Título"
-              className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
           </div>
 
           {/* Fecha + Hora inicio + Hora fin */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Fecha</label>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha</label>
               <div className="relative">
                 <input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
                   min={today}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
+                  className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
                 />
                 {dueDate && (
                   <button
@@ -261,24 +261,24 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
               </div>
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Hora inicio</label>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Hora inicio</label>
               <div className="relative">
                 <input
                   type="time"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Hora fin</label>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Hora fin</label>
               <input
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
                 placeholder="--:--"
-                className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
           </div>
@@ -310,7 +310,7 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                   placeholder="Buscar..."
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-2"
+                  className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-2"
                 />
                 <div className="max-h-36 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
                   <button
@@ -345,7 +345,7 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                   placeholder="Buscar..."
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-2"
+                  className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-2"
                 />
                 {selectedUsers.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
@@ -389,34 +389,34 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
 
           {/* Vincular a contacto */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Vincular a contacto</label>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Vincular a contacto</label>
             <input
               type="text"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               placeholder="Buscar cliente o proveedor..."
               disabled
-              className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-400 dark:text-slate-500 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none cursor-not-allowed opacity-60"
+              className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-400 dark:text-slate-500 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none cursor-not-allowed opacity-60"
             />
             <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Disponible próximamente</p>
           </div>
 
           {/* Descripcion con soporte de imagenes */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Descripcion</label>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Descripcion</label>
             <div
               ref={descRef}
               contentEditable
               suppressContentEditableWarning
               onPaste={handleDescPaste}
               data-placeholder="Descripción de la tarea (opcional)"
-              className="w-full min-h-[100px] max-h-[200px] overflow-y-auto rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 whitespace-pre-wrap break-words empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400 empty:before:dark:text-slate-500 empty:before:pointer-events-none"
+              className="w-full min-h-[100px] max-h-[200px] overflow-y-auto rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 whitespace-pre-wrap break-words empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400 empty:before:dark:text-slate-500 empty:before:pointer-events-none"
             />
           </div>
 
           {/* Documentos vinculados (archivos adjuntos) */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Documentos vinculados (opcional)</label>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Documentos vinculados (opcional)</label>
             <div
               className="relative rounded-xl border border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50 px-4 py-3 text-sm text-slate-500 dark:text-slate-400 cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-500 transition"
               onClick={() => fileInputRef.current?.click()}
@@ -469,14 +469,14 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-all hover:bg-slate-50 dark:hover:bg-slate-700"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="rounded-xl bg-indigo-400 px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60 transition"
+              className="rounded-xl bg-indigo-400 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-60"
             >
               {saving ? "Creando..." : "Crear"}
             </button>

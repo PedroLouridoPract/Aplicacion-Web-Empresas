@@ -37,7 +37,7 @@ export default function AppLayout() {
 
         <button
           onClick={logout}
-          className="mt-4 w-full rounded-full border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+          className="mt-4 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50"
         >
           Cerrar sesión
         </button>
