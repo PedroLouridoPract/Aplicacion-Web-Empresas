@@ -260,6 +260,8 @@ function getCaretTextBefore(el) {
   return text;
 }
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
+
 export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
   const { user } = useAuth();
   const role = (user?.role && String(user.role).toUpperCase()) || "";
@@ -276,6 +278,8 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
   const [mentionIndex, setMentionIndex] = useState(0);
   const [replyingTo, setReplyingTo] = useState(null);
   const [inputEmpty, setInputEmpty] = useState(true);
+  const [taskAttachments, setTaskAttachments] = useState([]);
+  const [loadingAttachments, setLoadingAttachments] = useState(true);
   const inputRef = useRef(null);
   const fileRef = useRef(null);
   const commentsEndRef = useRef(null);
@@ -294,6 +298,15 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
   }, [task?.id]);
 
   useEffect(() => { loadComments(); }, [loadComments]);
+
+  useEffect(() => {
+    if (!task?.id) return;
+    setLoadingAttachments(true);
+    apiFetch(`/tasks/${task.id}/attachments`)
+      .then((data) => setTaskAttachments(Array.isArray(data) ? data : []))
+      .catch(() => setTaskAttachments([]))
+      .finally(() => setLoadingAttachments(false));
+  }, [task?.id]);
 
   useEffect(() => {
     apiFetch("/users").then((data) => {
@@ -632,6 +645,67 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
               <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Descripción</span>
               <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">{task.description}</p>
             </div>
+          )}
+
+          {/* Task Attachments */}
+          {!loadingAttachments && taskAttachments.length > 0 && (
+            <div>
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                Archivos adjuntos ({taskAttachments.length})
+              </span>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                {taskAttachments.map((att) => {
+                  const isImage = att.mimeType?.startsWith("image/");
+                  const downloadUrl = `${API_BASE}/attachments/${att.id}/download`;
+                  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+                  const authUrl = token ? `${downloadUrl}?token=${encodeURIComponent(token)}` : downloadUrl;
+                  const sizeLabel = att.size < 1024
+                    ? `${att.size} B`
+                    : att.size < 1024 * 1024
+                      ? `${(att.size / 1024).toFixed(1)} KB`
+                      : `${(att.size / (1024 * 1024)).toFixed(1)} MB`;
+
+                  return (
+                    <a
+                      key={att.id}
+                      href={authUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2.5 transition hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:border-indigo-200 dark:hover:border-indigo-500/30 group"
+                    >
+                      {isImage ? (
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-indigo-50 dark:bg-indigo-500/10">
+                          <svg className="h-5 w-5 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+                          </svg>
+                        </div>
+                      ) : (
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-700">
+                          <svg className="h-5 w-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                          </svg>
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
+                          {att.originalName}
+                        </p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500">
+                          {sizeLabel}
+                          {att.uploadedBy?.name && <> · {att.uploadedBy.name}</>}
+                        </p>
+                      </div>
+                      <svg className="h-4 w-4 shrink-0 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                      </svg>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {loadingAttachments && (
+            <p className="text-xs text-slate-400 dark:text-slate-500">Cargando adjuntos...</p>
           )}
 
           {/* Comments */}

@@ -113,7 +113,7 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
 
       <div className="mt-2.5 flex flex-wrap gap-1">
         {statuses
-          .filter((s) => s.key !== task.status)
+          .filter((s) => s.key !== (task.customStatus || (task.status || "backlog").toLowerCase()))
           .map((s) => (
             <button
               key={s.key}
