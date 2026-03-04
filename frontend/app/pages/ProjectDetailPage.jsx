@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
@@ -19,12 +19,17 @@ const PROJECT_STATUSES = [
   { value: "COMPLETED", label: "Finalizado" },
 ];
 
-const TASK_STATUSES = [
-  { value: "BACKLOG", label: "Backlog" },
-  { value: "IN_PROGRESS", label: "En proceso" },
-  { value: "REVIEW", label: "En revisión" },
-  { value: "DONE", label: "Finalizado" },
-];
+const STATUS_KEY_MAP = {
+  BACKLOG: "backlog",
+  IN_PROGRESS: "in_progress",
+  REVIEW: "review",
+  DONE: "done",
+};
+
+function getTaskColumnKey(task) {
+  if (task.customStatus) return task.customStatus;
+  return STATUS_KEY_MAP[(task.status || "").toUpperCase()] || "backlog";
+}
 
 function parseTaskTitle(title) {
   if (!title) return { key: "", id: "", type: "" };
@@ -45,7 +50,18 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
+  const [columns, setColumns] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const columnsMap = useMemo(() => {
+    const m = new Map();
+    columns.forEach((c) => m.set(c.key, c));
+    return m;
+  }, [columns]);
+
+  const statusOptions = useMemo(() => {
+    return columns.map((c) => ({ value: c.key, label: c.label }));
+  }, [columns]);
   const [error, setError] = useState("");
   const [showNewTask, setShowNewTask] = useState(false);
 
@@ -96,14 +112,16 @@ export default function ProjectDetailPage() {
     setError("");
     setLoading(true);
     try {
-      const [projRes, tasksRes, usersRes] = await Promise.all([
+      const [projRes, tasksRes, usersRes, colsRes] = await Promise.all([
         apiFetch(`/projects/${id}`),
         apiFetch(`/projects/${id}/tasks`).catch(() => []),
         apiFetch("/users").catch(() => []),
+        apiFetch(`/projects/${id}/columns`).catch(() => []),
       ]);
       setProject(projRes.project ?? projRes);
       setTasks(Array.isArray(tasksRes) ? tasksRes : []);
       setUsers(Array.isArray(usersRes) ? usersRes : (usersRes?.users ?? []));
+      setColumns(Array.isArray(colsRes) ? colsRes : []);
     } catch (err) {
       setError(err.message || "Error cargando proyecto");
     } finally {
@@ -199,7 +217,7 @@ export default function ProjectDetailPage() {
         assigneeId: t.assigneeId || t.assignee?.id || "",
         dueDate: t.dueDate || t.due_date ? (t.dueDate || t.due_date).slice(0, 10) : "",
         priority: (t.priority || "MEDIUM").toUpperCase(),
-        status: (t.status || "BACKLOG").toUpperCase().replace("-", "_"),
+        status: getTaskColumnKey(t),
         progress: Number(t.progress) || 0,
       });
     } catch (err) {
@@ -222,6 +240,11 @@ export default function ProjectDetailPage() {
     setSaveError("");
     setSaving(true);
     try {
+      const isBaseKey = ["backlog", "in_progress", "review", "done"].includes(taskEditForm.status);
+      const statusPayload = isBaseKey
+        ? { status: taskEditForm.status.toUpperCase().replace("-", "_"), customStatus: null }
+        : { customStatus: taskEditForm.status };
+
       await apiFetch(`/tasks/${editingTaskId}`, {
         method: "PATCH",
         body: JSON.stringify({
@@ -230,7 +253,7 @@ export default function ProjectDetailPage() {
           assigneeId: taskEditForm.assigneeId || null,
           dueDate: taskEditForm.dueDate || null,
           priority: taskEditForm.priority,
-          status: taskEditForm.status,
+          ...statusPayload,
           progress: taskEditForm.progress,
         }),
       });
@@ -253,9 +276,12 @@ export default function ProjectDetailPage() {
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const statusLabel = (s) => {
-    const map = { backlog: "Backlog", in_progress: "En proceso", review: "En revision", done: "Finalizado", BACKLOG: "Backlog", IN_PROGRESS: "En proceso", REVIEW: "En revision", DONE: "Finalizado" };
-    return map[s] || s || "—";
+  const statusLabelForTask = (task) => {
+    const key = getTaskColumnKey(task);
+    const col = columnsMap.get(key);
+    if (col) return col.label;
+    const fallback = { backlog: "Backlog", in_progress: "En proceso", review: "En revisión", done: "Finalizado" };
+    return fallback[key] || key || "—";
   };
   const priorityLabel = (p) => {
     const map = { high: "Alta", medium: "Media", low: "Baja", HIGH: "Alta", MEDIUM: "Media", LOW: "Baja" };
@@ -309,7 +335,7 @@ export default function ProjectDetailPage() {
             </select>
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
               <option value="">Todos los estados</option>
-              {TASK_STATUSES.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
+              {statusOptions.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
             </select>
             <select value={filterAssign} onChange={(e) => setFilterAssign(e.target.value)} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
               <option value="">Cualquier asignación</option>
@@ -605,7 +631,7 @@ export default function ProjectDetailPage() {
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Estado</label>
                   <select value={taskEditForm.status} onChange={(e) => setTaskEditForm((f) => ({ ...f, status: e.target.value }))} disabled={!canEditProgress} className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${!canEditProgress ? "opacity-60 cursor-not-allowed" : ""}`}>
-                    {TASK_STATUSES.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
+                    {statusOptions.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
                   </select>
                 </div>
               </div>
@@ -654,7 +680,7 @@ export default function ProjectDetailPage() {
           if (filterKey && !parsed.key.toLowerCase().includes(filterKey.toLowerCase())) return false;
           if (filterId && !parsed.id.includes(filterId)) return false;
           if (filterType && parsed.type !== filterType) return false;
-          if (filterStatus && (t.status || "").toUpperCase() !== filterStatus) return false;
+          if (filterStatus && getTaskColumnKey(t) !== filterStatus) return false;
           if (filterAssign === "assigned" && !t.assigneeId && !t.assignee?.id) return false;
           if (filterAssign === "unassigned" && (t.assigneeId || t.assignee?.id)) return false;
           return true;
@@ -701,8 +727,19 @@ export default function ProjectDetailPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="rounded-full bg-slate-200 dark:bg-slate-600 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200">
-                        {statusLabel(t.status)}
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          columnsMap.get(getTaskColumnKey(t))?.color
+                            ? ""
+                            : "bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200"
+                        }`}
+                        style={
+                          columnsMap.get(getTaskColumnKey(t))?.color
+                            ? { backgroundColor: columnsMap.get(getTaskColumnKey(t)).color, color: "#fff" }
+                            : undefined
+                        }
+                      >
+                        {statusLabelForTask(t)}
                       </span>
                       {canEditTask && (
                         <span
