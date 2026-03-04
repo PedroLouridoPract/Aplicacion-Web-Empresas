@@ -52,6 +52,145 @@ function fileToBase64(file) {
   });
 }
 
+function useAttachmentBlobUrl(attachmentId, mimeType) {
+  const [url, setUrl] = useState(null);
+  useEffect(() => {
+    if (!attachmentId || !mimeType?.startsWith("image/")) return;
+    let revoked = false;
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const base = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
+    fetch(`${base}/attachments/${attachmentId}/download`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((r) => r.blob())
+      .then((blob) => {
+        if (revoked) return;
+        setUrl(URL.createObjectURL(blob));
+      })
+      .catch(() => {});
+    return () => {
+      revoked = true;
+      setUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
+    };
+  }, [attachmentId, mimeType]);
+  return url;
+}
+
+function TaskAttachmentImage({ attachment, onPreview }) {
+  const blobUrl = useAttachmentBlobUrl(attachment.id, attachment.mimeType);
+  if (!blobUrl) {
+    return (
+      <div className="flex h-32 w-full items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
+        <svg className="h-6 w-6 animate-spin text-slate-400" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={4} />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+        </svg>
+      </div>
+    );
+  }
+  return (
+    <img
+      src={blobUrl}
+      alt={attachment.originalName}
+      className="max-h-40 w-full rounded-lg object-contain bg-slate-50 dark:bg-slate-800 cursor-pointer hover:opacity-90 transition"
+      onClick={() => onPreview?.({ data: blobUrl, name: attachment.originalName })}
+    />
+  );
+}
+
+function InlineAttachmentImage({ attachmentId, onPreview }) {
+  const [blobUrl, setBlobUrl] = useState(null);
+  useEffect(() => {
+    if (!attachmentId) return;
+    let revoked = false;
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const base = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
+    fetch(`${base}/attachments/${attachmentId}/download`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((r) => r.blob())
+      .then((blob) => {
+        if (revoked) return;
+        setBlobUrl(URL.createObjectURL(blob));
+      })
+      .catch(() => {});
+    return () => {
+      revoked = true;
+      setBlobUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
+    };
+  }, [attachmentId]);
+
+  if (!blobUrl) {
+    return (
+      <div className="flex h-32 w-full items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 my-2">
+        <svg className="h-6 w-6 animate-spin text-slate-400" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={4} />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+        </svg>
+      </div>
+    );
+  }
+  return (
+    <img
+      src={blobUrl}
+      alt="Imagen adjunta"
+      className="max-w-full rounded-lg my-2 cursor-pointer hover:opacity-90 transition"
+      onClick={() => onPreview?.({ data: blobUrl, name: "imagen" })}
+    />
+  );
+}
+
+function RichDescription({ description, onPreview }) {
+  if (!description) return null;
+  const ATT_PATTERN = /\{\{ATT:([a-zA-Z0-9_-]+)\}\}/;
+  if (!ATT_PATTERN.test(description)) {
+    return <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">{description}</p>;
+  }
+
+  const parts = [];
+  let lastIndex = 0;
+  const regex = new RegExp(ATT_PATTERN.source, "g");
+  let match;
+  while ((match = regex.exec(description)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(
+        <span key={`t-${lastIndex}`} className="whitespace-pre-wrap">{description.slice(lastIndex, match.index)}</span>
+      );
+    }
+    parts.push(
+      <InlineAttachmentImage key={`img-${match[1]}`} attachmentId={match[1]} onPreview={onPreview} />
+    );
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < description.length) {
+    parts.push(
+      <span key={`t-${lastIndex}`} className="whitespace-pre-wrap">{description.slice(lastIndex)}</span>
+    );
+  }
+
+  return <div className="mt-1 text-sm text-slate-700 dark:text-slate-200">{parts}</div>;
+}
+
+function downloadAttachmentFile(attachmentId, fileName) {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const base = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
+  fetch(`${base}/attachments/${attachmentId}/download`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+    .then((r) => r.blob())
+    .then((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    })
+    .catch(() => {});
+}
+
 function parseReactions(reactionsStr) {
   if (!reactionsStr) return {};
   try { return JSON.parse(reactionsStr); } catch { return {}; }
@@ -650,8 +789,6 @@ function getCaretTextBefore(el) {
   return text;
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
-
 export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
   const { user } = useAuth();
   const role = (user?.role && String(user.role).toUpperCase()) || "";
@@ -670,6 +807,7 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
   const [inputEmpty, setInputEmpty] = useState(true);
   const [taskAttachments, setTaskAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(true);
+  const [taskPreviewImage, setTaskPreviewImage] = useState(null);
   const inputRef = useRef(null);
   const fileRef = useRef(null);
   const commentsEndRef = useRef(null);
@@ -1049,26 +1187,46 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
             )}
           </div>
 
-          {/* Description */}
+          {/* Description with inline images */}
           {task.description && (
             <div>
               <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Descripción</span>
-              <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">{task.description}</p>
+              <RichDescription description={task.description} onPreview={setTaskPreviewImage} />
             </div>
           )}
 
-          {/* Task Attachments */}
-          {!loadingAttachments && taskAttachments.length > 0 && (
+          {/* Image attachments NOT referenced in description */}
+          {!loadingAttachments && (() => {
+            const inlineIds = new Set();
+            if (task.description) {
+              const regex = /\{\{ATT:([a-zA-Z0-9_-]+)\}\}/g;
+              let m;
+              while ((m = regex.exec(task.description)) !== null) inlineIds.add(m[1]);
+            }
+            const extraImages = taskAttachments.filter(a => a.mimeType?.startsWith("image/") && !inlineIds.has(a.id));
+            if (extraImages.length === 0) return null;
+            return (
+              <div>
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Imágenes adjuntas</span>
+                <div className="mt-2 grid gap-2">
+                  {extraImages.map((att) => (
+                    <div key={att.id} className="rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+                      <TaskAttachmentImage attachment={att} onPreview={setTaskPreviewImage} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Task Attachments (non-image files) */}
+          {!loadingAttachments && taskAttachments.filter(a => !a.mimeType?.startsWith("image/")).length > 0 && (
             <div>
               <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                Archivos adjuntos ({taskAttachments.length})
+                Archivos adjuntos ({taskAttachments.filter(a => !a.mimeType?.startsWith("image/")).length})
               </span>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                {taskAttachments.map((att) => {
-                  const isImage = att.mimeType?.startsWith("image/");
-                  const downloadUrl = `${API_BASE}/attachments/${att.id}/download`;
-                  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-                  const authUrl = token ? `${downloadUrl}?token=${encodeURIComponent(token)}` : downloadUrl;
+                {taskAttachments.filter(a => !a.mimeType?.startsWith("image/")).map((att) => {
                   const sizeLabel = att.size < 1024
                     ? `${att.size} B`
                     : att.size < 1024 * 1024
@@ -1076,28 +1234,14 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
                       : `${(att.size / (1024 * 1024)).toFixed(1)} MB`;
 
                   return (
-                    <a
-                      key={att.id}
-                      href={authUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2.5 transition hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:border-indigo-200 dark:hover:border-indigo-500/30 group"
-                    >
-                      {isImage ? (
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-indigo-50 dark:bg-indigo-500/10">
-                          <svg className="h-5 w-5 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
-                          </svg>
-                        </div>
-                      ) : (
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-700">
-                          <svg className="h-5 w-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                          </svg>
-                        </div>
-                      )}
+                    <div key={att.id} className="flex items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2.5">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-700">
+                        <svg className="h-5 w-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                        </svg>
+                      </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
                           {att.originalName}
                         </p>
                         <p className="text-xs text-slate-400 dark:text-slate-500">
@@ -1105,12 +1249,49 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
                           {att.uploadedBy?.name && <> · {att.uploadedBy.name}</>}
                         </p>
                       </div>
-                      <svg className="h-4 w-4 shrink-0 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                      </svg>
-                    </a>
+                      <button
+                        type="button"
+                        onClick={() => downloadAttachmentFile(att.id, att.originalName)}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition"
+                        title="Descargar"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                      </button>
+                    </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+          {taskPreviewImage && (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setTaskPreviewImage(null)}>
+              <div className="relative max-h-[90vh] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
+                <img src={taskPreviewImage.data} alt={taskPreviewImage.name} className="max-h-[85vh] max-w-[85vw] rounded-lg object-contain shadow-2xl" />
+                <div className="absolute -top-3 -right-3 flex gap-1.5">
+                  <a
+                    href={taskPreviewImage.data}
+                    download={taskPreviewImage.name}
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                    title="Descargar"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setTaskPreviewImage(null)}
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-lg text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/30 dark:hover:text-red-400 transition"
+                    title="Cerrar"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <p className="mt-2 text-center text-sm text-white/70 truncate">{taskPreviewImage.name}</p>
               </div>
             </div>
           )}
