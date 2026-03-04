@@ -5,12 +5,7 @@ import { apiFetch } from "../api/http";
 import Avatar from "../components/Avatar";
 import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner, useStickyCompact, stickyTransition } from "../components/ProjectNavButtons";
 import CustomSelect from "../components/CustomSelect";
-
-const TASK_PRIORITIES = [
-  { value: "HIGH", label: "Alta" },
-  { value: "MEDIUM", label: "Media" },
-  { value: "LOW", label: "Baja" },
-];
+import NewTaskModal from "../components/NewTaskModal";
 
 const sectionConfig = {
   overdue: { title: "Atrasadas", accent: "bg-red-500", headerBg: "bg-red-50/60 dark:bg-red-500/10", border: "border-red-200/60 dark:border-red-500/20" },
@@ -253,6 +248,7 @@ function Section({ variant, items, columnsMap }) {
 export default function ProjectExecutivePage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const isAdmin = user?.role && String(user.role).toUpperCase() === "ADMIN";
   const { sentinelRef, compact } = useStickyCompact();
   const [data, setData] = useState(null);
   const [users, setUsers] = useState([]);
@@ -261,10 +257,6 @@ export default function ProjectExecutivePage() {
   const [error, setError] = useState("");
   const [filters, setFilters] = useState({ priority: "", status: "", assignee: "" });
   const [showNewTask, setShowNewTask] = useState(false);
-  const [taskForm, setTaskForm] = useState({ title: "", description: "", assigneeId: "", dueDate: "", priority: "MEDIUM" });
-  const [taskError, setTaskError] = useState("");
-  const [saving, setSaving] = useState(false);
-  const today = new Date().toISOString().slice(0, 10);
 
   const columnsMap = useMemo(() => {
     const m = new Map();
@@ -285,23 +277,8 @@ export default function ProjectExecutivePage() {
     } catch {}
   }
 
-  async function handleCreateTask(e) {
-    e.preventDefault();
-    setTaskError("");
-    setSaving(true);
-    try {
-      await apiFetch("/tasks", {
-        method: "POST",
-        body: JSON.stringify({ projectId: id, title: taskForm.title.trim(), description: taskForm.description.trim() || null, assigneeId: taskForm.assigneeId || null, dueDate: taskForm.dueDate || null, priority: taskForm.priority }),
-      });
-      setTaskForm({ title: "", description: "", assigneeId: "", dueDate: "", priority: "MEDIUM" });
-      setShowNewTask(false);
-      await reload();
-    } catch (err) {
-      setTaskError(err.message || "Error al crear la tarea");
-    } finally {
-      setSaving(false);
-    }
+  async function handleTaskCreated() {
+    await reload();
   }
 
   useEffect(() => {
@@ -374,7 +351,7 @@ export default function ProjectExecutivePage() {
           </Link>
           <ProjectNavButtons projectId={id} current="executive" compact />
           {filterElements(true)}
-          <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} />
+          <NewTaskButton onClick={() => setShowNewTask(true)} />
         </div>
       )}
 
@@ -387,7 +364,7 @@ export default function ProjectExecutivePage() {
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Tabla Ejecutiva</h2>
           </div>
           <ProjectNavButtons projectId={id} current="executive" />
-          <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} />
+          <NewTaskButton onClick={() => setShowNewTask(true)} />
         </div>
 
         {!compact && (
@@ -398,59 +375,15 @@ export default function ProjectExecutivePage() {
         )}
       </div>
 
-      {showNewTask && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { setShowNewTask(false); setTaskError(""); }}>
-          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Crear tarea</h3>
-              <button type="button" onClick={() => { setShowNewTask(false); setTaskError(""); }} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-              </button>
-            </div>
-            <form onSubmit={handleCreateTask} className="flex flex-col gap-4">
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Título *</label>
-                <input type="text" required value={taskForm.title} onChange={(e) => setTaskForm((f) => ({ ...f, title: e.target.value }))} placeholder="Ej: Revisar maquetas" className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Descripción</label>
-                <textarea value={taskForm.description} onChange={(e) => setTaskForm((f) => ({ ...f, description: e.target.value }))} placeholder="Opcional" rows={2} className="w-full rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Asignar a</label>
-                <CustomSelect
-                  value={taskForm.assigneeId}
-                  onChange={(val) => setTaskForm((f) => ({ ...f, assigneeId: val }))}
-                  options={[{ value: "", label: "Sin asignar" }, ...users.map((u) => ({ value: u.id, label: u.name }))]}
-                  placeholder="Select..."
-                  className="w-full"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha límite</label>
-                  <input type="date" min={today} value={taskForm.dueDate} onChange={(e) => setTaskForm((f) => ({ ...f, dueDate: e.target.value }))} className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-500 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer" />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Prioridad</label>
-                  <CustomSelect
-                    value={taskForm.priority}
-                    onChange={(val) => setTaskForm((f) => ({ ...f, priority: val }))}
-                    options={TASK_PRIORITIES}
-                    placeholder="Select..."
-                    className="w-full"
-                  />
-                </div>
-              </div>
-              {taskError && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{taskError}</div>}
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => { setShowNewTask(false); setTaskError(""); }} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
-                <button type="submit" disabled={saving} className="rounded-lg bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60">{saving ? "Creando..." : "Crear tarea"}</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <NewTaskModal
+        open={showNewTask}
+        onClose={() => setShowNewTask(false)}
+        projectId={id}
+        users={users}
+        isAdmin={isAdmin}
+        currentUserId={user?.id}
+        onCreated={handleTaskCreated}
+      />
 
       {loading && <ProjectLoadingSpinner />}
       {error && (

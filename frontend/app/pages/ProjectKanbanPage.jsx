@@ -23,6 +23,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import TaskDetailPopup from "../components/TaskDetailPopup";
 import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner, useStickyCompact, stickyTransition } from "../components/ProjectNavButtons";
 import CustomSelect from "../components/CustomSelect";
+import NewTaskModal from "../components/NewTaskModal";
 
 const PRIORITIES = [
   { value: "HIGH", label: "Alta" },
@@ -67,17 +68,7 @@ export default function ProjectKanbanPage() {
   const [activeId, setActiveId] = useState(null);
   const [dragType, setDragType] = useState(null);
   const [showNewTask, setShowNewTask] = useState(false);
-  const today = new Date().toISOString().slice(0, 10);
-  const [taskForm, setTaskForm] = useState({
-    title: "",
-    description: "",
-    assigneeId: "",
-    dueDate: "",
-    priority: "MEDIUM",
-    files: [],
-  });
   const [saving, setSaving] = useState(false);
-  const [taskError, setTaskError] = useState("");
   const [moveError, setMoveError] = useState("");
   const [editingTask, setEditingTask] = useState(null);
   const [taskEditForm, setTaskEditForm] = useState(null);
@@ -158,37 +149,8 @@ export default function ProjectKanbanPage() {
     load();
   }, [load]);
 
-  async function handleCreateTask(e) {
-    e.preventDefault();
-    setTaskError("");
-    setSaving(true);
-    try {
-      const task = await apiFetch("/tasks", {
-        method: "POST",
-        body: JSON.stringify({
-          projectId: id,
-          title: taskForm.title.trim(),
-          description: taskForm.description.trim() || null,
-          assigneeId: taskForm.assigneeId || null,
-          dueDate: taskForm.dueDate || null,
-          priority: taskForm.priority,
-        }),
-      });
-
-      if (taskForm.files.length > 0) {
-        const fd = new FormData();
-        for (const f of taskForm.files) fd.append("files", f);
-        await apiFetch(`/tasks/${task.id}/attachments`, { method: "POST", body: fd });
-      }
-
-      setTaskForm({ title: "", description: "", assigneeId: "", dueDate: "", priority: "MEDIUM", files: [] });
-      setShowNewTask(false);
-      await load();
-    } catch (err) {
-      setTaskError(err.message || "Error al crear la tarea");
-    } finally {
-      setSaving(false);
-    }
+  async function handleTaskCreated() {
+    await load();
   }
 
   const [lockError, setLockError] = useState("");
@@ -482,7 +444,7 @@ export default function ProjectKanbanPage() {
           </Link>
           <ProjectNavButtons projectId={id} current="kanban" compact />
           {filterElements(true)}
-          <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} />
+          <NewTaskButton onClick={() => setShowNewTask(true)} />
         </div>
       )}
 
@@ -495,7 +457,7 @@ export default function ProjectKanbanPage() {
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Kanban</h2>
           </div>
           <ProjectNavButtons projectId={id} current="kanban" />
-          <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} />
+          <NewTaskButton onClick={() => setShowNewTask(true)} />
         </div>
 
         {!compact && (
@@ -648,117 +610,15 @@ export default function ProjectKanbanPage() {
         </div>
       )}
 
-      {showNewTask && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { setShowNewTask(false); setTaskError(""); }}>
-          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Nueva tarea</h3>
-                <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Añade una tarea al tablero</p>
-              </div>
-              <button type="button" onClick={() => { setShowNewTask(false); setTaskError(""); }} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <form onSubmit={handleCreateTask} className="flex flex-col gap-4">
-              <div>
-                <label htmlFor="kanban-task-title" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Título *</label>
-                <input
-                  id="kanban-task-title"
-                  type="text"
-                  required
-                  value={taskForm.title}
-                  onChange={(e) => setTaskForm((f) => ({ ...f, title: e.target.value }))}
-                  placeholder="Título de la tarea"
-                  className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                />
-              </div>
-              <div>
-                <label htmlFor="kanban-task-assignee" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Asignar a</label>
-                <CustomSelect
-                  value={taskForm.assigneeId}
-                  onChange={(val) => setTaskForm((f) => ({ ...f, assigneeId: val }))}
-                  options={[{ value: "", label: "Sin asignar" }, ...(isAdmin ? users : users.filter((u) => u.id === user?.id)).map((u) => ({ value: u.id, label: u.name }))]}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <label htmlFor="kanban-task-due" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Fecha límite</label>
-                <input
-                  id="kanban-task-due"
-                  type="date"
-                  min={today}
-                  value={taskForm.dueDate}
-                  onChange={(e) => setTaskForm((f) => ({ ...f, dueDate: e.target.value }))}
-                  className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-500 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Prioridad</label>
-                <CustomSelect
-                  value={taskForm.priority}
-                  onChange={(val) => setTaskForm((f) => ({ ...f, priority: val }))}
-                  options={PRIORITIES}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Archivos adjuntos</label>
-                <div className="relative">
-                  <input
-                    type="file"
-                    multiple
-                    onChange={(e) => setTaskForm((f) => ({ ...f, files: [...f.files, ...Array.from(e.target.files || [])] }))}
-                    className="w-full rounded-lg border border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50 px-4 py-3 text-sm text-slate-600 dark:text-slate-300 file:mr-3 file:rounded-md file:border-0 file:bg-indigo-50 file:px-3 file:py-1 file:text-sm file:font-medium file:text-indigo-600 dark:file:bg-indigo-500/20 dark:file:text-indigo-400 hover:file:bg-indigo-100 dark:hover:file:bg-indigo-500/30 cursor-pointer"
-                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip,.rar"
-                  />
-                </div>
-                {taskForm.files.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {taskForm.files.map((f, i) => (
-                      <span key={i} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 px-2.5 py-1 text-xs text-slate-700 dark:text-slate-200">
-                        {f.type?.startsWith("image/") ? (
-                          <svg className="h-3.5 w-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        ) : (
-                          <svg className="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                        )}
-                        <span className="max-w-[120px] truncate">{f.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => setTaskForm((prev) => ({ ...prev, files: prev.files.filter((_, idx) => idx !== i) }))}
-                          className="ml-0.5 text-slate-400 hover:text-red-500"
-                        >
-                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Máx. 10 MB por archivo. Imágenes, PDF, Office, CSV, ZIP.</p>
-              </div>
-              {taskError && (
-                <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">{taskError}</div>
-              )}
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => { setShowNewTask(false); setTaskError(""); }}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="rounded-lg bg-indigo-400 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60"
-                >
-                  {saving ? "Creando..." : "Crear tarea"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <NewTaskModal
+        open={showNewTask}
+        onClose={() => setShowNewTask(false)}
+        projectId={id}
+        users={users}
+        isAdmin={isAdmin}
+        currentUserId={user?.id}
+        onCreated={handleTaskCreated}
+      />
 
       {/* New Column Modal */}
       {showNewColumn && (
