@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../api/http";
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [panelPos, setPanelPos] = useState({ top: 0, right: 0 });
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const ref = useRef(null);
+  const panelRef = useRef(null);
   const navigate = useNavigate();
 
   async function fetchNotifications() {
@@ -26,7 +29,10 @@ export default function NotificationBell() {
 
   useEffect(() => {
     function handleClickOutside(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      if (
+        ref.current && !ref.current.contains(e.target) &&
+        panelRef.current && !panelRef.current.contains(e.target)
+      ) setOpen(false);
     }
     function handleEsc(e) {
       if (e.key === "Escape") setOpen(false);
@@ -40,6 +46,10 @@ export default function NotificationBell() {
   }, []);
 
   async function handleToggle() {
+    if (!open && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      setPanelPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+    }
     setOpen((v) => !v);
     if (!open) fetchNotifications();
   }
@@ -98,8 +108,8 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl z-50">
+      {open && createPortal(
+        <div ref={panelRef} className="fixed w-80 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl" style={{ top: panelPos.top, right: panelPos.right, zIndex: 99999 }}>
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-4 py-3">
             <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Notificaciones</h3>
             <div className="flex items-center gap-2">
@@ -174,7 +184,8 @@ export default function NotificationBell() {
               ))
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
