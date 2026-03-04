@@ -64,12 +64,25 @@ function formatWeekRange(monday) {
   return `${m} – ${s}`;
 }
 
+const STATUS_KEY_MAP = {
+  backlog: "backlog",
+  in_progress: "in_progress",
+  review: "review",
+  done: "done",
+};
+
+function getTaskColumnKey(task) {
+  if (task.customStatus) return task.customStatus;
+  return STATUS_KEY_MAP[(task.status || "").toLowerCase()] || "backlog";
+}
+
 export default function ProjectCalendarPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const { sentinelRef, compact } = useStickyCompact();
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
+  const [columns, setColumns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [weekStart, setWeekStart] = useState(() => getMonday(new Date()));
   const [priorityFilter, setPriorityFilter] = useState(null);
@@ -80,15 +93,23 @@ export default function ProjectCalendarPage() {
   const [saving, setSaving] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
 
+  const columnsMap = useMemo(() => {
+    const m = new Map();
+    columns.forEach((c) => m.set(c.key, c));
+    return m;
+  }, [columns]);
+
   useEffect(() => {
     setLoading(true);
     Promise.all([
       apiFetch(`/projects/${id}/tasks`),
       apiFetch("/users").catch(() => []),
+      apiFetch(`/projects/${id}/columns`).catch(() => []),
     ])
-      .then(([tasksRes, usersRes]) => {
+      .then(([tasksRes, usersRes, colsRes]) => {
         setTasks(Array.isArray(tasksRes) ? tasksRes : []);
         setUsers(Array.isArray(usersRes) ? usersRes : (usersRes?.users ?? []));
+        setColumns(Array.isArray(colsRes) ? colsRes : []);
       })
       .catch(() => setTasks([]))
       .finally(() => setLoading(false));
@@ -167,19 +188,27 @@ export default function ProjectCalendarPage() {
     setWeekStart(getMonday(new Date()));
   }
 
-  const statusLabel = (s) => {
-    const map = { BACKLOG: "Backlog", IN_PROGRESS: "En proceso", REVIEW: "En revisión", DONE: "Finalizado" };
-    return map[(s || "").toUpperCase()] || s || "";
+  const BASE_LABEL = { backlog: "Backlog", in_progress: "En proceso", review: "En revisión", done: "Finalizado" };
+  const BASE_COLOR = { backlog: "text-slate-400", in_progress: "text-blue-500", review: "text-amber-500", done: "text-emerald-500" };
+
+  const getStatusLabel = (task) => {
+    const key = getTaskColumnKey(task);
+    const col = columnsMap.get(key);
+    if (col) return col.label;
+    return BASE_LABEL[key] || key;
   };
 
-  const statusColor = (s) => {
-    const map = {
-      BACKLOG: "text-slate-400",
-      IN_PROGRESS: "text-blue-500",
-      REVIEW: "text-amber-500",
-      DONE: "text-emerald-500",
-    };
-    return map[(s || "").toUpperCase()] || "text-slate-400";
+  const getStatusColor = (task) => {
+    const key = getTaskColumnKey(task);
+    const col = columnsMap.get(key);
+    if (col?.color) return null;
+    return BASE_COLOR[key] || "text-slate-400";
+  };
+
+  const getStatusInlineColor = (task) => {
+    const key = getTaskColumnKey(task);
+    const col = columnsMap.get(key);
+    return col?.color || null;
   };
 
   return (
@@ -325,9 +354,15 @@ export default function ProjectCalendarPage() {
                             </p>
                           )}
                           <div className="mt-1.5 flex items-center gap-1.5">
-                            <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
-                            <span className={`text-[10px] font-medium ${statusColor(t.status)}`}>
-                              {statusLabel(t.status)}
+                            <span
+                              className={`h-1.5 w-1.5 rounded-full`}
+                              style={getStatusInlineColor(t) ? { backgroundColor: getStatusInlineColor(t) } : undefined}
+                            />
+                            <span
+                              className={`text-[10px] font-medium ${getStatusColor(t) || ""}`}
+                              style={getStatusInlineColor(t) ? { color: getStatusInlineColor(t) } : undefined}
+                            >
+                              {getStatusLabel(t)}
                             </span>
                           </div>
                         </div>

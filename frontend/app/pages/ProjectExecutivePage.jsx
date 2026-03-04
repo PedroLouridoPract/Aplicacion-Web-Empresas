@@ -19,7 +19,7 @@ const sectionConfig = {
   unscheduled: { title: "Sin fecha", accent: "bg-indigo-400", headerBg: "bg-indigo-50/60 dark:bg-indigo-500/10", border: "border-indigo-200/60 dark:border-indigo-500/20" },
 };
 
-const statusStyles = {
+const BASE_STATUS_STYLES = {
   backlog: { label: "Backlog", cls: "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300" },
   in_progress: { label: "En proceso", cls: "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300" },
   review: { label: "En revisión", cls: "bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300" },
@@ -39,27 +39,35 @@ const PRIORITY_OPTIONS = [
   { value: "low", label: "Baja" },
 ];
 
-const STATUS_OPTIONS = [
-  { value: "", label: "Todos los estados" },
-  { value: "backlog", label: "Backlog" },
-  { value: "in_progress", label: "En proceso" },
-  { value: "review", label: "En revisión" },
-  { value: "done", label: "Finalizado" },
-];
+const STATUS_KEY_MAP = {
+  backlog: "backlog",
+  in_progress: "in_progress",
+  review: "review",
+  done: "done",
+};
+
+function getTaskColumnKey(task) {
+  if (task.customStatus) return task.customStatus;
+  return STATUS_KEY_MAP[(task.status || "").toLowerCase()] || "backlog";
+}
 
 function filterTasks(tasks, filters) {
   if (!tasks) return [];
   return tasks.filter((t) => {
     if (filters.priority && t.priority !== filters.priority) return false;
-    if (filters.status && t.status !== filters.status) return false;
+    if (filters.status && getTaskColumnKey(t) !== filters.status) return false;
     if (filters.assignee === "unassigned" && t.assignee_id != null) return false;
     if (filters.assignee && filters.assignee !== "unassigned" && String(t.assignee_id ?? t.assigneeId ?? "") !== String(filters.assignee)) return false;
     return true;
   });
 }
 
-function TaskRow({ task }) {
-  const status = statusStyles[(task.status || "").toLowerCase()] || statusStyles.backlog;
+function TaskRow({ task, columnsMap }) {
+  const colKey = getTaskColumnKey(task);
+  const col = columnsMap.get(colKey);
+  const status = col
+    ? { label: col.label, cls: col.color ? `text-white` : (BASE_STATUS_STYLES[colKey]?.cls || BASE_STATUS_STYLES.backlog.cls), bg: col.color }
+    : BASE_STATUS_STYLES[(task.status || "").toLowerCase()] || BASE_STATUS_STYLES.backlog;
   const priority = priorityStyles[(task.priority || "").toLowerCase()] || priorityStyles.medium;
   const progress = Math.min(100, Math.max(0, Number(task.progress) || 0));
   const due = task.due_date || task.dueDate;
@@ -82,7 +90,10 @@ function TaskRow({ task }) {
         </div>
       </td>
       <td className="px-5 py-3">
-        <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${status.cls}`}>
+        <span
+          className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${status.bg ? "text-white" : status.cls}`}
+          style={status.bg ? { backgroundColor: status.bg } : undefined}
+        >
           {status.label}
         </span>
       </td>
@@ -169,7 +180,7 @@ function SortArrow({ active, dir }) {
     : <svg className="ml-1 h-3 w-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>;
 }
 
-function Section({ variant, items }) {
+function Section({ variant, items, columnsMap }) {
   const { title, accent, headerBg, border } = sectionConfig[variant] || sectionConfig.next_week;
   const [sortKey, setSortKey] = React.useState(null);
   const [sortDir, setSortDir] = React.useState("asc");
@@ -228,7 +239,7 @@ function Section({ variant, items }) {
             </thead>
             <tbody>
               {sorted.map((t) => (
-                <TaskRow key={t.id} task={t} />
+                <TaskRow key={t.id} task={t} columnsMap={columnsMap || new Map()} />
               ))}
             </tbody>
           </table>
@@ -244,6 +255,7 @@ export default function ProjectExecutivePage() {
   const { sentinelRef, compact } = useStickyCompact();
   const [data, setData] = useState(null);
   const [users, setUsers] = useState([]);
+  const [columns, setColumns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filters, setFilters] = useState({ priority: "", status: "", assignee: "" });
@@ -252,6 +264,18 @@ export default function ProjectExecutivePage() {
   const [taskError, setTaskError] = useState("");
   const [saving, setSaving] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
+
+  const columnsMap = useMemo(() => {
+    const m = new Map();
+    columns.forEach((c) => m.set(c.key, c));
+    return m;
+  }, [columns]);
+
+  const statusOptions = useMemo(() => {
+    const opts = [{ value: "", label: "Todos los estados" }];
+    columns.forEach((c) => opts.push({ value: c.key, label: c.label }));
+    return opts;
+  }, [columns]);
 
   async function reload() {
     try {
@@ -284,12 +308,14 @@ export default function ProjectExecutivePage() {
       setError("");
       setLoading(true);
       try {
-        const [execRes, usersRes] = await Promise.all([
+        const [execRes, usersRes, colsRes] = await Promise.all([
           apiFetch(`/projects/${id}/executive`),
           apiFetch("/users").catch(() => []),
+          apiFetch(`/projects/${id}/columns`).catch(() => []),
         ]);
         setData(execRes);
         setUsers(Array.isArray(usersRes) ? usersRes : (usersRes?.users ?? []));
+        setColumns(Array.isArray(colsRes) ? colsRes : []);
       } catch (err) {
         setError(err.message || "Error");
       } finally {
@@ -335,7 +361,7 @@ export default function ProjectExecutivePage() {
             {PRIORITY_OPTIONS.map((p) => (<option key={p.value} value={p.value}>{p.label}</option>))}
           </select>
           <select value={filters.status} onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-            {STATUS_OPTIONS.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
+            {statusOptions.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
           </select>
           <select value={filters.assignee} onChange={(e) => setFilters((f) => ({ ...f, assignee: e.target.value }))} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
             <option value="">Cualquier responsable</option>
@@ -405,11 +431,11 @@ export default function ProjectExecutivePage() {
 
       {data && (
         <div className="grid gap-5">
-          <Section variant="overdue" items={filtered.overdue} />
-          <Section variant="this_week" items={filtered.this_week} />
-          <Section variant="next_week" items={filtered.next_week} />
-          <Section variant="later" items={filtered.later} />
-          <Section variant="unscheduled" items={filtered.unscheduled} />
+          <Section variant="overdue" items={filtered.overdue} columnsMap={columnsMap} />
+          <Section variant="this_week" items={filtered.this_week} columnsMap={columnsMap} />
+          <Section variant="next_week" items={filtered.next_week} columnsMap={columnsMap} />
+          <Section variant="later" items={filtered.later} columnsMap={columnsMap} />
+          <Section variant="unscheduled" items={filtered.unscheduled} columnsMap={columnsMap} />
         </div>
       )}
     </div>
