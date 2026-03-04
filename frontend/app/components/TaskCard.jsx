@@ -9,12 +9,13 @@ const priorityStyles = {
   low: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
 };
 
+const priorityLabels = { high: "Alta", medium: "Media", low: "Baja" };
+
 export default function TaskCard({ task, statuses, onMove, isDragging, currentUser, onEditTask, onDeleteTask, onTaskClick }) {
   const priorityKey = (task.priority || "medium").toLowerCase();
   const priorityClass = priorityStyles[priorityKey] || priorityStyles.medium;
   const progress = Number(task.progress) || 0;
   const assigneeName = task.assignee?.name ?? null;
-  const assigneeId = task.assigneeId ?? task.assignee?.id;
   const isAdmin = currentUser?.role && String(currentUser.role).toUpperCase() === "ADMIN";
   const isMember = currentUser?.role && String(currentUser.role).toUpperCase() === "MEMBER";
   const canEdit = onEditTask && (isAdmin || isMember);
@@ -45,7 +46,7 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
     <div
       ref={setNodeRef}
       style={style}
-      className="rounded-lg border border-slate-200/60 dark:border-slate-700/60 bg-white dark:bg-slate-800 p-3.5 shadow-sm transition hover:shadow-md touch-none cursor-pointer"
+      className="group rounded-lg border border-slate-200/60 dark:border-slate-700/60 bg-white dark:bg-slate-800 p-3.5 shadow-sm transition hover:shadow-md touch-none cursor-pointer"
       {...attributes}
       {...listeners}
       onPointerDown={handlePointerDown}
@@ -53,25 +54,25 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
     >
       <div className="flex items-start justify-between gap-2">
         <p className="text-sm font-medium text-slate-800 dark:text-slate-100 min-w-0 flex-1">{task.title}</p>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
           {canEdit && (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEditTask(task); }}
-              className="rounded-md bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold text-indigo-600 transition hover:bg-indigo-200 dark:bg-indigo-400/20 dark:text-indigo-300 dark:hover:bg-indigo-400/30"
-              title="Editar tarea"
+              className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 cursor-pointer transition"
+              title="Editar"
             >
-              Editar
+              <svg className="w-4 h-4 text-gray-700 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M17.37 10.17L18.71 8.75C20.13 7.25 20.77 5.54 18.56 3.45C16.35 1.37 14.68 2.1 13.26 3.6L5.05 12.29C4.74 12.62 4.44 13.27 4.38 13.72L4.01 16.96C3.88 18.13 4.72 18.93 5.88 18.73L9.1 18.18C9.55 18.1 10.18 17.77 10.49 17.43L14.44 13.25" /><path d="M11.89 5.05C12.32 7.81 14.56 9.92 17.34 10.2" /><path d="M3 22H14" /><path d="M18 22H21" /></svg>
             </button>
           )}
           {isAdmin && onDeleteTask && (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); e.preventDefault(); onDeleteTask(task); }}
-              className="rounded-md bg-red-50 p-1 text-red-500 transition hover:bg-red-100 hover:text-red-700 dark:bg-red-500/15 dark:text-red-400 dark:hover:bg-red-500/25"
+              className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer transition"
               title="Eliminar tarea"
             >
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
             </button>
           )}
         </div>
@@ -81,25 +82,34 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{task.description}</p>
       )}
 
-      {assigneeName && (
-        <div className="mt-2 flex items-center gap-1.5">
-          <Avatar name={assigneeName} src={task.assignee?.avatarUrl} size="2xs" />
-          <span className="text-xs text-slate-500 dark:text-slate-400">{assigneeName}</span>
+      <div className="mt-2.5 flex flex-col gap-1 text-xs">
+        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+          <span className="font-medium text-slate-400 dark:text-slate-500">Asignada:</span>
+          {assigneeName ? (
+            <span className="flex items-center gap-1">
+              <Avatar name={assigneeName} src={task.assignee?.avatarUrl} size="2xs" />
+              {assigneeName}
+            </span>
+          ) : (
+            <span>Sin asignar</span>
+          )}
         </div>
-      )}
-
-      <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-xs">
-        <span className={`rounded-md px-2 py-0.5 font-medium ${priorityClass}`}>
-          {(task.priority || "medium").toLowerCase()}
-        </span>
-        <span className="text-amber-600 dark:text-amber-400 font-medium" title="Fecha límite">
-          {task.due_date || task.dueDate ? new Date(task.due_date || task.dueDate).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
-        </span>
-        {task.createdAt && (
-          <span className="text-indigo-500 dark:text-indigo-400 font-medium" title="Fecha de creación">
-            {new Date(task.createdAt).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-          </span>
-        )}
+        <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+          <span className="font-medium text-slate-400 dark:text-slate-500">Prioridad:</span>
+          <span className={`rounded-md px-2 py-0.5 font-medium ${priorityClass}`}>{priorityLabels[priorityKey] || priorityKey}</span>
+        </div>
+        <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+          <span className="font-medium text-slate-400 dark:text-slate-500">Fecha creación:</span>
+          <span>{task.createdAt ? new Date(task.createdAt).toLocaleDateString("es-ES") : "—"}</span>
+        </div>
+        <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+          <span className="font-medium text-slate-400 dark:text-slate-500">Fecha inicio:</span>
+          <span>{task.startDate || task.start_date ? new Date(task.startDate || task.start_date).toLocaleDateString("es-ES") : "—"}</span>
+        </div>
+        <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+          <span className="font-medium text-slate-400 dark:text-slate-500">Fecha fin:</span>
+          <span>{task.due_date || task.dueDate ? new Date(task.due_date || task.dueDate).toLocaleDateString("es-ES") : "—"}</span>
+        </div>
       </div>
 
       <div className="mt-2.5">
@@ -111,21 +121,6 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
         </div>
       </div>
 
-      <div className="mt-2.5 flex flex-wrap gap-1">
-        {statuses
-          .filter((s) => s.key !== (task.customStatus || (task.status || "backlog").toLowerCase()))
-          .map((s) => (
-            <button
-              key={s.key}
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onMove(task.id, s.key); }}
-              className="rounded-md bg-slate-50 dark:bg-slate-700/50 px-1.5 py-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-slate-200"
-              title={`Mover a ${s.label}`}
-            >
-              {s.label}
-            </button>
-          ))}
-      </div>
     </div>
   );
 }

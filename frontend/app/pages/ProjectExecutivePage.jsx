@@ -318,12 +318,6 @@ export default function ProjectExecutivePage() {
   const filterElements = (vertical) => (
     <>
       <CustomSelect
-        value={filters.priority}
-        onChange={(val) => setFilters((f) => ({ ...f, priority: val }))}
-        options={PRIORITY_OPTIONS}
-        size="sm"
-      />
-      <CustomSelect
         value={filters.status}
         onChange={(val) => setFilters((f) => ({ ...f, status: val }))}
         options={statusOptions}

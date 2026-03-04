@@ -395,13 +395,13 @@ export default function ProjectKanbanPage() {
     : null;
 
   const COLUMN_COLORS = [
-    { value: "", label: "Violeta (predeterminado)" },
-    { value: "blue", label: "Azul" },
-    { value: "purple", label: "Púrpura" },
-    { value: "pink", label: "Rosa" },
-    { value: "orange", label: "Naranja" },
-    { value: "teal", label: "Verde azulado" },
-    { value: "cyan", label: "Cian" },
+    { value: "", label: "Violeta", hex: "#8b5cf6" },
+    { value: "blue", label: "Azul", hex: "#3b82f6" },
+    { value: "purple", label: "Púrpura", hex: "#a855f7" },
+    { value: "pink", label: "Rosa", hex: "#ec4899" },
+    { value: "orange", label: "Naranja", hex: "#f97316" },
+    { value: "teal", label: "Verde azulado", hex: "#14b8a6" },
+    { value: "cyan", label: "Cian", hex: "#06b6d4" },
   ];
 
   const filterElements = (vertical) => (
@@ -628,12 +628,18 @@ export default function ProjectKanbanPage() {
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Color</label>
-                <CustomSelect
-                  value={newColumnColor}
-                  onChange={(val) => setNewColumnColor(val)}
-                  options={COLUMN_COLORS}
-                  className="w-full"
-                />
+                <div className="flex flex-wrap gap-2.5 mt-1">
+                  {COLUMN_COLORS.map((c) => (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setNewColumnColor(c.value)}
+                      className={`h-8 w-8 rounded-full border-2 transition-all ${newColumnColor === c.value ? "border-slate-800 dark:border-white scale-110 shadow-md" : "border-transparent hover:scale-105"}`}
+                      style={{ backgroundColor: c.hex }}
+                      title={c.label}
+                    />
+                  ))}
+                </div>
               </div>
               {columnError && (
                 <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{columnError}</div>

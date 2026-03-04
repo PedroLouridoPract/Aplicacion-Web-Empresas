@@ -181,10 +181,9 @@ export default function ProjectCalendarPage() {
       }
     });
 
-    const rowHeights = new Array(rows.length).fill(44);
+    const rowHeights = new Array(rows.length).fill(64);
     barRows.forEach((b) => {
-      const h = b.span === 1 ? 64 : 44;
-      if (h > rowHeights[b.row]) rowHeights[b.row] = h;
+      if (64 > rowHeights[b.row]) rowHeights[b.row] = 64;
     });
     const rowTops = [];
     let cumTop = 0;
@@ -242,13 +241,6 @@ export default function ProjectCalendarPage() {
 
   const filterElements = (vertical) => (
     <>
-      <CustomSelect
-        value={priorityFilter || ""}
-        onChange={(val) => setPriorityFilter(val || null)}
-        options={[{ value: "", label: "Todas las prioridades" }, ...Object.entries(PRIORITY_STYLES).map(([key, style]) => ({ value: key, label: style.label }))]}
-        placeholder="Todas las prioridades"
-        size="sm"
-      />
       <CustomSelect
         value={assigneeFilter}
         onChange={(val) => setAssigneeFilter(val)}
@@ -350,44 +342,29 @@ export default function ProjectCalendarPage() {
                   const style = PRIORITY_STYLES[prio] || PRIORITY_STYLES.MEDIUM;
                   const leftPct = (colStart / 7) * 100;
                   const widthPct = (span / 7) * 100;
-                  const isSingleDay = span === 1;
-                  const barH = isSingleDay ? 56 : 36;
                   return (
                     <div
                       key={t.id}
-                      className={`absolute rounded-lg border ${style.border} ${style.bg} px-3 transition hover:shadow-md cursor-default overflow-hidden ${isSingleDay ? "py-2" : "py-1.5"}`}
+                      className={`absolute rounded-lg border ${style.border} ${style.bg} px-3 py-2 transition hover:shadow-md cursor-default overflow-hidden`}
                       style={{
                         top: (taskBars.rowTops[row] || 0) + 8,
                         left: `calc(${leftPct}% + 4px)`,
                         width: `calc(${widthPct}% - 8px)`,
-                        height: barH,
+                        height: 56,
                       }}
                     >
-                      {isSingleDay ? (
-                        <div className="flex flex-col gap-0.5 h-full min-w-0">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span
-                              className="h-2 w-2 rounded-full shrink-0"
-                              style={getStatusInlineColor(t) ? { backgroundColor: getStatusInlineColor(t) } : undefined}
-                            />
-                            <p className={`text-xs font-semibold ${style.text} truncate`}>{t.title}</p>
-                          </div>
-                          {t.assignee?.name && (
-                            <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate pl-4">Asignado: {t.assignee.name}</p>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 h-full min-w-0">
+                      <div className="flex flex-col gap-0.5 h-full min-w-0">
+                        <div className="flex items-center gap-2 min-w-0">
                           <span
                             className="h-2 w-2 rounded-full shrink-0"
                             style={getStatusInlineColor(t) ? { backgroundColor: getStatusInlineColor(t) } : undefined}
                           />
-                          <p className={`text-xs font-semibold ${style.text} truncate`}>{t.title}</p>
-                          {t.assignee?.name && (
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate shrink-0 ml-auto">Asignado: {t.assignee.name}</span>
-                          )}
+                          <p className={`text-sm font-semibold ${style.text} truncate`}>{t.title}</p>
                         </div>
-                      )}
+                        {t.assignee?.name && (
+                          <p className="text-xs text-slate-400 dark:text-slate-500 truncate pl-4">Asignado: {t.assignee.name}</p>
+                        )}
+                      </div>
                     </div>
                   );
                 })}

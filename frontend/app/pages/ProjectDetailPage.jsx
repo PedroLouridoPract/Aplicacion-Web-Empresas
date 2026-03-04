@@ -376,7 +376,7 @@ export default function ProjectDetailPage() {
       )}
 
       {/* Project info card */}
-      <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-5 shadow-sm">
+      <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-5 shadow-md">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             {project.description && (
