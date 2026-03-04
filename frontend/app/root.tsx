@@ -116,12 +116,12 @@ function AppShell() {
   const pageTitle = getPageTitle(loc.pathname);
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="flex h-screen bg-slate-100/80 dark:bg-slate-950">
       {/* Collapsible sidebar */}
-      <div className="relative shrink-0">
+      <div className="relative shrink-0 p-3 pr-0">
         <aside
-          className={`sidebar-narrow flex h-full flex-col border-r border-slate-200/60 bg-white py-4 dark:border-slate-800 dark:bg-slate-900 transition-all duration-300 ease-in-out ${
-            sidebarOpen ? "w-[220px]" : "w-[68px]"
+          className={`sidebar-narrow relative flex h-full flex-col py-4 rounded-2xl bg-white dark:bg-slate-900 shadow-sm transition-all duration-300 ease-in-out ${
+            sidebarOpen ? "w-[220px]" : "w-[62px]"
           }`}
         >
           {/* Logo */}
@@ -213,33 +213,33 @@ function AppShell() {
           </button>
 
         </div>
-        </aside>
 
-        {/* Toggle button on sidebar edge */}
-        <button
-          type="button"
-          onClick={() => setSidebarOpen(v => !v)}
-          className="absolute -right-3 top-7 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
-          title={sidebarOpen ? "Cerrar menú" : "Abrir menú"}
-        >
-          <svg className={`h-3 w-3 text-slate-500 transition-transform duration-300 dark:text-slate-400 ${sidebarOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
+          {/* Toggle button on sidebar edge */}
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(v => !v)}
+            className="absolute -right-3 top-5 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
+            title={sidebarOpen ? "Cerrar menú" : "Abrir menú"}
+          >
+            <svg className={`h-3 w-3 text-slate-500 transition-transform duration-300 dark:text-slate-400 ${sidebarOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </aside>
       </div>
 
       {/* Main area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top header */}
-        <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200/60 bg-white px-6 dark:border-slate-800 dark:bg-slate-900">
+        <header className="flex h-[72px] shrink-0 items-center justify-between px-8 pr-10">
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{pageTitle}</h1>
           <div className="flex items-center gap-3">
-            <h1 className="text-sm font-semibold text-slate-800 dark:text-slate-100">{pageTitle}</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <NotificationBell />
-            <Link to="/profile" className="flex items-center gap-2.5 border-l border-slate-200 pl-3 dark:border-slate-700 transition hover:opacity-80">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 shadow-sm">
+              <NotificationBell />
+            </div>
+            <Link to="/profile" className="transition hover:opacity-80">
               <div
-                className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white overflow-hidden"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white overflow-hidden"
                 style={!user?.avatarUrl ? { backgroundColor: getColorForName(user?.name) } : undefined}
               >
                 {user?.avatarUrl ? (
@@ -247,10 +247,6 @@ function AppShell() {
                 ) : (
                   getInitials(user?.name)
                 )}
-              </div>
-              <div className="hidden md:block">
-                <p className="text-xs font-medium leading-tight text-slate-700 dark:text-slate-200">{user?.name}</p>
-                <p className="text-[11px] leading-tight text-slate-400 dark:text-slate-500">{user?.email}</p>
               </div>
             </Link>
           </div>

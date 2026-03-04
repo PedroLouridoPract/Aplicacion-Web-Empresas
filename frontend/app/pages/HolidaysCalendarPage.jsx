@@ -138,7 +138,7 @@ function MonthCalendar({ year, month, holidayDates, today }) {
   const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
+    <div className="rounded-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_0_-1px_rgba(0,0,0,0.04),0_4px_6px_-1px_rgba(0,0,0,0.08)]">
       <h3 className="mb-3 text-sm font-semibold text-slate-800 dark:text-slate-100">
         {MONTH_NAMES[month]}
       </h3>
@@ -156,23 +156,25 @@ function MonthCalendar({ year, month, holidayDates, today }) {
               {row.map((day, ci) => {
                 if (day === null) return <td key={ci} className="py-1" />;
                 const dateStr = `${monthKey}-${String(day).padStart(2, "0")}`;
-                const isHoliday = holidayDates.has(dateStr);
+                const holiday = holidayDates.get(dateStr);
                 const isToday = dateStr === today;
+                let dayClass;
+                if (isToday) {
+                  dayClass = "bg-indigo-500 text-white font-bold border-indigo-500";
+                } else if (holiday?.national && holiday?.regional) {
+                  dayClass = "bg-gradient-to-br from-indigo-100 to-violet-100 text-indigo-700 dark:from-indigo-500/20 dark:to-violet-500/20 dark:text-indigo-200 font-semibold border-indigo-300 dark:border-indigo-500/40";
+                } else if (holiday?.national) {
+                  dayClass = "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 font-semibold border-indigo-300 dark:border-indigo-500/40";
+                } else if (holiday?.regional) {
+                  dayClass = "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300 font-semibold border-violet-300 dark:border-violet-500/40";
+                } else {
+                  dayClass = "text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700";
+                }
                 return (
                   <td key={ci} className="py-1">
                     <span
-                      className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium transition ${
-                        isToday
-                          ? "bg-indigo-600 text-white shadow-sm"
-                          : isHoliday
-                            ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 font-semibold"
-                            : "text-slate-700 dark:text-slate-300"
-                      }`}
-                      title={
-                        isHoliday
-                          ? holidayDates.get(dateStr)?.join(", ")
-                          : undefined
-                      }
+                      className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium transition border ${dayClass}`}
+                      title={holiday?.names?.join(", ")}
                     >
                       {day}
                     </span>
@@ -190,7 +192,7 @@ function MonthCalendar({ year, month, holidayDates, today }) {
 export default function HolidaysCalendarPage() {
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
-  const [region, setRegion] = useState("nacional");
+  const [region, setRegion] = useState("galicia");
 
   const todayStr = useMemo(() => {
     const t = new Date();
@@ -208,8 +210,11 @@ export default function HolidaysCalendarPage() {
   const holidayDateMap = useMemo(() => {
     const map = new Map();
     for (const h of filteredHolidays) {
-      if (!map.has(h.date)) map.set(h.date, []);
-      map.get(h.date).push(h.name);
+      if (!map.has(h.date)) map.set(h.date, { names: [], national: false, regional: false });
+      const entry = map.get(h.date);
+      entry.names.push(h.name);
+      if (h.regions.includes("nacional")) entry.national = true;
+      else entry.regional = true;
     }
     return map;
   }, [filteredHolidays]);
@@ -231,32 +236,24 @@ export default function HolidaysCalendarPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-            Calendario de festivos
-          </h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Días festivos oficiales de España por comunidad autónoma
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col items-center gap-1">
+        <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={() => setYear((y) => y - 1)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <span className="text-lg font-bold text-slate-800 dark:text-slate-100 min-w-[60px] text-center">
+          <span className="text-2xl font-bold text-slate-800 dark:text-slate-100 min-w-[80px] text-center tabular-nums">
             {year}
           </span>
           <button
             type="button"
             onClick={() => setYear((y) => y + 1)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -283,7 +280,7 @@ export default function HolidaysCalendarPage() {
             </select>
           </div>
 
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 max-h-[70vh] overflow-y-auto">
+          <div className="rounded-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 max-h-[70vh] overflow-y-auto shadow-lg">
             <h3 className="mb-3 text-sm font-bold text-slate-800 dark:text-slate-100">
               Festivos {year}
             </h3>
