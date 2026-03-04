@@ -76,7 +76,7 @@ export default function ConfirmModal({
               type="button"
               onClick={onConfirm}
               disabled={loading}
-              className={`flex-1 rounded-xl px-6 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 focus:outline-none focus:ring-2 disabled:opacity-60 ${confirmColors}`}
+              className={`flex-1 rounded-xl px-6 py-3 text-sm font-semibold text-white transition-all not-disabled:hover:-translate-y-0.5 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-indigo-300 ${confirmColors}`}
             >
               {loading ? (
                 <span className="inline-flex items-center gap-2">

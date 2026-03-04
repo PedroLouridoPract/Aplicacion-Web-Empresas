@@ -1425,7 +1425,7 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
                   <button
                     type="submit"
                     disabled={sending || (inputEmpty && attachedFiles.length === 0)}
-                    className="rounded-xl bg-indigo-400 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-60"
+                    className="rounded-xl bg-indigo-400 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all not-disabled:hover:bg-indigo-500 not-disabled:hover:-translate-y-0.5 not-disabled:hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-indigo-300"
                   >
                     {sending ? "..." : replyingTo ? "Responder" : "Enviar"}
                   </button>

@@ -9,6 +9,7 @@ export default function CustomSelect({
   className = "",
   disabled = false,
   size = "md",
+  variant = "default",
 }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0, minWidth: 0 });
@@ -50,7 +51,14 @@ export default function CustomSelect({
   const sizeClasses =
     size === "sm"
       ? "px-4 py-1.5 text-sm"
-      : "px-4 py-2.5 text-sm";
+      : variant === "modal"
+        ? "px-3 py-2.5 text-sm"
+        : "px-4 py-2.5 text-sm";
+
+  const baseClasses =
+    variant === "modal"
+      ? "w-full rounded-xl border-2 border-[#f2f2f2] bg-[#f2f2f2] dark:bg-slate-800 dark:border-slate-700"
+      : "rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700";
 
   function handleOpen() {
     if (disabled) return;
@@ -64,11 +72,11 @@ export default function CustomSelect({
         type="button"
         disabled={disabled}
         onClick={handleOpen}
-        className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 ${sizeClasses} font-medium transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${
+        className={`${variant === "modal" ? "flex" : "inline-flex"} items-center gap-2 whitespace-nowrap ${baseClasses} ${sizeClasses} font-medium transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5F96F9]/20 ${
           disabled ? "opacity-60 cursor-not-allowed" : ""
-        } ${isPlaceholder ? "text-slate-400 dark:text-slate-500" : "text-slate-600 dark:text-slate-300"}`}
+        } ${isPlaceholder ? "text-gray-400 dark:text-slate-500" : "text-gray-700 dark:text-slate-300"}`}
       >
-        <span>{label}</span>
+        <span className={variant === "modal" ? "flex-1 text-left truncate" : ""}>{label}</span>
         <svg
           className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
           fill="none"
@@ -84,7 +92,7 @@ export default function CustomSelect({
         <div
           ref={panelRef}
           className="fixed inline-flex flex-col rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg py-1 max-h-60 overflow-y-auto"
-          style={{ top: pos.top, left: pos.left, zIndex: 99999 }}
+          style={{ top: pos.top, left: pos.left, zIndex: 99999, minWidth: variant === "modal" ? pos.minWidth : undefined }}
         >
           {options.map((opt) => (
             <button

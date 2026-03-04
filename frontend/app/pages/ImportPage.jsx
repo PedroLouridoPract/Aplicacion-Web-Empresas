@@ -385,7 +385,7 @@ export default function ImportPage() {
           <button
             onClick={doImport}
             disabled={importing}
-            className="rounded-xl bg-indigo-400 px-6 py-3 font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-xl bg-indigo-400 px-6 py-3 font-semibold text-white shadow-sm transition-all not-disabled:hover:bg-indigo-500 not-disabled:hover:-translate-y-0.5 not-disabled:hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-indigo-300"
           >
             {importing ? (
               <span className="flex items-center gap-2">

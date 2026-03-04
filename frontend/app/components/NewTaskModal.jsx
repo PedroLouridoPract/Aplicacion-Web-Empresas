@@ -225,53 +225,51 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl"
+        className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 shadow-2xl animate-slide-down"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-7 pt-6 pb-2 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Nueva tarea</h2>
-          <button type="button" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
+        <div className="px-8 py-5 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Nueva tarea</h2>
+          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 text-2xl cursor-pointer transition">×</button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-7 pb-6 flex flex-col gap-5">
+        <form id="new-task-form" onSubmit={handleSubmit} className="px-8 py-5 flex flex-col gap-5">
           {/* Tipo + Prioridad */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Tipo</label>
-              <CustomSelect value={taskType} onChange={setTaskType} options={TASK_TYPES} className="w-full" />
+              <label className="mb-2 block text-sm font-bold text-gray-800 dark:text-slate-200">Tipo</label>
+              <CustomSelect value={taskType} onChange={setTaskType} options={TASK_TYPES} className="w-full" variant="modal" />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Priority</label>
-              <CustomSelect value={priority} onChange={setPriority} options={PRIORITIES} className="w-full" />
+              <label className="mb-2 block text-sm font-bold text-gray-800 dark:text-slate-200">Priority</label>
+              <CustomSelect value={priority} onChange={setPriority} options={PRIORITIES} className="w-full" variant="modal" />
             </div>
           </div>
 
           {/* Titulo */}
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Título</label>
+            <label className="mb-2 block text-sm font-bold text-gray-800 dark:text-slate-200">Título</label>
             <input
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Título"
-              className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full rounded-xl border-2 border-[#f2f2f2] bg-[#f2f2f2] dark:bg-slate-800 dark:border-slate-700 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5F96F9] focus:border-[#5F96F9] transition-all"
             />
           </div>
 
           {/* Fecha + Hora inicio + Hora fin */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha</label>
+              <label className="mb-2 block text-sm font-bold text-gray-800 dark:text-slate-200">Fecha</label>
               <div className="relative">
                 <input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
                   min={today}
-                  className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
+                  className="w-full rounded-xl border-2 border-[#f2f2f2] bg-[#f2f2f2] dark:bg-slate-800 dark:border-slate-700 px-3 py-2.5 text-sm text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#5F96F9] focus:border-[#5F96F9] transition-all cursor-pointer"
                 />
                 {dueDate && (
                   <button
@@ -285,41 +283,41 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
               </div>
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Hora inicio</label>
+              <label className="mb-2 block text-sm font-bold text-gray-800 dark:text-slate-200">Hora inicio</label>
               <div className="relative">
                 <input
                   type="time"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-xl border-2 border-[#f2f2f2] bg-[#f2f2f2] dark:bg-slate-800 dark:border-slate-700 px-3 py-2.5 text-sm text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#5F96F9] focus:border-[#5F96F9] transition-all"
                 />
               </div>
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Hora fin</label>
+              <label className="mb-2 block text-sm font-bold text-gray-800 dark:text-slate-200">Hora fin</label>
               <input
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
                 placeholder="--:--"
-                className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-xl border-2 border-[#f2f2f2] bg-[#f2f2f2] dark:bg-slate-800 dark:border-slate-700 px-3 py-2.5 text-sm text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#5F96F9] focus:border-[#5F96F9] transition-all"
               />
             </div>
           </div>
 
           {/* Asignar a */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Asignar a</label>
+            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Asignar a</label>
             <div className="flex flex-wrap gap-2 mb-3">
               {ASSIGN_MODES.map((mode) => (
                 <button
                   key={mode.key}
                   type="button"
                   onClick={() => setAssignMode(mode.key)}
-                  className={`rounded-full px-4 py-1.5 text-sm font-medium border transition ${
+                  className={`rounded-lg px-3 py-1.5 text-sm border transition ${
                     assignMode === mode.key
-                      ? "bg-indigo-50 dark:bg-indigo-500/15 border-indigo-300 dark:border-indigo-500/40 text-indigo-700 dark:text-indigo-300"
-                      : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      ? "border-[#5F96F9] bg-[#5F96F9]/10 text-[#5F96F9]"
+                      : "border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 hover:border-gray-300 dark:hover:bg-slate-700"
                   }`}
                 >
                   {mode.label}
@@ -334,7 +332,7 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                   placeholder="Buscar..."
-                  className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-2"
+                  className="w-full rounded-lg bg-[#f5f5f5] dark:bg-slate-800 px-3 py-2 text-sm text-gray-700 dark:text-slate-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5F96F9] focus:bg-white transition-colors mb-2"
                 />
                 <div className="max-h-36 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
                   <button
@@ -369,7 +367,7 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                   placeholder="Buscar..."
-                  className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-2"
+                  className="w-full rounded-lg bg-[#f5f5f5] dark:bg-slate-800 px-3 py-2 text-sm text-gray-700 dark:text-slate-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5F96F9] focus:bg-white transition-colors mb-2"
                 />
                 {selectedUsers.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
@@ -413,36 +411,36 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
 
           {/* Vincular a contacto */}
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Vincular a contacto</label>
+            <label className="mb-2 block text-sm font-bold text-gray-800 dark:text-slate-200">Vincular a contacto</label>
             <input
               type="text"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               placeholder="Buscar cliente o proveedor..."
               disabled
-              className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-400 dark:text-slate-500 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none cursor-not-allowed opacity-60"
+              className="w-full rounded-xl border-2 border-[#f2f2f2] bg-[#f2f2f2] dark:bg-slate-800 dark:border-slate-700 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-500 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5F96F9] focus:border-[#5F96F9] transition-all pr-10 cursor-not-allowed opacity-60"
             />
             <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Disponible próximamente</p>
           </div>
 
           {/* Descripcion con soporte de imagenes */}
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Descripcion</label>
+            <label className="mb-2 block text-sm font-bold text-gray-800 dark:text-slate-200">Descripcion</label>
             <div
               ref={descRef}
               contentEditable
               suppressContentEditableWarning
               onPaste={handleDescPaste}
               data-placeholder="Descripción de la tarea (opcional)"
-              className="w-full min-h-[100px] max-h-[200px] overflow-y-auto rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 whitespace-pre-wrap break-words empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400 empty:before:dark:text-slate-500 empty:before:pointer-events-none"
+              className="w-full min-h-[100px] max-h-[200px] overflow-y-auto rounded-xl border-2 border-[#f2f2f2] bg-[#f2f2f2] dark:bg-slate-800 dark:border-slate-700 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#5F96F9] focus:border-[#5F96F9] transition-all whitespace-pre-wrap break-words empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:dark:text-slate-500 empty:before:pointer-events-none resize-none"
             />
           </div>
 
           {/* Documentos vinculados (archivos adjuntos) */}
           <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Documentos vinculados (opcional)</label>
+            <label className="mb-2 block text-sm font-bold text-gray-800 dark:text-slate-200">Documentos vinculados (opcional)</label>
             <div
-              className="relative rounded-xl border border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50 px-4 py-3 text-sm text-slate-500 dark:text-slate-400 cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-500 transition"
+              className="relative rounded-xl border-2 border-[#f2f2f2] bg-[#f2f2f2] dark:bg-slate-800/50 dark:border-slate-600 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-400 cursor-pointer hover:border-[#5F96F9] transition-all"
               onClick={() => fileInputRef.current?.click()}
             >
               <div className="flex items-center gap-2">
@@ -487,25 +485,25 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
           {error && (
             <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">{error}</div>
           )}
-
-          {/* Footer */}
-          <div className="flex justify-center gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-all hover:bg-slate-50 dark:hover:bg-slate-700"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="rounded-xl bg-indigo-400 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-60"
-            >
-              {saving ? "Creando..." : "Crear"}
-            </button>
-          </div>
         </form>
+
+        <div className="px-8 py-5 border-t border-gray-100 dark:border-slate-700 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-6 py-2 bg-white dark:bg-slate-800 border border-[#5F96F9] text-[#5F96F9] rounded-xl cursor-pointer transition-all not-disabled:hover:-translate-y-0.5 not-disabled:hover:shadow-[0_4px_12px_rgba(95,150,249,0.3)]"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            form="new-task-form"
+            disabled={saving || !title.trim()}
+            className="px-6 py-2 bg-[#5F96F9] text-white rounded-xl shadow-sm transition-all cursor-pointer not-disabled:hover:-translate-y-0.5 not-disabled:hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {saving ? "Creando..." : "Crear"}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -582,10 +582,10 @@ export default function ProjectKanbanPage() {
                 <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{editError}</div>
               )}
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={cancelEditTask} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-all hover:bg-slate-50 dark:hover:bg-slate-700">
+                <button type="button" onClick={cancelEditTask} className="px-6 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700">
                   Cancelar
                 </button>
-                <button type="submit" disabled={saving} className="rounded-xl bg-indigo-400 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-60 transition-all">
+                <button type="submit" disabled={saving} className="px-6 py-2 bg-indigo-400 text-white text-sm font-semibold rounded-xl shadow-sm transition-all cursor-pointer not-disabled:hover:-translate-y-0.5 not-disabled:hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-indigo-300">
                   {saving ? "Guardando..." : "Guardar"}
                 </button>
               </div>
@@ -640,10 +640,10 @@ export default function ProjectKanbanPage() {
                 <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{columnError}</div>
               )}
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowNewColumn(false)} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-all hover:bg-slate-50 dark:hover:bg-slate-700">
+                <button type="button" onClick={() => setShowNewColumn(false)} className="px-6 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700">
                   Cancelar
                 </button>
-                <button type="submit" disabled={columnSaving} className="rounded-xl bg-indigo-400 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-60 transition-all">
+                <button type="submit" disabled={columnSaving} className="px-6 py-2 bg-indigo-400 text-white text-sm font-semibold rounded-xl shadow-sm transition-all cursor-pointer not-disabled:hover:-translate-y-0.5 not-disabled:hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-indigo-300">
                   {columnSaving ? "Creando..." : "Crear columna"}
                 </button>
               </div>
