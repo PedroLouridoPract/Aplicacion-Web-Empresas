@@ -1139,14 +1139,18 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
                 {task.createdAt ? new Date(task.createdAt).toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
               </p>
             </div>
-            {(task.dueDate || task.due_date) && (
-              <div>
-                <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Fecha límite</span>
-                <p className="mt-0.5 text-slate-800 dark:text-slate-100">
-                  {new Date(task.dueDate || task.due_date).toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                </p>
-              </div>
-            )}
+            <div>
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Fecha inicio</span>
+              <p className="mt-0.5 text-slate-800 dark:text-slate-100">
+                {(task.startDate || task.start_date) ? new Date(task.startDate || task.start_date).toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+              </p>
+            </div>
+            <div>
+              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Fecha fin</span>
+              <p className="mt-0.5 text-slate-800 dark:text-slate-100">
+                {(task.dueDate || task.due_date) ? new Date(task.dueDate || task.due_date).toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
+              </p>
+            </div>
             {task.resolvedAt && (
               <div>
                 <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Fecha resuelta</span>

@@ -5,6 +5,7 @@ import { apiFetch } from "../api/http";
 import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner } from "../components/ProjectNavButtons";
 import CustomSelect from "../components/CustomSelect";
 import NewTaskModal from "../components/NewTaskModal";
+import TaskDetailPopup from "../components/TaskDetailPopup";
 
 const PRIORITY_STYLES = {
   HIGH: {
@@ -83,6 +84,7 @@ export default function ProjectCalendarPage() {
   const [priorityFilter, setPriorityFilter] = useState(null);
   const [assigneeFilter, setAssigneeFilter] = useState("");
   const [showNewTask, setShowNewTask] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
   const isAdmin = user?.role && String(user.role).toUpperCase() === "ADMIN";
 
   const columnsMap = useMemo(() => {
@@ -345,7 +347,8 @@ export default function ProjectCalendarPage() {
                   return (
                     <div
                       key={t.id}
-                      className={`absolute rounded-lg border ${style.border} ${style.bg} px-3 py-2 transition hover:shadow-md cursor-default overflow-hidden`}
+                      className={`absolute rounded-lg border ${style.border} ${style.bg} px-3 py-2 transition hover:shadow-md cursor-pointer overflow-hidden`}
+                      onClick={() => setSelectedTask(t)}
                       style={{
                         top: (taskBars.rowTops[row] || 0) + 8,
                         left: `calc(${leftPct}% + 4px)`,
@@ -386,6 +389,13 @@ export default function ProjectCalendarPage() {
           </Link>
         </div>
       </div>
+
+      {selectedTask && (
+        <TaskDetailPopup
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+        />
+      )}
     </div>
   );
 }

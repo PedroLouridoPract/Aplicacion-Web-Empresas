@@ -6,6 +6,7 @@ import Avatar from "../components/Avatar";
 import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner } from "../components/ProjectNavButtons";
 import CustomSelect from "../components/CustomSelect";
 import NewTaskModal from "../components/NewTaskModal";
+import TaskDetailPopup from "../components/TaskDetailPopup";
 
 const sectionConfig = {
   overdue: { title: "Atrasadas", accent: "bg-red-500", headerBg: "bg-red-50/60 dark:bg-red-500/10", border: "border-red-200/60 dark:border-red-500/20" },
@@ -58,7 +59,7 @@ function filterTasks(tasks, filters) {
   });
 }
 
-function TaskRow({ task, columnsMap }) {
+function TaskRow({ task, columnsMap, onTaskClick }) {
   const colKey = getTaskColumnKey(task);
   const col = columnsMap.get(colKey);
   const status = col
@@ -70,7 +71,7 @@ function TaskRow({ task, columnsMap }) {
   const assigneeName = task.assignee?.name ?? "Sin asignar";
 
   return (
-    <tr className="border-b border-slate-50 transition hover:bg-slate-50/50 dark:border-slate-800 dark:hover:bg-slate-800/30">
+    <tr className="border-b border-slate-50 transition hover:bg-slate-50/50 dark:border-slate-800 dark:hover:bg-slate-800/30 cursor-pointer" onClick={() => onTaskClick?.(task)}>
       <td className="px-5 py-3 overflow-hidden">
         <div className="min-w-0">
           <span className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate block">{task.title}</span>
@@ -176,7 +177,7 @@ function SortArrow({ active, dir }) {
     : <svg className="ml-1 h-3 w-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>;
 }
 
-function Section({ variant, items, columnsMap }) {
+function Section({ variant, items, columnsMap, onTaskClick }) {
   const { title, accent, headerBg, border } = sectionConfig[variant] || sectionConfig.next_week;
   const [sortKey, setSortKey] = React.useState(null);
   const [sortDir, setSortDir] = React.useState("asc");
@@ -235,7 +236,7 @@ function Section({ variant, items, columnsMap }) {
             </thead>
             <tbody>
               {sorted.map((t) => (
-                <TaskRow key={t.id} task={t} columnsMap={columnsMap || new Map()} />
+                <TaskRow key={t.id} task={t} columnsMap={columnsMap || new Map()} onTaskClick={onTaskClick} />
               ))}
             </tbody>
           </table>
@@ -256,6 +257,7 @@ export default function ProjectExecutivePage() {
   const [error, setError] = useState("");
   const [filters, setFilters] = useState({ priority: "", status: "", assignee: "" });
   const [showNewTask, setShowNewTask] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const columnsMap = useMemo(() => {
     const m = new Map();
@@ -368,12 +370,19 @@ export default function ProjectExecutivePage() {
 
       {data && (
         <div className="grid gap-5">
-          <Section variant="overdue" items={filtered.overdue} columnsMap={columnsMap} />
-          <Section variant="this_week" items={filtered.this_week} columnsMap={columnsMap} />
-          <Section variant="next_week" items={filtered.next_week} columnsMap={columnsMap} />
-          <Section variant="later" items={filtered.later} columnsMap={columnsMap} />
-          <Section variant="unscheduled" items={filtered.unscheduled} columnsMap={columnsMap} />
+          <Section variant="overdue" items={filtered.overdue} columnsMap={columnsMap} onTaskClick={setSelectedTask} />
+          <Section variant="this_week" items={filtered.this_week} columnsMap={columnsMap} onTaskClick={setSelectedTask} />
+          <Section variant="next_week" items={filtered.next_week} columnsMap={columnsMap} onTaskClick={setSelectedTask} />
+          <Section variant="later" items={filtered.later} columnsMap={columnsMap} onTaskClick={setSelectedTask} />
+          <Section variant="unscheduled" items={filtered.unscheduled} columnsMap={columnsMap} onTaskClick={setSelectedTask} />
         </div>
+      )}
+
+      {selectedTask && (
+        <TaskDetailPopup
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+        />
       )}
     </div>
   );
