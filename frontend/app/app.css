@@ -105,3 +105,18 @@ a, button {
     transform: scale(1) translateY(0);
   }
 }
+
+.mention-input:empty::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  pointer-events: none;
+}
+.dark .mention-input:empty::before {
+  color: #64748b;
+}
+.mention-input [data-mention-id] {
+  user-select: all;
+}
+.mention-input:focus {
+  outline: none;
+}

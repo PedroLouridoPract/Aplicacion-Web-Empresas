@@ -136,8 +136,15 @@ model Comment {
   author     User?    @relation(fields: [authorId], references: [id])
   authorName String?
 
-  body       String
-  createdAt  DateTime @default(now())
+  body        String
+  attachments String?
+  reactions   String?
+
+  parentId    String?
+  parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies     Comment[] @relation("CommentReplies")
+
+  createdAt   DateTime @default(now())
 
   @@index([companyId, taskId])
 }

@@ -9,4 +9,5 @@ export const commentsRoutes = Router();
 
 commentsRoutes.get("/by-task/:taskId", authRequired, ctrl.listByTask);
 commentsRoutes.post("/", authRequired, canWrite, ctrl.create);
+commentsRoutes.post("/:id/reaction", authRequired, ctrl.toggleReaction);
 commentsRoutes.delete("/:id", authRequired, canWrite, ctrl.remove);

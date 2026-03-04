@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import Avatar from "./Avatar";
@@ -9,7 +9,7 @@ const priorityStyles = {
   low: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
 };
 
-export default function TaskCard({ task, statuses, onMove, isDragging, currentUser, onEditTask, onDeleteTask }) {
+export default function TaskCard({ task, statuses, onMove, isDragging, currentUser, onEditTask, onDeleteTask, onTaskClick }) {
   const priorityKey = (task.priority || "medium").toLowerCase();
   const priorityClass = priorityStyles[priorityKey] || priorityStyles.medium;
   const progress = Number(task.progress) || 0;
@@ -18,6 +18,7 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
   const isAdmin = currentUser?.role && String(currentUser.role).toUpperCase() === "ADMIN";
   const isMember = currentUser?.role && String(currentUser.role).toUpperCase() === "MEMBER";
   const canEdit = onEditTask && (isAdmin || isMember);
+  const pointerStart = useRef(null);
 
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: String(task.id),
@@ -28,13 +29,27 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
     ? { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.5 : 1 }
     : { opacity: isDragging ? 0.5 : 1 };
 
+  const handlePointerDown = (e) => {
+    pointerStart.current = { x: e.clientX, y: e.clientY };
+    if (listeners?.onPointerDown) listeners.onPointerDown(e);
+  };
+
+  const handleClick = (e) => {
+    if (!onTaskClick || !pointerStart.current) return;
+    const dx = Math.abs(e.clientX - pointerStart.current.x);
+    const dy = Math.abs(e.clientY - pointerStart.current.y);
+    if (dx < 5 && dy < 5) onTaskClick(task);
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="rounded-lg border border-slate-200/60 dark:border-slate-700/60 bg-white dark:bg-slate-800 p-3.5 shadow-sm transition hover:shadow-md touch-none"
+      className="rounded-lg border border-slate-200/60 dark:border-slate-700/60 bg-white dark:bg-slate-800 p-3.5 shadow-sm transition hover:shadow-md touch-none cursor-pointer"
       {...attributes}
       {...listeners}
+      onPointerDown={handlePointerDown}
+      onClick={handleClick}
     >
       <div className="flex items-start justify-between gap-2">
         <p className="text-sm font-medium text-slate-800 dark:text-slate-100 min-w-0 flex-1">{task.title}</p>

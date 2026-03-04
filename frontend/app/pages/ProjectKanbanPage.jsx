@@ -13,6 +13,7 @@ import { apiFetch } from "../api/http";
 import KanbanColumn from "../components/KanbanColumn";
 import TaskCard from "../components/TaskCard";
 import ConfirmModal from "../components/ConfirmModal";
+import TaskDetailPopup from "../components/TaskDetailPopup";
 import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner, useStickyCompact, stickyTransition } from "../components/ProjectNavButtons";
 
 const STATUSES = [
@@ -60,6 +61,7 @@ export default function ProjectKanbanPage() {
   const [editingTask, setEditingTask] = useState(null);
   const [taskEditForm, setTaskEditForm] = useState(null);
   const [editError, setEditError] = useState("");
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState(() => ({
@@ -601,6 +603,7 @@ export default function ProjectKanbanPage() {
                 currentUser={user}
                 onEditTask={startEditTask}
                 onDeleteTask={handleDeleteTask}
+                onTaskClick={setSelectedTask}
               />
             ))}
           </div>
@@ -644,6 +647,12 @@ export default function ProjectKanbanPage() {
             </button>
           </div>
         </div>
+      )}
+      {selectedTask && (
+        <TaskDetailPopup
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+        />
       )}
     </div>
   );

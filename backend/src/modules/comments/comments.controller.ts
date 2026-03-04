@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import * as service from "./comments.service";
-import { createCommentSchema } from "./comments.schemas";
+import { createCommentSchema, toggleReactionSchema } from "./comments.schemas";
 
 export async function listByTask(req: Request, res: Response, next: NextFunction) {
   try {
@@ -25,6 +25,9 @@ export async function create(req: Request, res: Response, next: NextFunction) {
       userId,
       taskId: parsed.taskId,
       body: parsed.body,
+      attachments: parsed.attachments,
+      mentionedUserIds: parsed.mentionedUserIds,
+      parentId: parsed.parentId,
     });
 
     res.status(201).json({ comment });
@@ -41,6 +44,20 @@ export async function remove(req: Request, res: Response, next: NextFunction) {
 
     await service.remove({ companyId, userId, role, commentId });
     res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function toggleReaction(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { companyId, id: userId } = req.user!;
+    const commentId = typeof req.params.id === "string" ? req.params.id : req.params.id?.[0];
+    if (!commentId) return res.status(400).json({ message: "Invalid comment id" });
+
+    const parsed = toggleReactionSchema.parse(req.body);
+    const reactions = await service.toggleReaction({ companyId, userId, commentId, emoji: parsed.emoji });
+    res.json({ reactions });
   } catch (err) {
     next(err);
   }

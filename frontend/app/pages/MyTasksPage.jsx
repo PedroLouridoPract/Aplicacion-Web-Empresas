@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { apiFetch } from "../api/http";
+import TaskDetailPopup from "../components/TaskDetailPopup";
 
 const statusLabel = {
   backlog: "Backlog",
@@ -22,17 +23,60 @@ const statusConfig = {
   done: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
 };
 
-function getDayOfWeek(dateStr) {
-  if (!dateStr) return null;
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("es-ES", { weekday: "short" }).replace(".", "");
-}
+const DetailIcon = () => (
+  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <line x1="7" y1="8" x2="17" y2="8" />
+    <line x1="7" y1="12" x2="17" y2="12" />
+    <line x1="7" y1="16" x2="13" y2="16" />
+  </svg>
+);
+
+const KanbanIcon = () => (
+  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <line x1="9" y1="3" x2="9" y2="21" />
+    <line x1="15" y1="3" x2="15" y2="21" />
+    <rect x="4.5" y="5.5" width="3" height="4" rx="0.5" fill="currentColor" strokeWidth="0" />
+    <rect x="4.5" y="11" width="3" height="3" rx="0.5" fill="currentColor" strokeWidth="0" />
+    <rect x="10.5" y="5.5" width="3" height="3" rx="0.5" fill="currentColor" strokeWidth="0" />
+    <rect x="10.5" y="10" width="3" height="4.5" rx="0.5" fill="currentColor" strokeWidth="0" />
+    <rect x="16.5" y="5.5" width="3" height="5" rx="0.5" fill="currentColor" strokeWidth="0" />
+  </svg>
+);
+
+const TableIcon = () => (
+  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <line x1="3" y1="9" x2="21" y2="9" />
+    <line x1="3" y1="15" x2="21" y2="15" />
+    <line x1="9" y1="3" x2="9" y2="21" />
+  </svg>
+);
+
+const CalendarIcon = () => (
+  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <rect x="3" y="4" width="18" height="17" rx="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
+
+const NAV_TABS = [
+  { key: "detail", path: (pid) => `/projects/${pid}`, icon: DetailIcon, title: "Detalles" },
+  { key: "kanban", path: (pid) => `/projects/${pid}/kanban`, icon: KanbanIcon, title: "Kanban" },
+  { key: "executive", path: (pid) => `/projects/${pid}/executive`, icon: TableIcon, title: "Tabla ejecutiva" },
+  { key: "calendar", path: (pid) => `/projects/${pid}/calendar`, icon: CalendarIcon, title: "Calendario" },
+];
 
 export default function MyTasksPage() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("all");
+  const [selectedTask, setSelectedTask] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     async function load() {
@@ -50,7 +94,26 @@ export default function MyTasksPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    const openTaskId = location.state?.openTaskId;
+    if (openTaskId && tasks.length > 0) {
+      const found = tasks.find((t) => t.id === openTaskId);
+      if (found) {
+        setSelectedTask(found);
+        window.history.replaceState({}, "");
+      } else {
+        apiFetch(`/tasks/${openTaskId}`)
+          .then((t) => { setSelectedTask(t); window.history.replaceState({}, ""); })
+          .catch(() => {});
+      }
+    }
+  }, [location.state?.openTaskId, tasks]);
+
   const filteredTasks = filter === "all" ? tasks : tasks.filter(t => (t.priority || "medium").toLowerCase() === filter);
+
+  function buildFilterQS(t) {
+    return `?priority=${(t.priority || "").toUpperCase()}&assignee=${t.assigneeId || t.assignee?.id || ""}`;
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -125,7 +188,11 @@ export default function MyTasksPage() {
                   const pCfg = priorityConfig[priority] || priorityConfig.medium;
                   const sCfg = statusConfig[status] || statusConfig.backlog;
                   return (
-                    <tr key={t.id} className="border-b border-slate-50 transition hover:bg-slate-50/50 dark:border-slate-800 dark:hover:bg-slate-800/30">
+                    <tr
+                      key={t.id}
+                      className="border-b border-slate-50 transition hover:bg-slate-50/50 dark:border-slate-800 dark:hover:bg-slate-800/30 cursor-pointer"
+                      onClick={() => setSelectedTask(t)}
+                    >
                       <td className="px-5 py-3.5">
                         <span className="font-medium text-slate-800 dark:text-slate-100">{t.title}</span>
                       </td>
@@ -157,14 +224,23 @@ export default function MyTasksPage() {
                       <td className="px-5 py-3.5 text-slate-600 dark:text-slate-300">
                         {due ? new Date(due).toLocaleDateString("es-ES") : "—"}
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-5 py-3.5" onClick={(e) => e.stopPropagation()}>
                         {project?.id && (
-                          <Link
-                            to={`/projects/${project.id}/kanban?priority=${(t.priority || "").toUpperCase()}&assignee=${t.assigneeId || t.assignee?.id || ""}`}
-                            className="rounded-lg bg-indigo-600 dark:bg-indigo-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-indigo-700 dark:hover:bg-indigo-400"
-                          >
-                            Kanban
-                          </Link>
+                          <div className="flex items-center gap-1">
+                            {NAV_TABS.map((tab) => {
+                              const Icon = tab.icon;
+                              return (
+                                <Link
+                                  key={tab.key}
+                                  to={tab.path(project.id) + buildFilterQS(t)}
+                                  title={tab.title}
+                                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400"
+                                >
+                                  <Icon />
+                                </Link>
+                              );
+                            })}
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -174,6 +250,13 @@ export default function MyTasksPage() {
             </table>
           </div>
         </div>
+      )}
+
+      {selectedTask && (
+        <TaskDetailPopup
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+        />
       )}
     </div>
   );

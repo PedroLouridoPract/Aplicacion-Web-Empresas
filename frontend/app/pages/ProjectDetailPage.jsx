@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
 import Avatar from "../components/Avatar";
 import ConfirmModal from "../components/ConfirmModal";
+import TaskDetailPopup from "../components/TaskDetailPopup";
 import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner, useStickyCompact, stickyTransition } from "../components/ProjectNavButtons";
 
 const PRIORITIES = [
@@ -69,11 +70,7 @@ export default function ProjectDetailPage() {
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [taskEditForm, setTaskEditForm] = useState(null);
   const [saveError, setSaveError] = useState("");
-  const [expandedTaskId, setExpandedTaskId] = useState(null);
-  const [comments, setComments] = useState([]);
-  const [loadingComments, setLoadingComments] = useState(false);
-  const [newComment, setNewComment] = useState("");
-  const [sendingComment, setSendingComment] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, task: null });
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -253,52 +250,6 @@ export default function ProjectDetailPage() {
     }
   }
 
-  async function toggleExpandTask(taskId) {
-    if (expandedTaskId === taskId) {
-      setExpandedTaskId(null);
-      setComments([]);
-      return;
-    }
-    setExpandedTaskId(taskId);
-    setLoadingComments(true);
-    try {
-      const res = await apiFetch(`/comments/by-task/${taskId}`);
-      setComments(res.comments ?? (Array.isArray(res) ? res : []));
-    } catch {
-      setComments([]);
-    } finally {
-      setLoadingComments(false);
-    }
-  }
-
-  async function handleAddComment(e) {
-    e.preventDefault();
-    if (!newComment.trim() || !expandedTaskId) return;
-    setSendingComment(true);
-    try {
-      await apiFetch("/comments", {
-        method: "POST",
-        body: JSON.stringify({ taskId: expandedTaskId, body: newComment.trim() }),
-      });
-      setNewComment("");
-      const res = await apiFetch(`/comments/by-task/${expandedTaskId}`);
-      setComments(res.comments ?? (Array.isArray(res) ? res : []));
-    } catch (err) {
-      alert(err.message || "Error al enviar comentario");
-    } finally {
-      setSendingComment(false);
-    }
-  }
-
-  async function handleDeleteComment(commentId) {
-    if (!confirm("¿Borrar este comentario?")) return;
-    try {
-      await apiFetch(`/comments/${commentId}`, { method: "DELETE" });
-      setComments((prev) => prev.filter((c) => c.id !== commentId));
-    } catch (err) {
-      alert(err.message || "Error al borrar comentario");
-    }
-  }
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -736,19 +687,15 @@ export default function ProjectDetailPage() {
               <p className="py-6 text-center text-sm text-slate-400 dark:text-slate-500">No se encontraron tareas con los filtros aplicados</p>
             ) : sortedTasks.map((t) => {
               const canEditTask = isAdmin || role === "MEMBER";
-              const isExpanded = expandedTaskId === t.id;
-              const due = t.dueDate || t.due_date;
-              const isDone = (t.status || "").toUpperCase() === "DONE";
-              const progress = isDone ? 100 : (Number(t.progress) || 0);
               return (
                 <div key={t.id} className="rounded-lg border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
                   <button
                     type="button"
-                    onClick={() => toggleExpandTask(t.id)}
+                    onClick={() => setSelectedTask(t)}
                     className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-xs text-slate-400 dark:text-slate-500">{isExpanded ? "▼" : "▶"}</span>
+                      <span className="text-xs text-slate-400 dark:text-slate-500">▶</span>
                       <span className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{t.title}</span>
                       <span className="text-sm text-slate-500 dark:text-slate-400 shrink-0">
                         {t.assignee?.name ? `→ ${t.assignee.name}` : "Sin asignar"}
@@ -792,221 +739,6 @@ export default function ProjectDetailPage() {
                       )}
                     </div>
                   </button>
-
-                  {isExpanded && (() => {
-                    const parsed = parseTaskTitle(t.title);
-                    const creator = t.creatorName || null;
-                    const reporter = t.reporterName || null;
-                    const sameCreatorReporter = creator && reporter && creator.toLowerCase() === reporter.toLowerCase();
-                    return (
-                    <div className="border-t border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-4">
-                      {/* Resumen */}
-                      {t.summary && (
-                        <div className="mb-4 rounded-xl bg-indigo-50/70 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 p-4">
-                          <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-400">Resumen</span>
-                          <p className="mt-1 text-sm text-slate-800 dark:text-slate-100 whitespace-pre-wrap">{t.summary}</p>
-                        </div>
-                      )}
-
-                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
-                        {parsed.key && (
-                          <div>
-                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Clave</span>
-                            <p className="mt-0.5 font-mono text-slate-800 dark:text-slate-100">{parsed.key}</p>
-                          </div>
-                        )}
-                        {parsed.id && (
-                          <div>
-                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">ID incidencia</span>
-                            <p className="mt-0.5 font-mono text-slate-800 dark:text-slate-100">{parsed.id}</p>
-                          </div>
-                        )}
-                        {parsed.type && (
-                          <div>
-                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Tipo</span>
-                            <p className="mt-0.5 text-slate-800 dark:text-slate-100">{parsed.type}</p>
-                          </div>
-                        )}
-                        <div>
-                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Persona asignada</span>
-                          <p className="mt-0.5 text-slate-800 dark:text-slate-100">{t.assignee?.name ?? "Sin asignar"}</p>
-                        </div>
-                        <div>
-                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Prioridad</span>
-                          <p className="mt-0.5 text-slate-800 dark:text-slate-100">{priorityLabel(t.priority)}</p>
-                        </div>
-                        <div>
-                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Estado</span>
-                          <p className="mt-0.5 text-slate-800 dark:text-slate-100">{statusLabel(t.status)}</p>
-                        </div>
-                        <div>
-                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Fecha creación</span>
-                          <p className="mt-0.5 text-slate-800 dark:text-slate-100">
-                            {t.createdAt
-                              ? new Date(t.createdAt).toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
-                              : "—"}
-                          </p>
-                        </div>
-                        {t.resolvedAt && (
-                          <div>
-                            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Fecha resuelta</span>
-                            <p className="mt-0.5 text-slate-800 dark:text-slate-100">
-                              {new Date(t.resolvedAt).toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                            </p>
-                          </div>
-                        )}
-                        <div>
-                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Progreso</span>
-                          <div className="mt-1 flex items-center gap-2">
-                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                              <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" style={{ width: `${progress}%` }} />
-                            </div>
-                            <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{progress}%</span>
-                          </div>
-                        </div>
-
-                        {/* Creador / Informador */}
-                        {sameCreatorReporter ? (
-                          <div>
-                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Creador / Informador</span>
-                            <p className="mt-0.5 text-slate-800 dark:text-slate-100">{creator}</p>
-                          </div>
-                        ) : (
-                          <>
-                            {creator && (
-                              <div>
-                                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Creador</span>
-                                <p className="mt-0.5 text-slate-800 dark:text-slate-100">{creator}</p>
-                              </div>
-                            )}
-                            {reporter && (
-                              <div>
-                                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Informador</span>
-                                <p className="mt-0.5 text-slate-800 dark:text-slate-100">{reporter}</p>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-
-                      {t.description && (
-                        <div className="mt-4">
-                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Descripción</span>
-                          <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">{t.description}</p>
-                        </div>
-                      )}
-
-                      {t.attachments && t.attachments.length > 0 && (() => {
-                        const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
-                        const token = localStorage.getItem("token");
-                        const authUrl = (attId) => `${API_BASE}/attachments/${attId}/download?token=${encodeURIComponent(token || "")}`;
-                        return (
-                        <div className="mt-4">
-                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Adjuntos ({t.attachments.length})</span>
-                          <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                            {t.attachments.map((att) => {
-                              const isImage = att.mimeType?.startsWith("image/");
-                              const fileUrl = authUrl(att.id);
-                              const sizeKB = (att.size / 1024).toFixed(1);
-                              const canDeleteAtt = isAdmin || att.uploadedBy?.id === user?.id;
-                              return (
-                                <div key={att.id} className="group relative rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 overflow-hidden">
-                                  {isImage ? (
-                                    <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="block">
-                                      <img src={fileUrl} alt={att.originalName} className="h-32 w-full object-cover transition group-hover:opacity-90" />
-                                    </a>
-                                  ) : (
-                                    <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="flex h-20 items-center justify-center text-slate-400 dark:text-slate-500 transition hover:text-indigo-500">
-                                      <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
-                                    </a>
-                                  )}
-                                  <div className="flex items-center justify-between gap-1 px-2 py-1.5">
-                                    <div className="min-w-0 flex-1">
-                                      <p className="truncate text-xs font-medium text-slate-700 dark:text-slate-200" title={att.originalName}>{att.originalName}</p>
-                                      <p className="text-[10px] text-slate-400 dark:text-slate-500">{sizeKB} KB</p>
-                                    </div>
-                                    <div className="flex items-center gap-1 shrink-0">
-                                      <a href={fileUrl} download={att.originalName} className="rounded p-1 text-slate-400 hover:text-indigo-500 hover:bg-slate-100 dark:hover:bg-slate-700" title="Descargar">
-                                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                      </a>
-                                      {canDeleteAtt && (
-                                        <button
-                                          type="button"
-                                          onClick={async () => {
-                                            if (!confirm("¿Eliminar este adjunto?")) return;
-                                            try {
-                                              await apiFetch(`/attachments/${att.id}`, { method: "DELETE" });
-                                              const tasksRes = await apiFetch(`/projects/${id}/tasks`);
-                                              setTasks(Array.isArray(tasksRes) ? tasksRes : []);
-                                            } catch (err) { alert(err.message || "Error al eliminar adjunto"); }
-                                          }}
-                                          className="rounded p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
-                                          title="Eliminar"
-                                        >
-                                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                        );
-                      })()}
-
-                      <div className="mt-5 border-t border-slate-100 dark:border-slate-700/50 pt-4">
-                        <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Comentarios</h4>
-
-                        {loadingComments ? (
-                          <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">Cargando comentarios...</p>
-                        ) : comments.length === 0 ? (
-                          <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">Sin comentarios aún.</p>
-                        ) : (
-                          <ul className="mt-3 space-y-2">
-                            {comments.map((c) => {
-                              const authorDisplay = c.author?.name || c.authorName || "Usuario";
-                              const canDelete = isAdmin || (c.authorId && c.authorId === user?.id);
-                              return (
-                                <li key={c.id} className="rounded-lg border border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 px-3 py-2">
-                                  <div className="flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2">
-                                      <Avatar name={authorDisplay} src={c.author?.avatarUrl} size="xs" />
-                                      <span className="text-xs font-medium text-slate-700 dark:text-slate-200">{authorDisplay}</span>
-                                      <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(c.createdAt).toLocaleString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
-                                    </div>
-                                    {canDelete && (
-                                      <button type="button" onClick={() => handleDeleteComment(c.id)} className="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-400" title="Borrar comentario">
-                                        Borrar
-                                      </button>
-                                    )}
-                                  </div>
-                                  <p className="mt-1 text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{c.body}</p>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        )}
-
-                        {(role === "ADMIN" || role === "MEMBER") && (
-                          <form onSubmit={handleAddComment} className="mt-3 flex gap-2">
-                            <input
-                              type="text"
-                              placeholder="Escribe un comentario..."
-                              value={newComment}
-                              onChange={(e) => setNewComment(e.target.value)}
-                              className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                            />
-                            <button type="submit" disabled={sendingComment || !newComment.trim()} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60">
-                              {sendingComment ? "..." : "Enviar"}
-                            </button>
-                          </form>
-                        )}
-                      </div>
-                    </div>
-                    );
-                  })()}
                 </div>
               );
             })}
@@ -1039,6 +771,12 @@ export default function ProjectDetailPage() {
             </button>
           </div>
         </div>
+      )}
+      {selectedTask && (
+        <TaskDetailPopup
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+        />
       )}
     </div>
   );

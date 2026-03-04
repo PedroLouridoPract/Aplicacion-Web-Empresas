@@ -140,7 +140,7 @@ export default function NotificationBell() {
                   onClick={() => {
                     if (!n.read) handleMarkRead(n.id);
                     setOpen(false);
-                    navigate("/my-tasks");
+                    navigate("/my-tasks", { state: n.taskId ? { openTaskId: n.taskId } : undefined });
                   }}
                   className={`flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/50 ${
                     !n.read ? "bg-indigo-50/50 dark:bg-indigo-500/5" : ""
