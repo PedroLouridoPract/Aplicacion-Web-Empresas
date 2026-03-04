@@ -405,7 +405,7 @@ export default function ProfilePage() {
       {/* ── Right panel ── */}
       <div className="mt-6 min-w-0 flex-1 lg:mt-0">
         {/* Tabs */}
-        <div className="mb-0 flex gap-0 border-b border-slate-200 dark:border-slate-700">
+        <div className="mx-4 mb-0 flex gap-0 border-b border-slate-200 dark:border-slate-700">
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -426,7 +426,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Tab content */}
-        <div className="content-card mt-0 rounded-t-none border-t-0 p-6">
+        <div className="content-card mt-0 rounded-t-none border-t-0 p-6" style={{ boxShadow: '0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -2px rgba(0,0,0,0.06)' }}>
           {activeTab === "personal" && (
             <>
               {/* Header with edit button */}
