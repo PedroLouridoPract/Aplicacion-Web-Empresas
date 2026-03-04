@@ -39,10 +39,16 @@ function extractInlineImages(html) {
     const blob = new Blob([ab], { type: mime });
     const file = new File([blob], `pasted-image-${i + 1}.${ext}`, { type: mime });
     files.push(file);
-    img.remove();
+    const placeholder = document.createTextNode(`{{IMG:${i}}}`);
+    img.parentNode.replaceChild(placeholder, img);
   });
-  const textContent = div.innerHTML.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").trim();
-  return { text: textContent, pastedFiles: files };
+  let richText = div.innerHTML
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<div>/gi, "\n")
+    .replace(/<\/div>/gi, "")
+    .replace(/<[^>]+>/g, "")
+    .trim();
+  return { text: richText, pastedFiles: files };
 }
 
 export default function NewTaskModal({ open, onClose, projectId, users, isAdmin, currentUserId, onCreated }) {
@@ -160,7 +166,8 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
       const assigneeIds = getAssigneeIds();
 
       const createOne = async (assigneeId) => {
-        const task = await (await import("../api/http")).apiFetch("/tasks", {
+        const { apiFetch: api } = await import("../api/http");
+        const task = await api("/tasks", {
           method: "POST",
           body: JSON.stringify({
             projectId,
@@ -175,7 +182,24 @@ export default function NewTaskModal({ open, onClose, projectId, users, isAdmin,
         if (allFiles.length > 0) {
           const fd = new FormData();
           for (const f of allFiles) fd.append("files", f);
-          await (await import("../api/http")).apiFetch(`/tasks/${task.id}/attachments`, { method: "POST", body: fd });
+          const uploadedAtts = await api(`/tasks/${task.id}/attachments`, { method: "POST", body: fd });
+
+          if (pastedFiles.length > 0 && descText && descText.includes("{{IMG:")) {
+            let finalDesc = descText;
+            const atts = Array.isArray(uploadedAtts) ? uploadedAtts : [];
+            pastedFiles.forEach((pf, idx) => {
+              const match = atts.find((a) => a.originalName === pf.name);
+              if (match) {
+                finalDesc = finalDesc.replace(`{{IMG:${idx}}}`, `{{ATT:${match.id}}}`);
+              }
+            });
+            if (finalDesc !== descText) {
+              await api(`/tasks/${task.id}`, {
+                method: "PATCH",
+                body: JSON.stringify({ description: finalDesc }),
+              });
+            }
+          }
         }
 
         return task;
