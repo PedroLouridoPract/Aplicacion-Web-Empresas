@@ -261,6 +261,7 @@ export default function ProjectKanbanPage() {
         title: task.title || "",
         description: task.description || "",
         assigneeId: task.assigneeId || task.assignee?.id || "",
+        startDate: task.startDate || task.start_date ? (task.startDate || task.start_date).slice(0, 10) : "",
         dueDate: task.dueDate || task.due_date ? (task.dueDate || task.due_date).slice(0, 10) : "",
         priority: (task.priority || "MEDIUM").toUpperCase(),
         status: getTaskColumnKey(task),
@@ -318,6 +319,7 @@ export default function ProjectKanbanPage() {
         title: taskEditForm.title.trim(),
         description: finalDesc,
         assigneeId: taskEditForm.assigneeId || null,
+        startDate: taskEditForm.startDate || null,
         dueDate: taskEditForm.dueDate || null,
         priority: taskEditForm.priority,
         status: isBase ? selectedKey.toUpperCase() : "BACKLOG",
@@ -676,9 +678,22 @@ export default function ProjectKanbanPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha límite</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha inicio</label>
                   <input
                     type="date"
+                    value={taskEditForm.startDate}
+                    onChange={(e) => setTaskEditForm((f) => ({ ...f, startDate: e.target.value }))}
+                    disabled={!canEditField}
+                    className={`w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha fin</label>
+                  <input
+                    type="date"
+                    min={taskEditForm.startDate || undefined}
                     value={taskEditForm.dueDate}
                     onChange={(e) => setTaskEditForm((f) => ({ ...f, dueDate: e.target.value }))}
                     disabled={!canEditField}

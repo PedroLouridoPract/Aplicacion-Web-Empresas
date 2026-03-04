@@ -808,6 +808,7 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
   const [taskAttachments, setTaskAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(true);
   const [taskPreviewImage, setTaskPreviewImage] = useState(null);
+  const [activeTab, setActiveTab] = useState("details");
   const inputRef = useRef(null);
   const fileRef = useRef(null);
   const commentsEndRef = useRef(null);
@@ -1101,7 +1102,33 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
           </button>
         </div>
 
+        {/* Tabs */}
+        <div className="sticky top-[65px] z-10 flex border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-6">
+          <button
+            type="button"
+            onClick={() => setActiveTab("details")}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${activeTab === "details" ? "text-indigo-600 dark:text-indigo-400" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}
+          >
+            Detalles
+            {activeTab === "details" && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-full" />}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("comments")}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${activeTab === "comments" ? "text-indigo-600 dark:text-indigo-400" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}
+          >
+            Comentarios
+            {comments.length > 0 && (
+              <span className={`ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-medium ${activeTab === "comments" ? "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400" : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"}`}>
+                {comments.length}
+              </span>
+            )}
+            {activeTab === "comments" && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-full" />}
+          </button>
+        </div>
+
         <div className="px-6 py-5 space-y-5">
+          {activeTab === "details" && (<>
           {/* Summary */}
           {task.summary && (
             <div className="rounded-xl bg-indigo-50/70 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 p-4">
@@ -1302,17 +1329,18 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
           {loadingAttachments && (
             <p className="text-xs text-slate-400 dark:text-slate-500">Cargando adjuntos...</p>
           )}
+          </>)}
 
           {/* Comments */}
-          <div className="border-t border-slate-100 dark:border-slate-700/50 pt-4">
-            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Comentarios</h4>
+          {activeTab === "comments" && (
+          <div>
 
             {loadingComments ? (
               <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">Cargando comentarios...</p>
             ) : comments.length === 0 ? (
               <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">Sin comentarios aún.</p>
             ) : (
-              <div className="mt-3 space-y-3 max-h-72 overflow-y-auto">
+              <div className="mt-3 space-y-3">
                 {comments.map((c) => (
                   <CommentItem
                     key={c.id}
@@ -1437,6 +1465,7 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
               </form>
             )}
           </div>
+          )}
         </div>
       </div>
     </div>

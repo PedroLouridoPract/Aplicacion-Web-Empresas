@@ -115,7 +115,17 @@ function TaskRow({ task, columnsMap, onTaskClick }) {
       </td>
       <td className="px-5 py-3 overflow-hidden">
         <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-          {due ? new Date(due).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
+          {task.createdAt ? new Date(task.createdAt).toLocaleDateString("es-ES") : "—"}
+        </span>
+      </td>
+      <td className="px-5 py-3 overflow-hidden">
+        <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+          {(task.startDate || task.start_date) ? new Date(task.startDate || task.start_date).toLocaleDateString("es-ES") : "—"}
+        </span>
+      </td>
+      <td className="px-5 py-3 overflow-hidden">
+        <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+          {due ? new Date(due).toLocaleDateString("es-ES") : "—"}
         </span>
       </td>
     </tr>
@@ -128,7 +138,9 @@ const SORT_COLUMNS = [
   { key: "status", label: "Estado" },
   { key: "priority", label: "Prioridad" },
   { key: "progress", label: "Progreso" },
-  { key: "date", label: "Fecha" },
+  { key: "createdAt", label: "Creación" },
+  { key: "startDate", label: "Inicio" },
+  { key: "date", label: "Fin" },
 ];
 
 const PRIORITY_ORDER = { HIGH: 0, MEDIUM: 1, LOW: 2 };
@@ -159,6 +171,14 @@ function sortItems(items, sortKey, sortDir) {
       case "progress":
         av = Number(a.progress) || 0;
         bv = Number(b.progress) || 0;
+        return (av - bv) * dir;
+      case "createdAt":
+        av = new Date(a.createdAt || 0).getTime();
+        bv = new Date(b.createdAt || 0).getTime();
+        return (av - bv) * dir;
+      case "startDate":
+        av = new Date(a.startDate || a.start_date || 0).getTime();
+        bv = new Date(b.startDate || b.start_date || 0).getTime();
         return (av - bv) * dir;
       case "date":
         av = new Date(a.due_date || a.dueDate || 0).getTime();
@@ -211,12 +231,14 @@ function Section({ variant, items, columnsMap, onTaskClick }) {
         <div className="overflow-x-auto bg-white dark:bg-slate-800">
           <table className="w-full table-fixed text-left text-sm">
             <colgroup>
-              <col className="w-[35%]" />
-              <col className="w-[16%]" />
-              <col className="w-[11%]" />
+              <col className="w-[24%]" />
+              <col className="w-[14%]" />
               <col className="w-[10%]" />
-              <col className="w-[12%]" />
-              <col className="w-[16%]" />
+              <col className="w-[8%]" />
+              <col className="w-[10%]" />
+              <col className="w-[11%]" />
+              <col className="w-[11%]" />
+              <col className="w-[11%]" />
             </colgroup>
             <thead>
               <tr className="border-b border-slate-100 dark:border-slate-700">
