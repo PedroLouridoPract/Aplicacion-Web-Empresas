@@ -1,11 +1,27 @@
 import { prisma } from "../../db/prisma";
 
+export type NotificationCategory =
+  | "task_assignment"
+  | "task_comments"
+  | "absence_requests"
+  | "absence_status";
+
 export async function createNotification(params: {
   userId: string;
   message: string;
   taskId?: string;
   absenceId?: string;
+  category?: NotificationCategory;
 }) {
+  if (params.category) {
+    const user = await prisma.user.findUnique({
+      where: { id: params.userId },
+      select: { notificationPreferences: true },
+    });
+    const prefs = (user?.notificationPreferences as Record<string, boolean> | null) ?? {};
+    if (prefs[params.category] === false) return null;
+  }
+
   return prisma.notification.create({
     data: {
       userId: params.userId,

@@ -18,7 +18,57 @@ const roleStyles = {
 const TABS = [
   { id: "personal", label: "Datos personales" },
   { id: "security", label: "Seguridad" },
+  { id: "notifications", label: "Notificaciones" },
 ];
+
+const NOTIFICATION_SETTINGS = [
+  {
+    group: "Notificaciones Generales",
+    items: [
+      {
+        key: "task_assignment",
+        label: "Asignación de Tareas",
+        description: "Recibe alertas cuando te asignan una tarea o cuando se reasigna una tarea tuya.",
+      },
+      {
+        key: "task_comments",
+        label: "Comentarios y Menciones",
+        description: "Recibe notificaciones cuando alguien responde a tus comentarios o te menciona en una tarea.",
+      },
+      {
+        key: "absence_requests",
+        label: "Solicitudes de Ausencia",
+        description: "Recibe notificaciones cuando los empleados envían o cancelan solicitudes de ausencia.",
+      },
+      {
+        key: "absence_status",
+        label: "Estado de Ausencias",
+        description: "Recibe alertas cuando tus solicitudes de ausencia son aprobadas o rechazadas.",
+      },
+    ],
+  },
+];
+
+function ToggleSwitch({ checked, onChange, disabled }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed ${
+        checked ? "bg-indigo-600" : "bg-slate-200 dark:bg-slate-700"
+      }`}
+    >
+      <span
+        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+          checked ? "translate-x-5" : "translate-x-0"
+        }`}
+      />
+    </button>
+  );
+}
 
 const inputBase =
   "w-full rounded-lg border px-4 py-2.5 text-sm transition focus:outline-none focus:ring-2 focus:ring-indigo-500/20";
@@ -26,6 +76,75 @@ const inputEditable =
   `${inputBase} border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:border-indigo-400`;
 const inputReadonly =
   `${inputBase} border-transparent bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 cursor-default`;
+
+function NotificationsTab({ prefs, loading, saving, msg, onToggle, onLoad }) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!loaded) {
+      onLoad();
+      setLoaded(true);
+    }
+  }, [loaded, onLoad]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Notificaciones</h3>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Administra cómo recibes actualizaciones sobre eventos importantes dentro de tu organización.
+        </p>
+      </div>
+
+      {msg.text && (
+        <div className={`mb-5 rounded-lg px-4 py-2.5 text-sm transition-opacity ${
+          msg.type === "success"
+            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+            : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
+        }`}>
+          {msg.text}
+        </div>
+      )}
+
+      <div className="space-y-8">
+        {NOTIFICATION_SETTINGS.map((group) => (
+          <div key={group.group}>
+            <h4 className="mb-4 text-sm font-bold text-slate-800 dark:text-slate-100">{group.group}</h4>
+            <div className="space-y-0 divide-y divide-slate-100 dark:divide-slate-800">
+              {group.items.map((item) => {
+                const isOn = prefs[item.key] !== false;
+                return (
+                  <div
+                    key={item.key}
+                    className="flex items-center justify-between py-4 first:pt-0 last:pb-0"
+                  >
+                    <div className="pr-4">
+                      <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{item.label}</p>
+                      <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{item.description}</p>
+                    </div>
+                    <ToggleSwitch
+                      checked={isOn}
+                      onChange={(val) => onToggle(item.key, val)}
+                      disabled={saving}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
 
 export default function ProfilePage() {
   const { refreshUser } = useAuth();
@@ -44,6 +163,11 @@ export default function ProfilePage() {
 
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef(null);
+
+  const [notifPrefs, setNotifPrefs] = useState({});
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [notifSaving, setNotifSaving] = useState(false);
+  const [notifMsg, setNotifMsg] = useState({ type: "", text: "" });
 
   async function loadProfile() {
     setLoading(true);
@@ -116,6 +240,38 @@ export default function ProfilePage() {
       setPwMsg({ type: "error", text: err.message || "Error al cambiar contraseña" });
     } finally {
       setPwSaving(false);
+    }
+  }
+
+  async function loadNotifPrefs() {
+    setNotifLoading(true);
+    try {
+      const data = await apiFetch("/profile/me/notification-preferences");
+      setNotifPrefs(data || {});
+    } catch {
+      setNotifPrefs({});
+    } finally {
+      setNotifLoading(false);
+    }
+  }
+
+  async function handleToggleNotif(key, value) {
+    const updated = { ...notifPrefs, [key]: value };
+    setNotifPrefs(updated);
+    setNotifSaving(true);
+    setNotifMsg({ type: "", text: "" });
+    try {
+      await apiFetch("/profile/me/notification-preferences", {
+        method: "PATCH",
+        body: JSON.stringify(updated),
+      });
+      setNotifMsg({ type: "success", text: "Preferencias actualizadas" });
+      setTimeout(() => setNotifMsg({ type: "", text: "" }), 2000);
+    } catch (err) {
+      setNotifPrefs({ ...notifPrefs });
+      setNotifMsg({ type: "error", text: err.message || "Error al guardar" });
+    } finally {
+      setNotifSaving(false);
     }
   }
 
@@ -446,6 +602,17 @@ export default function ProfilePage() {
                 </div>
               </form>
             </>
+          )}
+
+          {activeTab === "notifications" && (
+            <NotificationsTab
+              prefs={notifPrefs}
+              loading={notifLoading}
+              saving={notifSaving}
+              msg={notifMsg}
+              onToggle={handleToggleNotif}
+              onLoad={loadNotifPrefs}
+            />
           )}
         </div>
       </div>
