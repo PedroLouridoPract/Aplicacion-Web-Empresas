@@ -122,10 +122,6 @@ export async function updateColumn(params: {
     throw Object.assign(new Error("Columna no encontrada"), { statusCode: 404 });
   }
 
-  if (column.isBase) {
-    throw Object.assign(new Error("Las columnas base no se pueden modificar"), { statusCode: 403 });
-  }
-
   const data: Record<string, unknown> = {};
   if (params.label !== undefined) data.label = params.label;
   if (params.color !== undefined) data.color = params.color;
@@ -175,6 +171,13 @@ export async function reorderColumns(params: {
   });
 }
 
+const KEY_TO_STATUS: Record<string, "BACKLOG" | "IN_PROGRESS" | "REVIEW" | "DONE"> = {
+  backlog: "BACKLOG",
+  in_progress: "IN_PROGRESS",
+  review: "REVIEW",
+  done: "DONE",
+};
+
 export async function deleteColumn(params: {
   columnId: string;
   companyId: string;
@@ -188,13 +191,34 @@ export async function deleteColumn(params: {
     throw Object.assign(new Error("Columna no encontrada"), { statusCode: 404 });
   }
 
+  const remaining = await prisma.kanbanColumn.count({
+    where: { projectId: column.projectId, id: { not: column.id } },
+  });
+  if (remaining < 1) {
+    throw Object.assign(new Error("No puedes eliminar la última columna del tablero"), { statusCode: 400 });
+  }
+
+  const firstOther = await prisma.kanbanColumn.findFirst({
+    where: { projectId: column.projectId, id: { not: column.id } },
+    orderBy: { position: "asc" },
+    select: { key: true, isBase: true },
+  });
+  const fallbackStatus = firstOther && KEY_TO_STATUS[firstOther.key] ? KEY_TO_STATUS[firstOther.key] : "BACKLOG";
+  const fallbackCustom = firstOther && !KEY_TO_STATUS[firstOther.key] ? firstOther.key : null;
+
   if (column.isBase) {
-    throw Object.assign(new Error("Las columnas base no se pueden eliminar"), { statusCode: 403 });
+    const enumStatus = KEY_TO_STATUS[column.key];
+    if (enumStatus) {
+      await prisma.task.updateMany({
+        where: { projectId: column.projectId, status: enumStatus, customStatus: null },
+        data: { status: fallbackStatus, customStatus: fallbackCustom },
+      });
+    }
   }
 
   await prisma.task.updateMany({
     where: { projectId: column.projectId, customStatus: column.key },
-    data: { customStatus: null, status: "BACKLOG" },
+    data: { status: fallbackStatus, customStatus: fallbackCustom },
   });
 
   await prisma.kanbanColumn.delete({ where: { id: params.columnId } });

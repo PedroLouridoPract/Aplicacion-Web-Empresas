@@ -89,6 +89,7 @@ const taskSelect = {
   resolvedAt: true,
   priority: true,
   status: true,
+  customStatus: true,
   progress: true,
   orderIndex: true,
   projectId: true,

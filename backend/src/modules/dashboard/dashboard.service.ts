@@ -78,6 +78,285 @@ export async function getSummary(params: { companyId: string; projectId?: string
   };
 }
 
+const STATUS_KEY_MAP: Record<string, string> = {
+  BACKLOG: "backlog",
+  IN_PROGRESS: "in_progress",
+  REVIEW: "review",
+  DONE: "done",
+};
+
+export async function getProjectMetrics(params: {
+  companyId: string;
+  projectId: string;
+  days: number;
+}) {
+  const project = await prisma.project.findFirst({
+    where: { id: params.projectId, companyId: params.companyId },
+    select: { id: true, name: true },
+  });
+  if (!project) {
+    throw Object.assign(new Error("El proyecto no existe o no pertenece a tu empresa"), { statusCode: 404 });
+  }
+
+  const now = new Date();
+  const daysMs = params.days * 24 * 60 * 60 * 1000;
+  const from = new Date(now.getTime() - daysMs);
+  const from7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  const [columns, tasks, users] = await Promise.all([
+    prisma.kanbanColumn.findMany({
+      where: { projectId: params.projectId },
+      orderBy: { position: "asc" },
+      select: { key: true, label: true, color: true, isBase: true, position: true },
+    }),
+    prisma.task.findMany({
+      where: { companyId: params.companyId, projectId: params.projectId },
+      select: {
+        id: true, status: true, customStatus: true, assigneeId: true,
+        priority: true, dueDate: true, resolvedAt: true, createdAt: true, progress: true,
+      },
+    }),
+    prisma.user.findMany({
+      where: { companyId: params.companyId },
+      select: { id: true, name: true, avatarUrl: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
+
+  const colMap = new Map(columns.map((c) => [c.key, c]));
+  const colCounts = new Map<string, number>();
+  for (const c of columns) colCounts.set(c.key, 0);
+
+  let totalProgress = 0;
+  let progressCount = 0;
+  let resolutionHoursTotal = 0;
+  let resolutionCount = 0;
+  let overdueTasks = 0;
+  let velocity7d = 0;
+  let velocity30d = 0;
+
+  const priorityCounts: Record<string, number> = { HIGH: 0, MEDIUM: 0, LOW: 0 };
+  const userMap = new Map<string, { total: number; done: number; inProgress: number; overdue: number }>();
+
+  const trendCreated = new Map<string, number>();
+  const trendCompleted = new Map<string, number>();
+
+  for (const t of tasks) {
+    let colKey = t.customStatus || STATUS_KEY_MAP[t.status] || "backlog";
+    if (!colMap.has(colKey)) colKey = "backlog";
+
+    colCounts.set(colKey, (colCounts.get(colKey) ?? 0) + 1);
+
+    if (t.progress != null) {
+      totalProgress += t.progress;
+      progressCount++;
+    }
+
+    const isDone = t.status === "DONE";
+    if (isDone && t.resolvedAt) {
+      const hours = (t.resolvedAt.getTime() - t.createdAt.getTime()) / (1000 * 60 * 60);
+      resolutionHoursTotal += hours;
+      resolutionCount++;
+      if (t.resolvedAt >= from7d) velocity7d++;
+      if (t.resolvedAt >= from) velocity30d++;
+    }
+
+    if (!isDone && t.dueDate && t.dueDate < now) {
+      overdueTasks++;
+    }
+
+    priorityCounts[t.priority] = (priorityCounts[t.priority] ?? 0) + 1;
+
+    if (t.assigneeId) {
+      if (!userMap.has(t.assigneeId)) {
+        userMap.set(t.assigneeId, { total: 0, done: 0, inProgress: 0, overdue: 0 });
+      }
+      const u = userMap.get(t.assigneeId)!;
+      u.total++;
+      if (isDone) u.done++;
+      if (t.status === "IN_PROGRESS") u.inProgress++;
+      if (!isDone && t.dueDate && t.dueDate < now) u.overdue++;
+    }
+
+    const createdDay = t.createdAt.toISOString().slice(0, 10);
+    if (t.createdAt >= from) {
+      trendCreated.set(createdDay, (trendCreated.get(createdDay) ?? 0) + 1);
+    }
+    if (isDone && t.resolvedAt && t.resolvedAt >= from) {
+      const resolvedDay = t.resolvedAt.toISOString().slice(0, 10);
+      trendCompleted.set(resolvedDay, (trendCompleted.get(resolvedDay) ?? 0) + 1);
+    }
+  }
+
+  const byColumn = columns.map((c) => ({
+    key: c.key,
+    label: c.label,
+    color: c.color ?? null,
+    count: colCounts.get(c.key) ?? 0,
+    isBase: c.isBase,
+  }));
+
+  const userIndex = new Map(users.map((u) => [u.id, u]));
+  const byUser = [...userMap.entries()]
+    .map(([uid, m]) => {
+      const u = userIndex.get(uid);
+      return u ? { user: { id: u.id, name: u.name, avatarUrl: u.avatarUrl }, ...m } : null;
+    })
+    .filter(Boolean)
+    .sort((a: any, b: any) => b.total - a.total);
+
+  const trend: Array<{ date: string; created: number; completed: number }> = [];
+  const cursor = new Date(from);
+  cursor.setHours(0, 0, 0, 0);
+  const endDay = new Date(now);
+  endDay.setHours(0, 0, 0, 0);
+  while (cursor <= endDay) {
+    const d = cursor.toISOString().slice(0, 10);
+    trend.push({
+      date: d,
+      created: trendCreated.get(d) ?? 0,
+      completed: trendCompleted.get(d) ?? 0,
+    });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return {
+    projectId: params.projectId,
+    projectName: project.name,
+    days: params.days,
+    totalTasks: tasks.length,
+    overdueTasks,
+    avgProgress: progressCount > 0 ? Math.round(totalProgress / progressCount) : 0,
+    avgResolutionHours: resolutionCount > 0 ? Math.round((resolutionHoursTotal / resolutionCount) * 10) / 10 : null,
+    velocity: { last7d: velocity7d, last30d: velocity30d },
+    byColumn,
+    byPriority: priorityCounts,
+    byUser,
+    trend,
+    generatedAt: now.toISOString(),
+  };
+}
+
+export async function getAllMetrics(params: { companyId: string; days: number }) {
+  const now = new Date();
+  const daysMs = params.days * 24 * 60 * 60 * 1000;
+  const from = new Date(now.getTime() - daysMs);
+  const from7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  const [tasks, users] = await Promise.all([
+    prisma.task.findMany({
+      where: { companyId: params.companyId },
+      select: {
+        id: true, status: true, customStatus: true, assigneeId: true,
+        priority: true, dueDate: true, resolvedAt: true, createdAt: true, progress: true,
+      },
+    }),
+    prisma.user.findMany({
+      where: { companyId: params.companyId },
+      select: { id: true, name: true, avatarUrl: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
+
+  let totalProgress = 0;
+  let progressCount = 0;
+  let resolutionHoursTotal = 0;
+  let resolutionCount = 0;
+  let overdueTasks = 0;
+  let velocity7d = 0;
+  let velocity30d = 0;
+
+  const priorityCounts: Record<string, number> = { HIGH: 0, MEDIUM: 0, LOW: 0 };
+  const statusCounts: Record<string, number> = { BACKLOG: 0, IN_PROGRESS: 0, REVIEW: 0, DONE: 0 };
+  const userMap = new Map<string, { total: number; done: number; inProgress: number; overdue: number }>();
+
+  const trendCreated = new Map<string, number>();
+  const trendCompleted = new Map<string, number>();
+
+  for (const t of tasks) {
+    statusCounts[t.status] = (statusCounts[t.status] ?? 0) + 1;
+
+    if (t.progress != null) {
+      totalProgress += t.progress;
+      progressCount++;
+    }
+
+    const isDone = t.status === "DONE";
+    if (isDone && t.resolvedAt) {
+      const hours = (t.resolvedAt.getTime() - t.createdAt.getTime()) / (1000 * 60 * 60);
+      resolutionHoursTotal += hours;
+      resolutionCount++;
+      if (t.resolvedAt >= from7d) velocity7d++;
+      if (t.resolvedAt >= from) velocity30d++;
+    }
+
+    if (!isDone && t.dueDate && t.dueDate < now) overdueTasks++;
+
+    priorityCounts[t.priority] = (priorityCounts[t.priority] ?? 0) + 1;
+
+    if (t.assigneeId) {
+      if (!userMap.has(t.assigneeId)) {
+        userMap.set(t.assigneeId, { total: 0, done: 0, inProgress: 0, overdue: 0 });
+      }
+      const u = userMap.get(t.assigneeId)!;
+      u.total++;
+      if (isDone) u.done++;
+      if (t.status === "IN_PROGRESS") u.inProgress++;
+      if (!isDone && t.dueDate && t.dueDate < now) u.overdue++;
+    }
+
+    const createdDay = t.createdAt.toISOString().slice(0, 10);
+    if (t.createdAt >= from) {
+      trendCreated.set(createdDay, (trendCreated.get(createdDay) ?? 0) + 1);
+    }
+    if (isDone && t.resolvedAt && t.resolvedAt >= from) {
+      const resolvedDay = t.resolvedAt.toISOString().slice(0, 10);
+      trendCompleted.set(resolvedDay, (trendCompleted.get(resolvedDay) ?? 0) + 1);
+    }
+  }
+
+  const userIndex = new Map(users.map((u) => [u.id, u]));
+  const byUser = [...userMap.entries()]
+    .map(([uid, m]) => {
+      const u = userIndex.get(uid);
+      return u ? { user: { id: u.id, name: u.name, avatarUrl: u.avatarUrl }, ...m } : null;
+    })
+    .filter(Boolean)
+    .sort((a: any, b: any) => b.total - a.total);
+
+  const trend: Array<{ date: string; created: number; completed: number }> = [];
+  const cursor = new Date(from);
+  cursor.setHours(0, 0, 0, 0);
+  const endDay = new Date(now);
+  endDay.setHours(0, 0, 0, 0);
+  while (cursor <= endDay) {
+    const d = cursor.toISOString().slice(0, 10);
+    trend.push({ date: d, created: trendCreated.get(d) ?? 0, completed: trendCompleted.get(d) ?? 0 });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return {
+    projectId: null,
+    projectName: "Todos los proyectos",
+    days: params.days,
+    totalTasks: tasks.length,
+    overdueTasks,
+    avgProgress: progressCount > 0 ? Math.round(totalProgress / progressCount) : 0,
+    avgResolutionHours: resolutionCount > 0 ? Math.round((resolutionHoursTotal / resolutionCount) * 10) / 10 : null,
+    velocity: { last7d: velocity7d, last30d: velocity30d },
+    byColumn: [
+      { key: "backlog", label: "Backlog", color: null, count: statusCounts.BACKLOG, isBase: true },
+      { key: "in_progress", label: "En progreso", color: null, count: statusCounts.IN_PROGRESS, isBase: true },
+      { key: "review", label: "En revisión", color: null, count: statusCounts.REVIEW, isBase: true },
+      { key: "done", label: "Finalizado", color: null, count: statusCounts.DONE, isBase: true },
+    ],
+    byPriority: priorityCounts,
+    byUser,
+    trend,
+    generatedAt: now.toISOString(),
+  };
+}
+
 export async function getProductivity(params: { companyId: string; projectId?: string; days: number }) {
   const now = new Date();
   const from = new Date(now.getTime() - params.days * 24 * 60 * 60 * 1000);

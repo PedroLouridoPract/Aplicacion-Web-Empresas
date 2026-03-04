@@ -7,6 +7,8 @@ import {
   useSensor,
   useSensors,
   closestCenter,
+  pointerWithin,
+  rectIntersection,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -28,6 +30,24 @@ const PRIORITIES = [
 ];
 
 const BASE_STATUS_KEYS = new Set(["backlog", "in_progress", "review", "done"]);
+
+function kanbanCollision(args) {
+  const isDraggingColumn = String(args.active.id).startsWith("col-");
+
+  if (isDraggingColumn) {
+    return closestCenter(args);
+  }
+
+  const pw = pointerWithin(args);
+  const filtered = pw.filter((c) => !String(c.id).startsWith("col-"));
+  if (filtered.length > 0) return filtered;
+
+  const ri = rectIntersection(args);
+  const filteredRi = ri.filter((c) => !String(c.id).startsWith("col-"));
+  if (filteredRi.length > 0) return filteredRi;
+
+  return ri;
+}
 
 function getTaskColumnKey(task) {
   if (task.customStatus) return task.customStatus;
@@ -359,7 +379,12 @@ export default function ProjectKanbanPage() {
 
     if (activeIdStr.startsWith("col-")) {
       const oldIndex = columnSortableIds.indexOf(activeIdStr);
-      const newIndex = columnSortableIds.indexOf(String(over.id));
+      let overIdForSort = String(over.id);
+      if (!overIdForSort.startsWith("col-")) {
+        const colForSort = columns.find((c) => c.key === overIdForSort);
+        if (colForSort) overIdForSort = `col-${colForSort.id || colForSort.key}`;
+      }
+      const newIndex = columnSortableIds.indexOf(overIdForSort);
       if (oldIndex === -1 || newIndex === -1) return;
 
       const reordered = arrayMove(columns, oldIndex, newIndex);
@@ -378,10 +403,28 @@ export default function ProjectKanbanPage() {
     }
 
     const taskId = activeIdStr;
-    const newStatus = String(over.id);
-    const col = columns.find((c) => c.key === newStatus);
-    if (col) {
-      moveTask(taskId, newStatus);
+    const overId = String(over.id);
+
+    let targetKey = null;
+
+    const colByKey = columns.find((c) => c.key === overId);
+    if (colByKey) {
+      targetKey = colByKey.key;
+    }
+
+    if (!targetKey && overId.startsWith("col-")) {
+      const rawId = overId.slice(4);
+      const colById = columns.find((c) => (c.id || c.key) === rawId);
+      if (colById) targetKey = colById.key;
+    }
+
+    if (!targetKey) {
+      const overTask = tasks.find((t) => String(t.id) === overId);
+      if (overTask) targetKey = getTaskColumnKey(overTask);
+    }
+
+    if (targetKey) {
+      moveTask(taskId, targetKey);
     }
   }
 
@@ -775,7 +818,7 @@ export default function ProjectKanbanPage() {
       ) : (
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={kanbanCollision}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
@@ -845,7 +888,7 @@ export default function ProjectKanbanPage() {
         title="Eliminar columna"
         message={
           deleteColumnConfirm.label
-            ? `¿Eliminar la columna "${deleteColumnConfirm.label}"? Las tareas en esta columna serán movidas a Backlog.`
+            ? `¿Eliminar la columna "${deleteColumnConfirm.label}"? Las tareas en esta columna serán movidas a la primera columna disponible.`
             : ""
         }
         confirmLabel="Eliminar"
