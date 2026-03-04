@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -65,6 +65,14 @@ export default function KanbanColumn({
 
   const { setNodeRef: setDropRef, isOver } = useDroppable({ id: statusKey });
 
+  const mergedRef = useCallback(
+    (node) => {
+      setSortableRef(node);
+      setDropRef(node);
+    },
+    [setSortableRef, setDropRef],
+  );
+
   const sortableStyle = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -85,13 +93,14 @@ export default function KanbanColumn({
   }
 
   return (
-    <div ref={setSortableRef} style={sortableStyle} {...sortableAttributes}>
-      <div
-        ref={setDropRef}
-        className={`flex flex-col rounded-xl border ${style} p-3.5 min-h-[280px] transition ${
-          isOver ? "ring-2 ring-indigo-400 ring-offset-2" : ""
-        } ${isSortableDragging ? "shadow-lg" : ""}`}
-      >
+    <div
+      ref={mergedRef}
+      style={sortableStyle}
+      {...sortableAttributes}
+      className={`flex flex-col rounded-xl border ${style} p-3.5 min-h-[280px] transition ${
+        isOver ? "ring-2 ring-indigo-400 ring-offset-2" : ""
+      } ${isSortableDragging ? "shadow-lg" : ""}`}
+    >
         <div className="mb-3 flex items-center justify-between gap-1">
           {isAdmin && (
             <button
@@ -133,7 +142,7 @@ export default function KanbanColumn({
               {tasks.length}
             </span>
 
-            {isAdmin && isCustom && !renaming && (
+            {isAdmin && !renaming && (
               <div className="relative">
                 <button
                   type="button"
@@ -188,7 +197,6 @@ export default function KanbanColumn({
             />
           ))}
         </div>
-      </div>
     </div>
   );
 }
