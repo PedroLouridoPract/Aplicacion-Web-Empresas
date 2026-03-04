@@ -160,11 +160,11 @@ function MonthCalendar({ year, month, holidayDates, today }) {
                 const isToday = dateStr === today;
                 let dayClass;
                 if (isToday) {
-                  dayClass = "bg-indigo-500 text-white font-bold border-indigo-500";
+                  dayClass = "bg-indigo-400 text-white font-bold border-indigo-500";
                 } else if (holiday?.national && holiday?.regional) {
                   dayClass = "bg-gradient-to-br from-indigo-100 to-violet-100 text-indigo-700 dark:from-indigo-500/20 dark:to-violet-500/20 dark:text-indigo-200 font-semibold border-indigo-300 dark:border-indigo-500/40";
                 } else if (holiday?.national) {
-                  dayClass = "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 font-semibold border-indigo-300 dark:border-indigo-500/40";
+                  dayClass = "bg-indigo-100 text-indigo-700 dark:bg-indigo-400/20 dark:text-indigo-300 font-semibold border-indigo-300 dark:border-indigo-500/40";
                 } else if (holiday?.regional) {
                   dayClass = "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300 font-semibold border-violet-300 dark:border-violet-500/40";
                 } else {
@@ -307,7 +307,7 @@ export default function HolidaysCalendarPage() {
                               <span
                                 className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
                                   isNational
-                                    ? "bg-indigo-500"
+                                    ? "bg-indigo-400"
                                     : "bg-violet-400 dark:bg-violet-500"
                                 }`}
                               />
@@ -330,7 +330,7 @@ export default function HolidaysCalendarPage() {
 
             <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-indigo-500" />
+                <span className="h-2 w-2 rounded-full bg-indigo-400" />
                 <span className="text-[11px] text-slate-500 dark:text-slate-400">Nacional</span>
               </div>
               <div className="flex items-center gap-2">

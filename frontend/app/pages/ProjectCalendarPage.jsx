@@ -17,7 +17,7 @@ const PRIORITY_STYLES = {
     text: "text-indigo-800 dark:text-indigo-200",
     dot: "bg-indigo-500",
     label: "Alta prioridad",
-    btnActive: "bg-indigo-600 text-white",
+    btnActive: "bg-indigo-400 text-white",
     btnInactive: "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700",
   },
   MEDIUM: {
@@ -187,19 +187,18 @@ export default function ProjectCalendarPage() {
       <div ref={sentinelRef} className="h-px w-full -mb-px" />
       <div className={`sticky top-0 z-30 ${compact ? "bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm -mx-6 px-6 py-3 shadow-sm border-b border-slate-200/60 dark:border-slate-700/60" : "flex flex-col gap-3"}`} style={stickyTransition.wrapper(compact)}>
         <div className="flex flex-wrap items-center gap-3" style={stickyTransition.navRow(compact)}>
-          <Link to={`/projects/${id}`} className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
+          <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </Link>
           <div className="mr-auto">
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Calendario</h2>
-            <p className="text-xs text-slate-400 dark:text-slate-500">Resumen de tareas de la semana</p>
           </div>
           <ProjectNavButtons projectId={id} current="calendar" />
           <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} />
         </div>
 
-        <div className={`flex flex-wrap items-center gap-3 ${compact ? "" : "content-card p-4"}`}>
-          <Link to={`/projects/${id}`} className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700" style={stickyTransition.compactItems(compact)}>
+        <div className={`flex flex-wrap items-center gap-3 ${compact ? "" : "py-1"}`}>
+          <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700" style={stickyTransition.compactItems(compact)}>
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </Link>
           {Object.entries(PRIORITY_STYLES).map(([key, style]) => (
@@ -212,8 +211,7 @@ export default function ProjectCalendarPage() {
           {(priorityFilter || assigneeFilter) && (
             <button type="button" onClick={() => { setPriorityFilter(null); setAssigneeFilter(""); }} className="rounded-lg px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200">Limpiar</button>
           )}
-          <div className="inline-flex items-center gap-3" style={stickyTransition.compactItems(compact)}>
-            <span className="ml-auto" />
+          <div className="ml-auto inline-flex items-center gap-3" style={stickyTransition.compactItems(compact)}>
             <ProjectNavButtons projectId={id} current="calendar" compact />
             <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} compact />
           </div>
@@ -260,7 +258,7 @@ export default function ProjectCalendarPage() {
               {taskError && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{taskError}</div>}
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => { setShowNewTask(false); setTaskError(""); }} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
-                <button type="submit" disabled={saving} className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-60">{saving ? "Creando..." : "Crear tarea"}</button>
+                <button type="submit" disabled={saving} className="rounded-lg bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60">{saving ? "Creando..." : "Crear tarea"}</button>
               </div>
             </form>
           </div>
@@ -298,7 +296,7 @@ export default function ProjectCalendarPage() {
                     <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">{DAY_NAMES[i]}</span>
                     <span className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
                       isToday
-                        ? "bg-indigo-600 text-white"
+                        ? "bg-indigo-400 text-white"
                         : "text-slate-700 dark:text-slate-200"
                     }`}>
                       {day.getDate()}

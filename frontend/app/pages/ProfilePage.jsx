@@ -58,7 +58,7 @@ function ToggleSwitch({ checked, onChange, disabled }) {
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed ${
-        checked ? "bg-indigo-600" : "bg-slate-200 dark:bg-slate-700"
+        checked ? "bg-indigo-400" : "bg-slate-200 dark:bg-slate-700"
       }`}
     >
       <span
@@ -419,7 +419,7 @@ export default function ProfilePage() {
             >
               {tab.label}
               {activeTab === tab.id && (
-                <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
+                <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-indigo-400 dark:bg-indigo-400" />
               )}
             </button>
           ))}
@@ -436,7 +436,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => { setEditing(true); setProfileMsg({ type: "", text: "" }); }}
-                    className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700"
+                    className="rounded-lg bg-indigo-400 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
                   >
                     Editar
                   </button>
@@ -453,7 +453,7 @@ export default function ProfilePage() {
                       type="submit"
                       form="profile-form"
                       disabled={saving}
-                      className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50"
+                      className="rounded-lg bg-indigo-400 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-50"
                     >
                       {saving ? "Guardando..." : "Guardar"}
                     </button>
@@ -594,7 +594,7 @@ export default function ProfilePage() {
                     <button
                       type="submit"
                       disabled={pwSaving}
-                      className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50"
+                      className="rounded-lg bg-indigo-400 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-50"
                     >
                       {pwSaving ? "Actualizando..." : "Cambiar contraseña"}
                     </button>

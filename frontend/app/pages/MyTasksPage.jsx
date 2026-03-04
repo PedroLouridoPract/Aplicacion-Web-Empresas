@@ -12,14 +12,14 @@ const statusLabel = {
 
 const priorityConfig = {
   high: { label: "Alta", bg: "bg-red-50 dark:bg-red-500/10", text: "text-red-700 dark:text-red-400", dot: "bg-red-500" },
-  medium: { label: "Media", bg: "bg-indigo-50 dark:bg-indigo-500/10", text: "text-indigo-700 dark:text-indigo-400", dot: "bg-indigo-500" },
+  medium: { label: "Media", bg: "bg-indigo-50 dark:bg-indigo-400/10", text: "text-indigo-700 dark:text-indigo-400", dot: "bg-indigo-400" },
   low: { label: "Baja", bg: "bg-slate-50 dark:bg-slate-700", text: "text-slate-600 dark:text-slate-300", dot: "bg-slate-400" },
 };
 
 const statusConfig = {
   backlog: "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300",
   in_progress: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  review: "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400",
+  review: "bg-indigo-50 dark:bg-indigo-400/10 text-indigo-700 dark:text-indigo-400",
   done: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
 };
 
@@ -118,9 +118,7 @@ export default function MyTasksPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Tareas asignadas a ti
-        </p>
+        <div />
         <div className="flex gap-2">
           {[
             { key: "all", label: "Todas" },
@@ -134,7 +132,7 @@ export default function MyTasksPage() {
               onClick={() => setFilter(f.key)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                 filter === f.key
-                  ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300"
+                  ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-400/20 dark:text-indigo-300"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
               }`}
             >
@@ -214,7 +212,7 @@ export default function MyTasksPage() {
                         <div className="flex items-center gap-2">
                           <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
                             <div
-                              className="h-full rounded-full bg-indigo-500 dark:bg-indigo-400"
+                              className="h-full rounded-full bg-indigo-400 dark:bg-indigo-400"
                               style={{ width: `${Math.min(100, Math.max(0, Number(t.progress) || 0))}%` }}
                             />
                           </div>
@@ -234,7 +232,7 @@ export default function MyTasksPage() {
                                   key={tab.key}
                                   to={tab.path(project.id) + buildFilterQS(t)}
                                   title={tab.title}
-                                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400"
+                                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-400/10 dark:hover:text-indigo-400"
                                 >
                                   <Icon />
                                 </Link>

@@ -7,7 +7,7 @@ import TaskCard from "./TaskCard";
 const columnStyles = {
   backlog: "border-slate-200 bg-slate-50/60 dark:border-slate-700 dark:bg-slate-800/60",
   in_progress: "border-amber-200/60 bg-amber-50/40 dark:border-amber-500/20 dark:bg-amber-500/5",
-  review: "border-indigo-200/60 bg-indigo-50/40 dark:border-indigo-500/20 dark:bg-indigo-500/5",
+  review: "border-indigo-200/60 bg-indigo-50/40 dark:border-indigo-500/20 dark:bg-indigo-400/5",
   done: "border-emerald-200/60 bg-emerald-50/40 dark:border-emerald-500/20 dark:bg-emerald-500/5",
 };
 

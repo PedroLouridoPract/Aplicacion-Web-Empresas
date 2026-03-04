@@ -147,11 +147,11 @@ export default function NotificationBell() {
                     }
                   }}
                   className={`flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/50 ${
-                    !n.read ? "bg-indigo-50/50 dark:bg-indigo-500/5" : ""
+                    !n.read ? "bg-indigo-50/50 dark:bg-indigo-400/5" : ""
                   }`}
                 >
                   <div className="mt-0.5 flex shrink-0 items-center gap-1.5">
-                    <div className={`flex h-2 w-2 rounded-full ${!n.read ? "bg-indigo-500" : "bg-transparent"}`} />
+                    <div className={`flex h-2 w-2 rounded-full ${!n.read ? "bg-indigo-400" : "bg-transparent"}`} />
                     {n.absenceId ? (
                       <svg className="h-4 w-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />

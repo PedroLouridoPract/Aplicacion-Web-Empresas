@@ -335,16 +335,12 @@ export default function AbsencesPage() {
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            {isAdmin ? "Gestiona las solicitudes de ausencia de los empleados" : "Consulta y solicita tus ausencias"}
-          </p>
-        </div>
+        <div />
         {canCreate && (
           <button
             type="button"
             onClick={() => { setShowCreate(true); setError(""); }}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700"
+            className="flex items-center gap-2 rounded-lg bg-indigo-400 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -355,7 +351,7 @@ export default function AbsencesPage() {
       </div>
 
       {/* Filters bar */}
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div>
           <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Tipo</label>
           <select
@@ -387,9 +383,9 @@ export default function AbsencesPage() {
           type="button"
           onClick={load}
           title="Recargar"
-          className="mt-4 flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+          className="mt-4 flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-800"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
           </svg>
         </button>
@@ -398,10 +394,20 @@ export default function AbsencesPage() {
           type="button"
           onClick={() => { setFilterType(""); setFilterStatus(""); }}
           title="Limpiar filtros"
-          className="mt-4 flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+          className="mt-4 flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-800"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          title="Exportar"
+          className="mt-4 flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-800"
+        >
+          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M9.75 21h4.5" />
           </svg>
         </button>
 
@@ -411,7 +417,7 @@ export default function AbsencesPage() {
               type="button"
               disabled={bulkLoading}
               onClick={() => handleBulkAction("APPROVED")}
-              className="rounded-lg bg-amber-400 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-500 disabled:opacity-60"
+              className="rounded-full bg-indigo-400 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-60"
             >
               Aceptar
             </button>
@@ -419,7 +425,7 @@ export default function AbsencesPage() {
               type="button"
               disabled={bulkLoading}
               onClick={() => handleBulkAction("REJECTED")}
-              className="rounded-lg border border-amber-400 bg-white px-5 py-2 text-sm font-semibold text-amber-600 shadow-sm transition hover:bg-amber-50 disabled:opacity-60 dark:bg-slate-800 dark:border-amber-500/50 dark:text-amber-400 dark:hover:bg-slate-700"
+              className="rounded-full border-2 border-indigo-400 bg-white px-6 py-2 text-sm font-semibold text-indigo-400 shadow-sm transition hover:bg-indigo-50 disabled:opacity-60 dark:bg-slate-800 dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-slate-700"
             >
               Rechazar
             </button>
@@ -439,15 +445,16 @@ export default function AbsencesPage() {
         {/* Select all */}
         {isAdmin && filtered.length > 0 && (
           <div className="px-4 py-2">
-            <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-500 dark:text-slate-400">
-              <input
-                type="checkbox"
-                checked={allSelected}
-                onChange={toggleSelectAll}
-                className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800"
-              />
+            <button type="button" onClick={toggleSelectAll} className="flex items-center gap-2.5 cursor-pointer text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition">
+              <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition ${allSelected ? "border-indigo-400 bg-indigo-400" : "border-indigo-300 bg-transparent"}`}>
+                {allSelected && (
+                  <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                )}
+              </span>
               Seleccionar todo
-            </label>
+            </button>
           </div>
         )}
 
@@ -471,13 +478,17 @@ export default function AbsencesPage() {
                 className="flex items-center gap-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-4 shadow-sm transition hover:shadow-md cursor-pointer"
               >
                 {isAdmin && (
-                  <input
-                    type="checkbox"
-                    checked={selected.has(a.id)}
-                    onChange={() => toggleSelect(a.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="h-4 w-4 shrink-0 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800"
-                  />
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); toggleSelect(a.id); }}
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition ${selected.has(a.id) ? "border-indigo-400 bg-indigo-400" : "border-indigo-300 bg-transparent"}`}
+                  >
+                    {selected.has(a.id) && (
+                      <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                      </svg>
+                    )}
+                  </button>
                 )}
 
                 <div className="grid flex-1 grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6">
@@ -695,7 +706,7 @@ export default function AbsencesPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-60"
+                  className="rounded-lg bg-indigo-400 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60"
                 >
                   {saving ? "Enviando..." : "Enviar solicitud"}
                 </button>

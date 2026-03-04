@@ -143,9 +143,6 @@ export default function ImportPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-sm text-slate-500 dark:text-slate-400">
-        Carga un archivo CSV exportado desde Jira u otro sistema para importar tareas automáticamente
-      </p>
 
       {/* Drop zone */}
       <div
@@ -388,7 +385,7 @@ export default function ImportPage() {
           <button
             onClick={doImport}
             disabled={importing}
-            className="rounded-lg bg-indigo-600 px-6 py-2.5 font-semibold text-white shadow-sm transition hover:shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg bg-indigo-400 px-6 py-2.5 font-semibold text-white shadow-sm transition hover:shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {importing ? (
               <span className="flex items-center gap-2">

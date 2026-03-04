@@ -322,33 +322,49 @@ export default function DashboardPage() {
                   {kpi.icon}
                 </div>
               </div>
-            ))}
+              <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                {[{ key: "weekly", label: "Semanal" }, { key: "monthly", label: "Mensual" }, { key: "total", label: "Total" }].map(({ key, label }) => (
+                  <button key={key} type="button" onClick={() => setBarPeriod(key)}
+                    className={`px-2.5 py-1 text-[11px] font-medium transition ${barPeriod === key ? "bg-indigo-400 text-white" : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
+                  >{label}</button>
+                ))}
+              </div>
+            </div>
+            {prodChartData.length > 0 ? (
+              <div className="mt-4 h-56" key={barPeriod}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={prodChartData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="name" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: "0.5rem", border: "1px solid #e2e8f0", fontSize: "0.8rem" }}
+                    />
+                    <Bar dataKey="Hechas" fill="#10b981" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="En curso" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="Atrasadas" fill="#ef4444" radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className="mt-8 text-center text-sm text-slate-400">Sin datos</p>
+            )}
           </div>
 
-          {/* Charts row: Column distribution + Priority */}
-          <div className="grid gap-4 lg:grid-cols-3">
-            <div className="content-card p-6 lg:col-span-2">
-              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Distribución por columna</h3>
-              <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">Tareas en cada estado del Kanban</p>
-              {columnChartData.length > 0 ? (
-                <div className="mt-4 h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={columnChartData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                      <XAxis dataKey="name" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                      <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
-                      <Tooltip contentStyle={{ borderRadius: "0.5rem", border: "1px solid #e2e8f0", fontSize: "0.8rem" }} />
-                      <Bar dataKey="Tareas" radius={[4, 4, 0, 0]}>
-                        {columnChartData.map((entry, i) => (
-                          <Cell key={i} fill={entry.fill} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <p className="mt-8 text-center text-sm text-slate-400">Sin datos</p>
-              )}
+          {/* Area chart */}
+          <div className="content-card p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Actividad por miembro</h2>
+                <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">Completadas vs activas</p>
+              </div>
+              <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                {[{ key: "weekly", label: "Semanal" }, { key: "monthly", label: "Mensual" }, { key: "total", label: "Total" }].map(({ key, label }) => (
+                  <button key={key} type="button" onClick={() => setAreaPeriod(key)}
+                    className={`px-2.5 py-1 text-[11px] font-medium transition ${areaPeriod === key ? "bg-indigo-400 text-white" : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
+                  >{label}</button>
+                ))}
+              </div>
             </div>
 
             <div className="content-card p-6">
@@ -522,9 +538,130 @@ export default function DashboardPage() {
         </>
       )}
 
-      {loading && data && (
-        <div className="fixed bottom-6 right-6 z-50 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 shadow-lg">
-          <p className="text-xs text-slate-500 dark:text-slate-400">Actualizando métricas...</p>
+      {/* Bottom row */}
+      {summary && (
+        <div className="grid gap-4 lg:grid-cols-3">
+          {/* Pie chart - Distribution */}
+          <div className="content-card p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Distribución por estado</h2>
+              <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                {[{ key: "weekly", label: "7d" }, { key: "monthly", label: "30d" }, { key: "total", label: "Todo" }].map(({ key, label }) => (
+                  <button key={key} type="button" onClick={() => setPiePeriod(key)}
+                    className={`px-2 py-1 text-[10px] font-medium transition ${piePeriod === key ? "bg-indigo-400 text-white" : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
+                  >{label}</button>
+                ))}
+              </div>
+            </div>
+            {chartData.length > 0 && pieTotal > 0 ? (
+              <div className="mt-3 flex items-center gap-4">
+                <div className="h-40 w-40 shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={chartData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={35}
+                        outerRadius={65}
+                        strokeWidth={2}
+                        stroke="#fff"
+                      >
+                        {chartData.map((_, i) => (
+                          <Cell key={i} fill={PIE_COLORS[i]} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: "0.5rem", border: "1px solid #e2e8f0", fontSize: "0.8rem" }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex flex-col gap-2.5 text-sm">
+                  {chartData.map((d, i) => (
+                    <div key={d.name} className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ background: PIE_COLORS[i] }} />
+                      <span className="text-slate-600 dark:text-slate-300">{d.name}</span>
+                      <span className="ml-auto tabular-nums font-medium text-slate-800 dark:text-slate-100">{d.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="mt-8 text-center text-sm text-slate-400">Sin datos</p>
+            )}
+          </div>
+
+          {/* Top users - Productivity ranking */}
+          <div className="content-card p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Top productividad</h2>
+                <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">Tareas completadas por usuario</p>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-col gap-3">
+              {prodList.slice(0, 5).map((item, idx) => {
+                const u = item.user ?? item;
+                const m = item.metrics ?? item;
+                const done = m.doneLastNDays ?? m.done ?? 0;
+                const maxDone = Math.max((prodList[0]?.metrics ?? prodList[0])?.doneLastNDays ?? (prodList[0]?.metrics ?? prodList[0])?.done ?? 0, 1);
+                const pct = Math.round((done / maxDone) * 100);
+                return (
+                  <div key={u.id ?? u.user_id ?? u.name} className="flex items-center gap-3">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                      {idx + 1}
+                    </span>
+                    <Avatar name={u.name} src={u.avatarUrl} size="xs" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="truncate font-medium text-slate-700 dark:text-slate-200">{u.name}</span>
+                        <span className="ml-2 shrink-0 tabular-nums text-xs font-semibold text-emerald-600 dark:text-emerald-400">{done}</span>
+                      </div>
+                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+                        <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {!prodList.length && (
+                <p className="py-4 text-center text-sm text-slate-400">Sin datos</p>
+              )}
+            </div>
+          </div>
+
+          {/* Team members working */}
+          <div className="content-card p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Equipo activo</h2>
+              <Link to="/users" className="text-xs font-medium text-indigo-500 hover:text-indigo-600 dark:text-indigo-400">
+                Ver todos
+              </Link>
+            </div>
+            <div className="mt-4 flex flex-col gap-2.5">
+              {prodList.slice(0, 5).map((item) => {
+                const u = item.user ?? item;
+                const m = item.metrics ?? item;
+                const inProgress = m.inProgressNow ?? m.in_progress ?? 0;
+                return (
+                  <div key={u.id ?? u.user_id ?? u.name} className="flex items-center gap-3 rounded-lg px-2 py-1.5 transition hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <Avatar name={u.name} src={u.avatarUrl} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">{u.name}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500">
+                        {inProgress > 0 ? `${inProgress} tarea${inProgress > 1 ? "s" : ""} activa${inProgress > 1 ? "s" : ""}` : "Sin tareas activas"}
+                      </p>
+                    </div>
+                    <span className={`h-2 w-2 shrink-0 rounded-full ${inProgress > 0 ? "bg-emerald-400" : "bg-slate-300 dark:bg-slate-600"}`} />
+                  </div>
+                );
+              })}
+              {!prodList.length && (
+                <p className="py-4 text-center text-sm text-slate-400">Sin datos</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -5,7 +5,7 @@ import Avatar from "./Avatar";
 
 const priorityStyles = {
   high: "bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300",
-  medium: "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300",
+  medium: "bg-indigo-50 text-indigo-700 dark:bg-indigo-400/15 dark:text-indigo-300",
   low: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
 };
 
@@ -58,7 +58,7 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEditTask(task); }}
-              className="rounded-md bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold text-indigo-600 transition hover:bg-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:hover:bg-indigo-500/30"
+              className="rounded-md bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold text-indigo-600 transition hover:bg-indigo-200 dark:bg-indigo-400/20 dark:text-indigo-300 dark:hover:bg-indigo-400/30"
               title="Editar tarea"
             >
               Editar
@@ -105,7 +105,7 @@ export default function TaskCard({ task, statuses, onMove, isDragging, currentUs
       <div className="mt-2.5">
         <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
           <div
-            className="h-full rounded-full bg-indigo-500 dark:bg-indigo-400 transition-all"
+            className="h-full rounded-full bg-indigo-400 dark:bg-indigo-400 transition-all"
             style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
           />
         </div>

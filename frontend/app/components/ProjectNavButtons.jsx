@@ -57,7 +57,7 @@ const TABS = [
 
 const baseCls = "inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors duration-150";
 const inactiveCls = "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700";
-const activeCls = "bg-indigo-600 text-white shadow-sm hover:bg-indigo-700";
+const activeCls = "bg-indigo-400 text-white shadow-sm hover:bg-indigo-500";
 
 export default function ProjectNavButtons({ projectId, current, compact = false }) {
   return (

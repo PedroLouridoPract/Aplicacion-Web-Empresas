@@ -20,7 +20,7 @@ function LiveClock() {
 
   return (
     <div className="flex items-center gap-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 shadow-sm px-3 py-1.5">
-      <span className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+      <span className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse" />
       <span className="text-xs font-semibold tabular-nums text-slate-700 dark:text-slate-200 tracking-wide">
         {h}:{m}:{s}
       </span>
@@ -175,7 +175,7 @@ function AppShell() {
                   sidebarOpen ? "px-3" : "w-10 justify-center"
                 } ${
                   isActive
-                    ? "bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-500/15 dark:text-indigo-400"
+                    ? "bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-400/15 dark:text-indigo-400"
                     : "text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
                 }`}
               >

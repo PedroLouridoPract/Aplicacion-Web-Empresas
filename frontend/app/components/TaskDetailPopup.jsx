@@ -294,7 +294,7 @@ function SingleComment({ comment, userId, isAdmin, canComment, onDelete, onReply
                 type="button"
                 onClick={saveEdit}
                 disabled={editSaving}
-                className="rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-indigo-700 disabled:opacity-60 transition"
+                className="rounded-md bg-indigo-400 px-2.5 py-1 text-xs font-medium text-white hover:bg-indigo-500 disabled:opacity-60 transition"
               >
                 {editSaving ? "..." : "Guardar"}
               </button>
@@ -1244,7 +1244,7 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
                   <button
                     type="submit"
                     disabled={sending || (inputEmpty && attachedFiles.length === 0)}
-                    className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60 transition"
+                    className="rounded-lg bg-indigo-400 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60 transition"
                   >
                     {sending ? "..." : replyingTo ? "Responder" : "Enviar"}
                   </button>

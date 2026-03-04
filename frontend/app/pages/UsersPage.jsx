@@ -91,12 +91,12 @@ export default function UsersPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-sm text-slate-500 dark:text-slate-400">Gestión de empleados de la empresa</p>
+        <div />
         {isAdmin && (
           <button
             type="button"
             onClick={() => { setShowCreate(true); setError(""); }}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700"
+            className="rounded-lg bg-indigo-400 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
           >
             + Nuevo empleado
           </button>
@@ -155,7 +155,7 @@ export default function UsersPage() {
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
+                className="rounded-lg bg-indigo-400 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
               >
                 Crear
               </button>
