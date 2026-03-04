@@ -143,12 +143,9 @@ export default function ImportPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Importar CSV</h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Carga un archivo CSV exportado desde Jira u otro sistema para importar tareas automáticamente
-        </p>
-      </div>
+      <p className="text-sm text-slate-500 dark:text-slate-400">
+        Carga un archivo CSV exportado desde Jira u otro sistema para importar tareas automáticamente
+      </p>
 
       {/* Drop zone */}
       <div

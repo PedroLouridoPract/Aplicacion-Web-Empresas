@@ -336,8 +336,7 @@ export default function AbsencesPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Ausencias</h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             {isAdmin ? "Gestiona las solicitudes de ausencia de los empleados" : "Consulta y solicita tus ausencias"}
           </p>
         </div>

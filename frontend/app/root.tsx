@@ -121,7 +121,7 @@ function AppShell() {
       <div className="relative shrink-0 p-3 pr-0">
         <aside
           className={`sidebar-narrow relative flex h-full flex-col py-4 rounded-2xl bg-white dark:bg-slate-900 shadow-sm transition-all duration-300 ease-in-out ${
-            sidebarOpen ? "w-[220px]" : "w-[62px]"
+            sidebarOpen ? "w-[240px]" : "w-[72px]"
           }`}
         >
           {/* Logo */}
@@ -164,11 +164,6 @@ function AppShell() {
                   <span className={`whitespace-nowrap text-sm font-medium ${
                     isActive ? "text-indigo-700 dark:text-indigo-300" : "text-slate-600 dark:text-slate-300"
                   }`}>
-                    {label}
-                  </span>
-                )}
-                {!sidebarOpen && (
-                  <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-slate-700">
                     {label}
                   </span>
                 )}
@@ -229,32 +224,30 @@ function AppShell() {
       </div>
 
       {/* Main area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Top header */}
-        <header className="flex h-[72px] shrink-0 items-center justify-between px-8 pr-10">
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{pageTitle}</h1>
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 shadow-sm">
-              <NotificationBell />
-            </div>
-            <Link to="/profile" className="transition hover:opacity-80">
-              <div
-                className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white overflow-hidden"
-                style={!user?.avatarUrl ? { backgroundColor: getColorForName(user?.name) } : undefined}
-              >
-                {user?.avatarUrl ? (
-                  <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
-                ) : (
-                  getInitials(user?.name)
-                )}
-              </div>
-            </Link>
+      <div className="relative flex flex-1 flex-col overflow-hidden">
+        {/* Top-right icons */}
+        <div className="absolute right-6 top-5 z-20 flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 shadow-sm">
+            <NotificationBell />
           </div>
-        </header>
+          <Link to="/profile" className="transition hover:opacity-80">
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white overflow-hidden"
+              style={!user?.avatarUrl ? { backgroundColor: getColorForName(user?.name) } : undefined}
+            >
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
+              ) : (
+                getInitials(user?.name)
+              )}
+            </div>
+          </Link>
+        </div>
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-7xl p-6 lg:p-8">
+          <div className="mx-auto max-w-7xl px-6 pt-[37px] pb-6 lg:px-8">
+            <h1 className="mb-4 text-2xl font-bold text-slate-800 dark:text-slate-100">{pageTitle}</h1>
             <Outlet />
           </div>
         </main>
