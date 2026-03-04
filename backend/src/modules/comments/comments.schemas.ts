@@ -2,11 +2,14 @@ import { z } from "zod";
 
 export const createCommentSchema = z.object({
   taskId: z.string().min(1),
-  body: z.string().min(1).max(5000),
+  body: z.string().max(5000).default(""),
   attachments: z.string().optional(),
   mentionedUserIds: z.array(z.string()).optional(),
   parentId: z.string().optional(),
-});
+}).refine(
+  (d) => d.body.trim().length > 0 || (d.attachments && d.attachments.length > 2),
+  { message: "Debes escribir un mensaje o adjuntar al menos un archivo" },
+);
 
 export const editCommentSchema = z.object({
   body: z.string().min(1).max(5000),

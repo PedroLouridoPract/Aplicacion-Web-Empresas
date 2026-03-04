@@ -412,16 +412,6 @@ export default function ProjectKanbanPage() {
             <p className="text-xs text-slate-400 dark:text-slate-500">Arrastra las tarjetas entre columnas</p>
           </div>
           <ProjectNavButtons projectId={id} current="kanban" />
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => { setShowNewColumn(true); setColumnError(""); }}
-              className="flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 transition hover:border-indigo-400 hover:text-indigo-600 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-              Columna
-            </button>
-          )}
           <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} />
         </div>
 
@@ -439,7 +429,16 @@ export default function ProjectKanbanPage() {
             {users.map((u) => (<option key={u.id} value={u.id}>{u.name}</option>))}
           </select>
           <button type="button" onClick={() => setFilters({ priority: "", assignee: "", dateFrom: "", dateTo: "" })} className="rounded-lg px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200">Limpiar</button>
-          <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">{Object.values(grouped).reduce((a, b) => a + b.length, 0)} tareas</span>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => { setShowNewColumn(true); setColumnError(""); }}
+              className="ml-auto flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 transition hover:border-indigo-400 hover:text-indigo-600 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+              Columna
+            </button>
+          )}
           <div className="inline-flex items-center gap-3" style={stickyTransition.compactItems(compact)}>
             <ProjectNavButtons projectId={id} current="kanban" compact />
             <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} compact />
