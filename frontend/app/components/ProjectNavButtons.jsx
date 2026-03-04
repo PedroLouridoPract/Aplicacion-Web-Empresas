@@ -87,7 +87,7 @@ export function NewTaskButton({ onClick, compact = false }) {
       type="button"
       onClick={onClick}
       title="Nueva tarea"
-      className={`inline-flex items-center justify-center gap-2 bg-indigo-400 text-white text-sm font-semibold rounded-xl shadow-sm transition-all cursor-pointer not-disabled:hover:-translate-y-0.5 not-disabled:hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-indigo-300 ${compact ? "h-9 w-9" : "px-6 py-2"}`}
+      className={`inline-flex items-center justify-center gap-2 bg-indigo-400 text-white text-sm font-semibold rounded-xl shadow-sm transition-all cursor-pointer not-disabled:hover:-translate-y-0.5 not-disabled:hover:shadow-[0_4px_12px_rgba(95,150,249,0.4)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-indigo-300 ${compact ? "h-9 w-9" : "h-12 px-6"}`}
     >
       <NewTaskIcon />
       {!compact && <span>Nueva tarea</span>}

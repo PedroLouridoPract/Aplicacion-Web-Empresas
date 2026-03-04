@@ -354,7 +354,6 @@ export default function ProjectExecutivePage() {
 
         <div className="flex flex-wrap items-center gap-3 py-1">
           {filterElements(false)}
-          <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">{totalFiltered} tareas</span>
         </div>
       </div>
 

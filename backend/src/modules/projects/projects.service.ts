@@ -85,6 +85,7 @@ const taskSelect = {
   assigneeId: true,
   creatorName: true,
   reporterName: true,
+  startDate: true,
   dueDate: true,
   resolvedAt: true,
   priority: true,

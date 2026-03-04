@@ -325,15 +325,7 @@ export default function ProjectDetailPage() {
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{project.name}</h2>
           </div>
           <ProjectNavButtons projectId={id} current="detail" />
-          <NewTaskButton onClick={() => setShowNewTask(true)} />
         </div>
-
-        {tasks.length > 0 && (
-          <div className="flex flex-wrap items-center gap-3 py-1">
-            {filterElements()}
-            <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">{tasks.length} tareas</span>
-          </div>
-        )}
       </div>
 
       {editingProject && canEditProject && (
@@ -422,6 +414,13 @@ export default function ProjectDetailPage() {
           )}
         </div>
       </div>
+
+      {tasks.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 py-1">
+          {filterElements()}
+          <NewTaskButton onClick={() => setShowNewTask(true)} />
+        </div>
+      )}
 
       <NewTaskModal
         open={showNewTask}
