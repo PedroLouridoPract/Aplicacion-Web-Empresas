@@ -77,6 +77,8 @@ export default function KanbanColumn({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isSortableDragging ? 0.5 : 1,
+    flex: "1 1 0",
+    minWidth: 280,
   };
 
   function startRename() {

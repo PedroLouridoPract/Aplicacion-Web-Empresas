@@ -822,12 +822,7 @@ export default function ProjectKanbanPage() {
           onDragEnd={handleDragEnd}
         >
           <SortableContext items={columnSortableIds} strategy={horizontalListSortingStrategy}>
-            <div
-              className="grid gap-5"
-              style={{
-                gridTemplateColumns: `repeat(${columns.length}, minmax(240px, 1fr))`,
-              }}
-            >
+            <div className="flex gap-5 w-full overflow-x-auto pb-2">
               {columns.map((col) => (
                 <KanbanColumn
                   key={col.id}
