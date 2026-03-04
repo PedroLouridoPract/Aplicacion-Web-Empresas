@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
 import Avatar from "../components/Avatar";
+import CustomSelect from "../components/CustomSelect";
 
 const roleStyles = {
   admin: "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300",
@@ -113,7 +114,7 @@ export default function UsersPage() {
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 placeholder="Nombre completo"
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 required
               />
             </div>
@@ -124,7 +125,7 @@ export default function UsersPage() {
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                 placeholder="usuario@empresa.com"
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 required
               />
             </div>
@@ -135,21 +136,18 @@ export default function UsersPage() {
                 value={form.password}
                 onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                 placeholder="••••••••"
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 required
               />
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Rol</label>
-              <select
+              <CustomSelect
                 value={form.role}
-                onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-              >
-                {ROLES.map((r) => (
-                  <option key={r.value} value={r.value}>{r.label}</option>
-                ))}
-              </select>
+                onChange={(val) => setForm((f) => ({ ...f, role: val }))}
+                options={ROLES}
+                className="w-full"
+              />
             </div>
             {error && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">{error}</div>}
             <div className="flex gap-2">
@@ -222,15 +220,12 @@ export default function UsersPage() {
                         <td className="px-5 py-3.5">
                           {editingId === u.id && isAdmin && !isSelf ? (
                             <div className="flex items-center gap-2">
-                              <select
-                                defaultValue={userRole}
-                                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-800 dark:text-slate-100"
-                                onChange={(e) => handleUpdateRole(u.id, e.target.value)}
-                              >
-                                {ROLES.map((r) => (
-                                  <option key={r.value} value={r.value}>{r.label}</option>
-                                ))}
-                              </select>
+                              <CustomSelect
+                                value={userRole}
+                                onChange={(val) => handleUpdateRole(u.id, val)}
+                                options={ROLES}
+                                size="sm"
+                              />
                               <button
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); setEditingId(null); }}

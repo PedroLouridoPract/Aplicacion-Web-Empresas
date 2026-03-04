@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import CustomSelect from "../components/CustomSelect";
 
 const REGIONS = [
   { value: "nacional", label: "Nacional (toda España)" },
@@ -269,15 +270,12 @@ export default function HolidaysCalendarPage() {
             <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
               Región de festivos
             </label>
-            <select
+            <CustomSelect
               value={region}
-              onChange={(e) => setRegion(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-            >
-              {REGIONS.map((r) => (
-                <option key={r.value} value={r.value}>{r.label}</option>
-              ))}
-            </select>
+              onChange={(val) => setRegion(val)}
+              options={REGIONS}
+              className="w-full"
+            />
           </div>
 
           <div className="rounded-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 max-h-[70vh] overflow-y-auto shadow-lg">

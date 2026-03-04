@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
 import Avatar from "../components/Avatar";
 import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner, useStickyCompact, stickyTransition } from "../components/ProjectNavButtons";
+import CustomSelect from "../components/CustomSelect";
 
 const TASK_PRIORITIES = [
   { value: "HIGH", label: "Alta" },
@@ -338,10 +339,46 @@ export default function ProjectExecutivePage() {
 
   const totalFiltered = filtered.overdue.length + filtered.this_week.length + filtered.next_week.length + filtered.later.length + filtered.unscheduled.length;
 
+  const filterElements = (vertical) => (
+    <>
+      <CustomSelect
+        value={filters.priority}
+        onChange={(val) => setFilters((f) => ({ ...f, priority: val }))}
+        options={PRIORITY_OPTIONS}
+        size="sm"
+      />
+      <CustomSelect
+        value={filters.status}
+        onChange={(val) => setFilters((f) => ({ ...f, status: val }))}
+        options={STATUS_OPTIONS}
+        size="sm"
+      />
+      <CustomSelect
+        value={filters.assignee}
+        onChange={(val) => setFilters((f) => ({ ...f, assignee: val }))}
+        options={[{ value: "", label: "Cualquier responsable" }, { value: "unassigned", label: "Sin asignar" }, ...users.map((u) => ({ value: u.id, label: u.name }))]}
+        size="sm"
+      />
+      <button type="button" onClick={() => setFilters({ priority: "", status: "", assignee: "" })} className="rounded-lg px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200">Limpiar</button>
+    </>
+  );
+
   return (
     <div className="flex flex-col gap-6">
       <div ref={sentinelRef} className="h-px w-full -mb-px" />
-      <div className={`sticky top-0 z-30 ${compact ? "bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm -mx-6 px-6 py-3 shadow-sm border-b border-slate-200/60 dark:border-slate-700/60" : "flex flex-col gap-3"}`} style={stickyTransition.wrapper(compact)}>
+
+      {compact && (
+        <div className="fixed top-16 z-40 w-44 flex flex-col gap-3" style={{ left: "max(100px, calc((100vw - 1364px) / 4 - 4px))" }}>
+          <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          </Link>
+          <ProjectNavButtons projectId={id} current="executive" compact />
+          {filterElements(true)}
+          <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} />
+        </div>
+      )}
+
+      <div className={`sticky top-0 z-30 ${compact ? "py-3" : "flex flex-col gap-3"}`} style={stickyTransition.wrapper(compact)}>
         <div className="flex flex-wrap items-center gap-3" style={stickyTransition.navRow(compact)}>
           <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
@@ -353,28 +390,12 @@ export default function ProjectExecutivePage() {
           <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} />
         </div>
 
-        <div className={`flex flex-wrap items-center gap-3 ${compact ? "" : "py-1"}`}>
-          <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700" style={stickyTransition.compactItems(compact)}>
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          </Link>
-          <select value={filters.priority} onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value }))} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-            {PRIORITY_OPTIONS.map((p) => (<option key={p.value} value={p.value}>{p.label}</option>))}
-          </select>
-          <select value={filters.status} onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-            {statusOptions.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
-          </select>
-          <select value={filters.assignee} onChange={(e) => setFilters((f) => ({ ...f, assignee: e.target.value }))} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-            <option value="">Cualquier responsable</option>
-            <option value="unassigned">Sin asignar</option>
-            {users.map((u) => (<option key={u.id} value={u.id}>{u.name}</option>))}
-          </select>
-          <button type="button" onClick={() => setFilters({ priority: "", status: "", assignee: "" })} className="rounded-lg px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200">Limpiar</button>
-          <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">{totalFiltered} tareas</span>
-          <div className="inline-flex items-center gap-3" style={stickyTransition.compactItems(compact)}>
-            <ProjectNavButtons projectId={id} current="executive" compact />
-            <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} compact />
+        {!compact && (
+          <div className="flex flex-wrap items-center gap-3 py-1">
+            {filterElements(false)}
+            <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">{totalFiltered} tareas</span>
           </div>
-        </div>
+        )}
       </div>
 
       {showNewTask && (
@@ -389,29 +410,36 @@ export default function ProjectExecutivePage() {
             <form onSubmit={handleCreateTask} className="flex flex-col gap-4">
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Título *</label>
-                <input type="text" required value={taskForm.title} onChange={(e) => setTaskForm((f) => ({ ...f, title: e.target.value }))} placeholder="Ej: Revisar maquetas" className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+                <input type="text" required value={taskForm.title} onChange={(e) => setTaskForm((f) => ({ ...f, title: e.target.value }))} placeholder="Ej: Revisar maquetas" className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Descripción</label>
-                <textarea value={taskForm.description} onChange={(e) => setTaskForm((f) => ({ ...f, description: e.target.value }))} placeholder="Opcional" rows={2} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+                <textarea value={taskForm.description} onChange={(e) => setTaskForm((f) => ({ ...f, description: e.target.value }))} placeholder="Opcional" rows={2} className="w-full rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Asignar a</label>
-                <select value={taskForm.assigneeId} onChange={(e) => setTaskForm((f) => ({ ...f, assigneeId: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
-                  <option value="">Sin asignar</option>
-                  {users.map((u) => (<option key={u.id} value={u.id}>{u.name}</option>))}
-                </select>
+                <CustomSelect
+                  value={taskForm.assigneeId}
+                  onChange={(val) => setTaskForm((f) => ({ ...f, assigneeId: val }))}
+                  options={[{ value: "", label: "Sin asignar" }, ...users.map((u) => ({ value: u.id, label: u.name }))]}
+                  placeholder="Select..."
+                  className="w-full"
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha límite</label>
-                  <input type="date" min={today} value={taskForm.dueDate} onChange={(e) => setTaskForm((f) => ({ ...f, dueDate: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+                  <input type="date" min={today} value={taskForm.dueDate} onChange={(e) => setTaskForm((f) => ({ ...f, dueDate: e.target.value }))} className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-500 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Prioridad</label>
-                  <select value={taskForm.priority} onChange={(e) => setTaskForm((f) => ({ ...f, priority: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
-                    {TASK_PRIORITIES.map((p) => (<option key={p.value} value={p.value}>{p.label}</option>))}
-                  </select>
+                  <CustomSelect
+                    value={taskForm.priority}
+                    onChange={(val) => setTaskForm((f) => ({ ...f, priority: val }))}
+                    options={TASK_PRIORITIES}
+                    placeholder="Select..."
+                    className="w-full"
+                  />
                 </div>
               </div>
               {taskError && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{taskError}</div>}

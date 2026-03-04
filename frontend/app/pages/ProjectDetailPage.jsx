@@ -6,6 +6,7 @@ import Avatar from "../components/Avatar";
 import ConfirmModal from "../components/ConfirmModal";
 import TaskDetailPopup from "../components/TaskDetailPopup";
 import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner, useStickyCompact, stickyTransition } from "../components/ProjectNavButtons";
+import CustomSelect from "../components/CustomSelect";
 
 const PRIORITIES = [
   { value: "HIGH", label: "Alta" },
@@ -307,10 +308,56 @@ export default function ProjectDetailPage() {
 
   const formatDate = (d) => (d ? new Date(d).toLocaleDateString("es-ES") : "-");
 
+  const filterElements = (vertical) => (
+    <>
+      <input type="text" placeholder="Clave..." value={filterKey} onChange={(e) => setFilterKey(e.target.value)} className={`${vertical ? "w-full" : "w-28"} rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-1.5 text-sm text-slate-500 dark:text-slate-400 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20`} />
+      <input type="text" placeholder="ID..." value={filterId} onChange={(e) => setFilterId(e.target.value)} className={`${vertical ? "w-full" : "w-24"} rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-1.5 text-sm text-slate-500 dark:text-slate-400 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20`} />
+      <CustomSelect
+        value={filterType}
+        onChange={(val) => setFilterType(val)}
+        options={[{ value: "", label: "Todos los tipos" }, ...[...new Set(tasks.map((t) => parseTaskTitle(t.title).type).filter(Boolean))].sort().map((tp) => ({ value: tp, label: tp }))]}
+        size="sm"
+      />
+      <CustomSelect
+        value={filterStatus}
+        onChange={(val) => setFilterStatus(val)}
+        options={[{ value: "", label: "Todos los estados" }, ...TASK_STATUSES]}
+        size="sm"
+      />
+      <CustomSelect
+        value={filterAssign}
+        onChange={(val) => setFilterAssign(val)}
+        options={[{ value: "", label: "Cualquier asignación" }, { value: "assigned", label: "Asignadas" }, { value: "unassigned", label: "Sin asignar" }]}
+        size="sm"
+      />
+      <CustomSelect
+        value={sortOrder}
+        onChange={(val) => setSortOrder(val)}
+        options={[{ value: "asc", label: "Ascendente" }, { value: "desc", label: "Descendente" }]}
+        size="sm"
+      />
+      {(filterKey || filterId || filterType || filterStatus || filterAssign) && (
+        <button type="button" onClick={() => { setFilterKey(""); setFilterId(""); setFilterType(""); setFilterStatus(""); setFilterAssign(""); }} className="rounded-lg px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200">Limpiar</button>
+      )}
+    </>
+  );
+
   return (
     <div className="flex flex-col gap-6">
       <div ref={sentinelRef} className="h-px w-full -mb-px" />
-      <div className={`sticky top-0 z-30 ${compact ? "bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm -mx-6 px-6 py-3 shadow-sm border-b border-slate-200/60 dark:border-slate-700/60" : "flex flex-col gap-3"}`} style={stickyTransition.wrapper(compact)}>
+
+      {compact && (
+        <div className="fixed top-16 z-40 w-44 flex flex-col gap-3" style={{ left: "max(100px, calc((100vw - 1364px) / 4 - 4px))" }}>
+          <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          </Link>
+          <ProjectNavButtons projectId={id} current="detail" compact />
+          {filterElements(true)}
+          <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} />
+        </div>
+      )}
+
+      <div className={`sticky top-0 z-30 ${compact ? "py-3" : "flex flex-col gap-3"}`} style={stickyTransition.wrapper(compact)}>
         <div className="flex flex-wrap items-center gap-3" style={stickyTransition.navRow(compact)}>
           <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
@@ -322,38 +369,10 @@ export default function ProjectDetailPage() {
           <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} />
         </div>
 
-        {tasks.length > 0 && (
-          <div className={`flex flex-wrap items-center gap-3 ${compact ? "" : "py-1"}`}>
-            <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700" style={stickyTransition.compactItems(compact)}>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            </Link>
-            <input type="text" placeholder="Clave..." value={filterKey} onChange={(e) => setFilterKey(e.target.value)} className="w-28 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-            <input type="text" placeholder="ID..." value={filterId} onChange={(e) => setFilterId(e.target.value)} className="w-24 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-            <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-              <option value="">Todos los tipos</option>
-              {[...new Set(tasks.map((t) => parseTaskTitle(t.title).type).filter(Boolean))].sort().map((tp) => (<option key={tp} value={tp}>{tp}</option>))}
-            </select>
-            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-              <option value="">Todos los estados</option>
-              {statusOptions.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
-            </select>
-            <select value={filterAssign} onChange={(e) => setFilterAssign(e.target.value)} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-              <option value="">Cualquier asignación</option>
-              <option value="assigned">Asignadas</option>
-              <option value="unassigned">Sin asignar</option>
-            </select>
-            <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-              <option value="asc">Ascendente</option>
-              <option value="desc">Descendente</option>
-            </select>
-            {(filterKey || filterId || filterType || filterStatus || filterAssign) && (
-              <button type="button" onClick={() => { setFilterKey(""); setFilterId(""); setFilterType(""); setFilterStatus(""); setFilterAssign(""); }} className="rounded-lg px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200">Limpiar</button>
-            )}
-            {!compact && <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">{tasks.length} tareas</span>}
-            <div className={`inline-flex items-center gap-3 ${compact ? "ml-auto" : ""}`} style={stickyTransition.compactItems(compact)}>
-              <ProjectNavButtons projectId={id} current="detail" compact />
-              <NewTaskButton onClick={() => { setShowNewTask(true); setTaskError(""); }} compact />
-            </div>
+        {!compact && tasks.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 py-1">
+            {filterElements(false)}
+            <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">{tasks.length} tareas</span>
           </div>
         )}
       </div>
@@ -370,27 +389,30 @@ export default function ProjectDetailPage() {
             <form onSubmit={handleSaveProject} className="flex flex-col gap-4">
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Nombre</label>
-                <input type="text" required value={projectForm.name} onChange={(e) => setProjectForm((f) => ({ ...f, name: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+                <input type="text" required value={projectForm.name} onChange={(e) => setProjectForm((f) => ({ ...f, name: e.target.value }))} className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Descripción</label>
-                <textarea value={projectForm.description} onChange={(e) => setProjectForm((f) => ({ ...f, description: e.target.value }))} rows={3} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+                <textarea value={projectForm.description} onChange={(e) => setProjectForm((f) => ({ ...f, description: e.target.value }))} rows={3} className="w-full rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha inicio</label>
-                  <input type="date" value={projectForm.startDate} onChange={(e) => setProjectForm((f) => ({ ...f, startDate: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+                  <input type="date" value={projectForm.startDate} onChange={(e) => setProjectForm((f) => ({ ...f, startDate: e.target.value }))} className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha fin</label>
-                  <input type="date" value={projectForm.endDate} onChange={(e) => setProjectForm((f) => ({ ...f, endDate: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+                  <input type="date" value={projectForm.endDate} onChange={(e) => setProjectForm((f) => ({ ...f, endDate: e.target.value }))} className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Estado</label>
-                <select value={projectForm.status} onChange={(e) => setProjectForm((f) => ({ ...f, status: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
-                  {PROJECT_STATUSES.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
-                </select>
+                <CustomSelect
+                  value={projectForm.status}
+                  onChange={(val) => setProjectForm((f) => ({ ...f, status: val }))}
+                  options={PROJECT_STATUSES}
+                  className="w-full"
+                />
               </div>
               {saveError && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{saveError}</div>}
               <div className="flex justify-end gap-2 pt-2">
@@ -467,7 +489,7 @@ export default function ProjectDetailPage() {
                   value={taskForm.title}
                   onChange={(e) => setTaskForm((f) => ({ ...f, title: e.target.value }))}
                   placeholder="Ej: Revisar maquetas"
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
               <div>
@@ -478,22 +500,17 @@ export default function ProjectDetailPage() {
                   onChange={(e) => setTaskForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="Opcional"
                   rows={2}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
               <div>
                 <label htmlFor="task-assignee" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Asignar a</label>
-                <select
-                  id="task-assignee"
+                <CustomSelect
                   value={taskForm.assigneeId}
-                  onChange={(e) => setTaskForm((f) => ({ ...f, assigneeId: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                >
-                  <option value="">Sin asignar</option>
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>{u.name} {u.email ? `(${u.email})` : ""}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setTaskForm((f) => ({ ...f, assigneeId: val }))}
+                  options={[{ value: "", label: "Sin asignar" }, ...users.map((u) => ({ value: u.id, label: `${u.name}${u.email ? ` (${u.email})` : ""}` }))]}
+                  className="w-full"
+                />
               </div>
               <div>
                 <label htmlFor="task-due" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Fecha límite</label>
@@ -503,7 +520,7 @@ export default function ProjectDetailPage() {
                   min={today}
                   value={taskForm.dueDate}
                   onChange={(e) => setTaskForm((f) => ({ ...f, dueDate: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
               <div>
@@ -595,23 +612,25 @@ export default function ProjectDetailPage() {
               {(() => { const memberIsAssignee = !isAdmin && taskEditForm.assigneeId === user?.id; const canEditField = isAdmin; const canEditProgress = isAdmin || memberIsAssignee; return (<>
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Título</label>
-                <input type="text" required value={taskEditForm.title} onChange={(e) => setTaskEditForm((f) => ({ ...f, title: e.target.value }))} disabled={!canEditField} className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
+                <input type="text" required value={taskEditForm.title} onChange={(e) => setTaskEditForm((f) => ({ ...f, title: e.target.value }))} disabled={!canEditField} className={`w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Descripción</label>
-                <textarea value={taskEditForm.description} onChange={(e) => setTaskEditForm((f) => ({ ...f, description: e.target.value }))} rows={2} disabled={!canEditField} className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
+                <textarea value={taskEditForm.description} onChange={(e) => setTaskEditForm((f) => ({ ...f, description: e.target.value }))} rows={2} disabled={!canEditField} className={`w-full rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Asignar a</label>
-                <select value={taskEditForm.assigneeId} onChange={(e) => setTaskEditForm((f) => ({ ...f, assigneeId: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
-                  <option value="">Sin asignar</option>
-                  {(isAdmin ? users : users.filter((u) => u.id === user?.id)).map((u) => (<option key={u.id} value={u.id}>{u.name}</option>))}
-                </select>
+                <CustomSelect
+                  value={taskEditForm.assigneeId}
+                  onChange={(val) => setTaskEditForm((f) => ({ ...f, assigneeId: val }))}
+                  options={[{ value: "", label: "Sin asignar" }, ...(isAdmin ? users : users.filter((u) => u.id === user?.id)).map((u) => ({ value: u.id, label: u.name }))]}
+                  className="w-full"
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha límite</label>
-                  <input type="date" min={today} value={taskEditForm.dueDate} onChange={(e) => setTaskEditForm((f) => ({ ...f, dueDate: e.target.value }))} disabled={!canEditField} className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
+                  <input type="date" min={today} value={taskEditForm.dueDate} onChange={(e) => setTaskEditForm((f) => ({ ...f, dueDate: e.target.value }))} disabled={!canEditField} className={`w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Progreso</label>
@@ -624,15 +643,23 @@ export default function ProjectDetailPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Prioridad</label>
-                  <select value={taskEditForm.priority} onChange={(e) => setTaskEditForm((f) => ({ ...f, priority: e.target.value }))} disabled={!canEditField} className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`}>
-                    {PRIORITIES.map((p) => (<option key={p.value} value={p.value}>{p.label}</option>))}
-                  </select>
+                  <CustomSelect
+                    value={taskEditForm.priority}
+                    onChange={(val) => setTaskEditForm((f) => ({ ...f, priority: val }))}
+                    options={PRIORITIES}
+                    disabled={!canEditField}
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Estado</label>
-                  <select value={taskEditForm.status} onChange={(e) => setTaskEditForm((f) => ({ ...f, status: e.target.value }))} disabled={!canEditProgress} className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${!canEditProgress ? "opacity-60 cursor-not-allowed" : ""}`}>
-                    {statusOptions.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
-                  </select>
+                  <CustomSelect
+                    value={taskEditForm.status}
+                    onChange={(val) => setTaskEditForm((f) => ({ ...f, status: val }))}
+                    options={TASK_STATUSES}
+                    disabled={!canEditProgress}
+                    className="w-full"
+                  />
                 </div>
               </div>
               </>); })()}

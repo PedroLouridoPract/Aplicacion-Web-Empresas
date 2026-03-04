@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
 import Avatar from "../components/Avatar";
+import CustomSelect from "../components/CustomSelect";
+import { useStickyCompact } from "../components/ProjectNavButtons";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 
@@ -279,6 +281,7 @@ function AbsenceDetailModal({ absence, onClose, isAdmin, currentUserId, onApprov
 
 export default function AbsencesPage() {
   const { user } = useAuth();
+  const { sentinelRef, compact } = useStickyCompact();
   const role = (user?.role && String(user.role).toUpperCase()) || "";
   const isAdmin = role === "ADMIN";
   const canCreate = role === "ADMIN" || role === "MEMBER";
@@ -427,107 +430,71 @@ export default function AbsencesPage() {
     }
   }
 
+  const filterBar = (vertical) => (
+    <div className={vertical ? "flex flex-col gap-3" : "flex flex-wrap items-center gap-3"}>
+      <CustomSelect
+        value={filterType}
+        onChange={(val) => setFilterType(val)}
+        options={[{ value: "", label: "Todos los tipos" }, ...ABSENCE_TYPES]}
+        size="sm"
+      />
+      <CustomSelect
+        value={filterStatus}
+        onChange={(val) => setFilterStatus(val)}
+        options={[{ value: "", label: "Todos los estados" }, ...ABSENCE_STATUSES]}
+        size="sm"
+      />
+      <div className="flex items-center gap-1">
+        <button type="button" onClick={load} title="Recargar" className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-800">
+          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" /></svg>
+        </button>
+        <button type="button" onClick={() => { setFilterType(""); setFilterStatus(""); }} title="Limpiar filtros" className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-800">
+          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" /></svg>
+        </button>
+        <button type="button" title="Exportar" className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-800">
+          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M9.75 21h4.5" /></svg>
+        </button>
+      </div>
+      {!vertical && isAdmin && selected.size > 0 && (
+        <div className="ml-auto flex items-center gap-2">
+          <button type="button" disabled={bulkLoading} onClick={() => handleBulkAction("APPROVED")} className="rounded-full bg-indigo-400 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-60">Aceptar</button>
+          <button type="button" disabled={bulkLoading} onClick={() => handleBulkAction("REJECTED")} className="rounded-full border-2 border-indigo-400 bg-white px-6 py-2 text-sm font-semibold text-indigo-400 shadow-sm transition hover:bg-indigo-50 disabled:opacity-60 dark:bg-slate-800 dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-slate-700">Rechazar</button>
+        </div>
+      )}
+      {!vertical && canCreate && (
+        <button type="button" onClick={() => { setShowCreate(true); setError(""); }} className="ml-auto flex items-center gap-2 rounded-lg bg-indigo-400 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+          Nueva ausencia
+        </button>
+      )}
+      {vertical && isAdmin && selected.size > 0 && (
+        <div className="flex flex-col gap-2">
+          <button type="button" disabled={bulkLoading} onClick={() => handleBulkAction("APPROVED")} className="rounded-full bg-indigo-400 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-60 w-full">Aceptar</button>
+          <button type="button" disabled={bulkLoading} onClick={() => handleBulkAction("REJECTED")} className="rounded-full border-2 border-indigo-400 bg-white px-4 py-2 text-sm font-semibold text-indigo-400 shadow-sm transition hover:bg-indigo-50 disabled:opacity-60 dark:bg-slate-800 w-full">Rechazar</button>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div />
-        {canCreate && (
-          <button
-            type="button"
-            onClick={() => { setShowCreate(true); setError(""); }}
-            className="flex items-center gap-2 rounded-lg bg-indigo-400 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Nueva ausencia
-          </button>
-        )}
-      </div>
+      <div ref={sentinelRef} className="h-px w-full -mb-px" />
 
-      {/* Filters bar */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div>
-          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Tipo</label>
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-          >
-            <option value="">Todos los tipos</option>
-            {ABSENCE_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Estado</label>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-          >
-            <option value="">Todos los estados</option>
-            {ABSENCE_STATUSES.map((s) => (
-              <option key={s.value} value={s.value}>{s.label}</option>
-            ))}
-          </select>
-        </div>
-
-        <button
-          type="button"
-          onClick={load}
-          title="Recargar"
-          className="mt-4 flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-800"
-        >
-          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
-          </svg>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => { setFilterType(""); setFilterStatus(""); }}
-          title="Limpiar filtros"
-          className="mt-4 flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-800"
-        >
-          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
-          </svg>
-        </button>
-
-        <button
-          type="button"
-          title="Exportar"
-          className="mt-4 flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-800"
-        >
-          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M9.75 21h4.5" />
-          </svg>
-        </button>
-
-        {isAdmin && selected.size > 0 && (
-          <div className="ml-auto flex items-center gap-2 mt-4">
-            <button
-              type="button"
-              disabled={bulkLoading}
-              onClick={() => handleBulkAction("APPROVED")}
-              className="rounded-full bg-indigo-400 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-60"
-            >
-              Aceptar
+      {/* Floating sidebar filters - visible only when scrolled */}
+      {compact && (
+        <div className="fixed top-16 z-40 w-44 flex flex-col gap-4" style={{ left: "max(100px, calc((100vw - 1364px) / 4 - 4px))" }}>
+          {canCreate && (
+            <button type="button" onClick={() => { setShowCreate(true); setError(""); }} className="flex items-center gap-2 rounded-lg bg-indigo-400 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 w-full justify-center">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+              Nueva ausencia
             </button>
-            <button
-              type="button"
-              disabled={bulkLoading}
-              onClick={() => handleBulkAction("REJECTED")}
-              className="rounded-full border-2 border-indigo-400 bg-white px-6 py-2 text-sm font-semibold text-indigo-400 shadow-sm transition hover:bg-indigo-50 disabled:opacity-60 dark:bg-slate-800 dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-slate-700"
-            >
-              Rechazar
-            </button>
-          </div>
-        )}
-      </div>
+          )}
+          {filterBar(true)}
+        </div>
+      )}
+
+      {/* Horizontal filter bar - visible only when NOT scrolled */}
+      {!compact && filterBar(false)}
 
       {error && (
         <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/30">
@@ -697,15 +664,12 @@ export default function AbsencesPage() {
             <form onSubmit={handleCreate} className="flex flex-col gap-4">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Tipo de solicitud *</label>
-                <select
+                <CustomSelect
                   value={form.type}
-                  onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                >
-                  {ABSENCE_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setForm((f) => ({ ...f, type: val }))}
+                  options={ABSENCE_TYPES}
+                  className="w-full"
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -715,7 +679,7 @@ export default function AbsencesPage() {
                     required
                     value={form.startDate}
                     onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
                 <div>
@@ -724,7 +688,7 @@ export default function AbsencesPage() {
                     type="date"
                     value={form.endDate}
                     onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
               </div>
@@ -735,7 +699,7 @@ export default function AbsencesPage() {
                   value={form.duration}
                   onChange={(e) => setForm((f) => ({ ...f, duration: e.target.value }))}
                   placeholder="Ej: 2 horas, 3 días, 1 semana..."
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
               <div>
@@ -745,7 +709,7 @@ export default function AbsencesPage() {
                   onChange={(e) => setForm((f) => ({ ...f, comments: e.target.value }))}
                   rows={3}
                   placeholder="Motivo o detalles adicionales..."
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
               <div>

@@ -55,13 +55,13 @@ const TABS = [
   { key: "calendar", label: "Calendario", icon: CalendarIcon },
 ];
 
-const baseCls = "inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors duration-150";
-const inactiveCls = "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700";
-const activeCls = "bg-indigo-400 text-white shadow-sm hover:bg-indigo-500";
+const tabBase = "inline-flex items-center justify-center gap-1.5 rounded-full text-sm font-medium transition-colors duration-150 whitespace-nowrap";
+const tabActive = "bg-indigo-400 text-white";
+const tabInactive = "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200";
 
 export default function ProjectNavButtons({ projectId, current, compact = false }) {
   return (
-    <>
+    <div className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1 gap-0.5">
       {TABS.map((tab) => {
         const isActive = tab.key === current;
         const Icon = tab.icon;
@@ -70,14 +70,14 @@ export default function ProjectNavButtons({ projectId, current, compact = false 
             key={tab.key}
             to={tab.key === "detail" ? `/projects/${projectId}` : `/projects/${projectId}/${tab.key}`}
             title={tab.label}
-            className={`${baseCls} ${isActive ? activeCls : inactiveCls} ${compact ? "h-9 w-9" : "px-5 py-2.5"}`}
+            className={`${tabBase} ${isActive ? tabActive : tabInactive} ${compact ? "h-8 w-8" : "px-4 py-1.5"}`}
           >
             <Icon />
             {!compact && <span>{tab.label}</span>}
           </Link>
         );
       })}
-    </>
+    </div>
   );
 }
 
@@ -87,7 +87,7 @@ export function NewTaskButton({ onClick, compact = false }) {
       type="button"
       onClick={onClick}
       title="Nueva tarea"
-      className={`inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-emerald-700 ${compact ? "h-9 w-9" : "px-5 py-2.5"}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-400 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-indigo-500 ${compact ? "h-9 w-9" : "px-5 py-2.5"}`}
     >
       <NewTaskIcon />
       {!compact && <span>Nueva tarea</span>}
