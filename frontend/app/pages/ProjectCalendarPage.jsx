@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
-import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner, useStickyCompact, stickyTransition } from "../components/ProjectNavButtons";
+import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner } from "../components/ProjectNavButtons";
 import CustomSelect from "../components/CustomSelect";
 import NewTaskModal from "../components/NewTaskModal";
 
@@ -75,7 +75,6 @@ function getTaskColumnKey(task) {
 export default function ProjectCalendarPage() {
   const { id } = useParams();
   const { user } = useAuth();
-  const { sentinelRef, compact } = useStickyCompact();
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -121,28 +120,80 @@ export default function ProjectCalendarPage() {
     });
   }, [weekStart]);
 
-  const tasksByDay = useMemo(() => {
-    const map = {};
-    weekDays.forEach((d) => {
-      map[d.toDateString()] = [];
-    });
-
+  const filteredTasks = useMemo(() => {
     let filtered = tasks;
     if (priorityFilter) filtered = filtered.filter((t) => (t.priority || "").toUpperCase() === priorityFilter);
     if (assigneeFilter) filtered = filtered.filter((t) => String(t.assigneeId || t.assignee?.id || "") === assigneeFilter);
+    return filtered;
+  }, [tasks, priorityFilter, assigneeFilter]);
 
-    filtered.forEach((t) => {
-      const dateStr = t.dueDate || t.due_date || t.createdAt;
-      if (!dateStr) return;
-      const taskDate = new Date(dateStr);
-      const key = taskDate.toDateString();
-      if (map[key]) {
-        map[key].push(t);
+  const taskBars = useMemo(() => {
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    const bars = [];
+    filteredTasks.forEach((t) => {
+      const due = t.dueDate || t.due_date;
+      const created = t.createdAt || t.created_at;
+      const startRaw = t.startDate || t.start_date || created;
+      const endRaw = due || startRaw;
+      if (!startRaw && !endRaw) return;
+
+      let tStart = new Date(startRaw || endRaw);
+      let tEnd = new Date(endRaw || startRaw);
+      tStart.setHours(0, 0, 0, 0);
+      tEnd.setHours(0, 0, 0, 0);
+      if (tStart > tEnd) { const tmp = tStart; tStart = tEnd; tEnd = tmp; }
+
+      const wStart = new Date(weekStart); wStart.setHours(0, 0, 0, 0);
+      const wEnd = new Date(weekEnd); wEnd.setHours(0, 0, 0, 0);
+
+      if (tEnd < wStart || tStart > wEnd) return;
+
+      const clampedStart = tStart < wStart ? wStart : tStart;
+      const clampedEnd = tEnd > wEnd ? wEnd : tEnd;
+
+      const colStart = Math.round((clampedStart - wStart) / 86400000);
+      const colEnd = Math.round((clampedEnd - wStart) / 86400000);
+      const span = colEnd - colStart + 1;
+
+      bars.push({ task: t, colStart, span });
+    });
+
+    bars.sort((a, b) => a.colStart - b.colStart || b.span - a.span);
+
+    const rows = [];
+    const barRows = [];
+    bars.forEach((bar) => {
+      let placed = false;
+      for (let r = 0; r < rows.length; r++) {
+        if (rows[r] <= bar.colStart) {
+          rows[r] = bar.colStart + bar.span;
+          barRows.push({ ...bar, row: r });
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        rows.push(bar.colStart + bar.span);
+        barRows.push({ ...bar, row: rows.length - 1 });
       }
     });
 
-    return map;
-  }, [tasks, weekDays, priorityFilter, assigneeFilter]);
+    const rowHeights = new Array(rows.length).fill(44);
+    barRows.forEach((b) => {
+      const h = b.span === 1 ? 64 : 44;
+      if (h > rowHeights[b.row]) rowHeights[b.row] = h;
+    });
+    const rowTops = [];
+    let cumTop = 0;
+    for (let i = 0; i < rowHeights.length; i++) {
+      rowTops.push(cumTop);
+      cumTop += rowHeights[i];
+    }
+    return { bars: barRows, totalRows: rows.length, totalHeight: cumTop, rowTops, rowHeights };
+  }, [filteredTasks, weekStart]);
 
   const todayDate = new Date();
 
@@ -213,21 +264,8 @@ export default function ProjectCalendarPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div ref={sentinelRef} className="h-px w-full -mb-px" />
-
-      {compact && (
-        <div className="fixed top-16 z-40 w-44 flex flex-col gap-3" style={{ left: "max(100px, calc((100vw - 1364px) / 4 - 4px))" }}>
-          <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          </Link>
-          <ProjectNavButtons projectId={id} current="calendar" compact />
-          {filterElements(true)}
-          <NewTaskButton onClick={() => setShowNewTask(true)} />
-        </div>
-      )}
-
-      <div className={`sticky top-0 z-30 ${compact ? "py-3" : "flex flex-col gap-3"}`} style={stickyTransition.wrapper(compact)}>
-        <div className="flex flex-wrap items-center gap-3" style={stickyTransition.navRow(compact)}>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </Link>
@@ -238,11 +276,9 @@ export default function ProjectCalendarPage() {
           <NewTaskButton onClick={() => setShowNewTask(true)} />
         </div>
 
-        {!compact && (
-          <div className="flex flex-wrap items-center gap-3 py-1">
-            {filterElements(false)}
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-3 py-1">
+          {filterElements(false)}
+        </div>
       </div>
 
       <NewTaskModal
@@ -275,64 +311,91 @@ export default function ProjectCalendarPage() {
         {loading ? (
           <ProjectLoadingSpinner />
         ) : (
-          <div className="grid grid-cols-7 divide-x divide-slate-100 dark:divide-slate-700/50">
-            {weekDays.map((day, i) => {
-              const isToday = sameDay(day, todayDate);
-              const dayTasks = tasksByDay[day.toDateString()] || [];
-              return (
-                <div key={i} className={`min-h-[340px] flex flex-col ${isToday ? "bg-indigo-50/30 dark:bg-indigo-500/5" : ""}`}>
-                  {/* Day header */}
-                  <div className="flex flex-col items-center py-3 border-b border-slate-100 dark:border-slate-700/50">
+          <div>
+            {/* Day headers */}
+            <div className="grid grid-cols-7 divide-x divide-slate-100 dark:divide-slate-700/50">
+              {weekDays.map((day, i) => {
+                const isToday = sameDay(day, todayDate);
+                return (
+                  <div key={i} className={`flex flex-col items-center py-3 ${isToday ? "bg-indigo-50/30 dark:bg-indigo-500/5" : ""}`}>
                     <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">{DAY_NAMES[i]}</span>
                     <span className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
-                      isToday
-                        ? "bg-indigo-400 text-white"
-                        : "text-slate-700 dark:text-slate-200"
+                      isToday ? "bg-indigo-400 text-white" : "text-slate-700 dark:text-slate-200"
                     }`}>
                       {day.getDate()}
                     </span>
                   </div>
+                );
+              })}
+            </div>
 
-                  {/* Tasks */}
-                  <div className="flex-1 space-y-1.5 p-2">
-                    {dayTasks.length === 0 && (
-                      <p className="pt-4 text-center text-[10px] text-slate-300 dark:text-slate-600">Sin tareas</p>
-                    )}
-                    {dayTasks.map((t) => {
-                      const prio = (t.priority || "MEDIUM").toUpperCase();
-                      const style = PRIORITY_STYLES[prio] || PRIORITY_STYLES.MEDIUM;
-                      return (
-                        <div
-                          key={t.id}
-                          className={`rounded-lg border ${style.border} ${style.bg} p-2 transition hover:shadow-sm`}
-                        >
-                          <p className={`text-xs font-semibold leading-tight ${style.text} line-clamp-2`}>
-                            {t.title}
-                          </p>
-                          {t.assignee?.name && (
-                            <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                              → {t.assignee.name}
-                            </p>
-                          )}
-                          <div className="mt-1.5 flex items-center gap-1.5">
+            <div className="border-t border-slate-100 dark:border-slate-700/50" />
+
+            {/* Task bars area */}
+            <div className="relative" style={{ minHeight: Math.max(200, (taskBars.totalHeight || 0) + 16) }}>
+              {/* Column grid lines */}
+              <div className="absolute inset-0 grid grid-cols-7 pointer-events-none">
+                {weekDays.map((day, i) => {
+                  const isToday = sameDay(day, todayDate);
+                  return (
+                    <div key={i} className={`${i > 0 ? "border-l border-slate-100 dark:border-slate-700/50" : ""} ${isToday ? "bg-indigo-50/20 dark:bg-indigo-500/5" : ""}`} />
+                  );
+                })}
+              </div>
+
+              {/* Task bars */}
+              <div className="relative px-1 pt-2 pb-2">
+                {taskBars.bars.length === 0 && (
+                  <p className="py-16 text-center text-sm text-slate-300 dark:text-slate-600">Sin tareas esta semana</p>
+                )}
+                {taskBars.bars.map(({ task: t, colStart, span, row }) => {
+                  const prio = (t.priority || "MEDIUM").toUpperCase();
+                  const style = PRIORITY_STYLES[prio] || PRIORITY_STYLES.MEDIUM;
+                  const leftPct = (colStart / 7) * 100;
+                  const widthPct = (span / 7) * 100;
+                  const isSingleDay = span === 1;
+                  const barH = isSingleDay ? 56 : 36;
+                  return (
+                    <div
+                      key={t.id}
+                      className={`absolute rounded-lg border ${style.border} ${style.bg} px-3 transition hover:shadow-md cursor-default overflow-hidden ${isSingleDay ? "py-2" : "py-1.5"}`}
+                      style={{
+                        top: (taskBars.rowTops[row] || 0) + 8,
+                        left: `calc(${leftPct}% + 4px)`,
+                        width: `calc(${widthPct}% - 8px)`,
+                        height: barH,
+                      }}
+                    >
+                      {isSingleDay ? (
+                        <div className="flex flex-col gap-0.5 h-full min-w-0">
+                          <div className="flex items-center gap-2 min-w-0">
                             <span
-                              className={`h-1.5 w-1.5 rounded-full`}
+                              className="h-2 w-2 rounded-full shrink-0"
                               style={getStatusInlineColor(t) ? { backgroundColor: getStatusInlineColor(t) } : undefined}
                             />
-                            <span
-                              className={`text-[10px] font-medium ${getStatusColor(t) || ""}`}
-                              style={getStatusInlineColor(t) ? { color: getStatusInlineColor(t) } : undefined}
-                            >
-                              {getStatusLabel(t)}
-                            </span>
+                            <p className={`text-xs font-semibold ${style.text} truncate`}>{t.title}</p>
                           </div>
+                          {t.assignee?.name && (
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate pl-4">Asignado: {t.assignee.name}</p>
+                          )}
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+                      ) : (
+                        <div className="flex items-center gap-2 h-full min-w-0">
+                          <span
+                            className="h-2 w-2 rounded-full shrink-0"
+                            style={getStatusInlineColor(t) ? { backgroundColor: getStatusInlineColor(t) } : undefined}
+                          />
+                          <p className={`text-xs font-semibold ${style.text} truncate`}>{t.title}</p>
+                          {t.assignee?.name && (
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate shrink-0 ml-auto">Asignado: {t.assignee.name}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 

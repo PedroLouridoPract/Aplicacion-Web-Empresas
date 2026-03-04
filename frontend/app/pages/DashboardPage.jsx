@@ -31,7 +31,7 @@ const PRIORITY_LABELS = { HIGH: "Alta", MEDIUM: "Media", LOW: "Baja" };
 
 const FALLBACK_COLORS = [
   "#8b5cf6", "#ec4899", "#14b8a6", "#f97316", "#06b6d4",
-  "#84cc16", "#e11d48", "#6366f1", "#22d3ee", "#a855f7",
+  "#84cc16", "#e11d48", "#5F96F9", "#22d3ee", "#a855f7",
 ];
 
 function getColumnColor(col, idx) {
@@ -104,7 +104,7 @@ function ProjectDropdown({ projects, selected, onChange }) {
             >
               <span
                 className="h-2.5 w-2.5 rounded-full shrink-0"
-                style={{ background: p.color || "#6366f1" }}
+                style={{ background: p.color || "#5F96F9" }}
               />
               <span className="truncate">{p.name}</span>
             </button>
@@ -396,8 +396,8 @@ export default function DashboardPage() {
                   <AreaChart data={trendData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
                     <defs>
                       <linearGradient id="gradCreated" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#6366f1" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#6366f1" stopOpacity={0.02} />
+                        <stop offset="0%" stopColor="#5F96F9" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#5F96F9" stopOpacity={0.02} />
                       </linearGradient>
                       <linearGradient id="gradDone" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
@@ -409,7 +409,7 @@ export default function DashboardPage() {
                     <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
                     <Tooltip contentStyle={{ borderRadius: "0.5rem", border: "1px solid #e2e8f0", fontSize: "0.8rem" }} />
                     <Legend verticalAlign="top" height={30} wrapperStyle={{ fontSize: "0.75rem" }} />
-                    <Area type="monotone" dataKey="Creadas" stroke="#6366f1" strokeWidth={2} fill="url(#gradCreated)" />
+                    <Area type="monotone" dataKey="Creadas" stroke="#5F96F9" strokeWidth={2} fill="url(#gradCreated)" />
                     <Area type="monotone" dataKey="Completadas" stroke="#10b981" strokeWidth={2} fill="url(#gradDone)" />
                   </AreaChart>
                 </ResponsiveContainer>

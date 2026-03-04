@@ -21,7 +21,7 @@ import KanbanColumn from "../components/KanbanColumn";
 import TaskCard from "../components/TaskCard";
 import ConfirmModal from "../components/ConfirmModal";
 import TaskDetailPopup from "../components/TaskDetailPopup";
-import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner, useStickyCompact, stickyTransition } from "../components/ProjectNavButtons";
+import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner } from "../components/ProjectNavButtons";
 import CustomSelect from "../components/CustomSelect";
 import NewTaskModal from "../components/NewTaskModal";
 
@@ -59,7 +59,6 @@ function getTaskColumnKey(task) {
 export default function ProjectKanbanPage() {
   const { id } = useParams();
   const { user } = useAuth();
-  const { sentinelRef, compact } = useStickyCompact();
   const isAdmin = user?.role && String(user.role).toUpperCase() === "ADMIN";
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
@@ -435,21 +434,8 @@ export default function ProjectKanbanPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div ref={sentinelRef} className="h-px w-full -mb-px" />
-
-      {compact && (
-        <div className="fixed top-16 z-40 w-44 flex flex-col gap-3" style={{ left: "max(100px, calc((100vw - 1364px) / 4 - 4px))" }}>
-          <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          </Link>
-          <ProjectNavButtons projectId={id} current="kanban" compact />
-          {filterElements(true)}
-          <NewTaskButton onClick={() => setShowNewTask(true)} />
-        </div>
-      )}
-
-      <div className={`sticky top-0 z-30 ${compact ? "py-3" : "flex flex-col gap-3"}`} style={stickyTransition.wrapper(compact)}>
-        <div className="flex flex-wrap items-center gap-3" style={stickyTransition.navRow(compact)}>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </Link>
@@ -460,11 +446,9 @@ export default function ProjectKanbanPage() {
           <NewTaskButton onClick={() => setShowNewTask(true)} />
         </div>
 
-        {!compact && (
-          <div className="flex flex-wrap items-center gap-3 py-1">
-            {filterElements(false)}
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-3 py-1">
+          {filterElements(false)}
+        </div>
       </div>
 
       {moveError && (
@@ -517,7 +501,7 @@ export default function ProjectKanbanPage() {
             <form onSubmit={handleSaveTask} className="flex flex-col gap-4">
               {(() => { const memberIsAssignee = !isAdmin && taskEditForm.assigneeId === user?.id; const canEditField = isAdmin; const canEditProgress = isAdmin || memberIsAssignee; return (<>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Título</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Título</label>
                 <input
                   type="text"
                   required
@@ -528,7 +512,7 @@ export default function ProjectKanbanPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Descripción</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Descripción</label>
                 <textarea
                   value={taskEditForm.description}
                   onChange={(e) => setTaskEditForm((f) => ({ ...f, description: e.target.value }))}
@@ -539,7 +523,7 @@ export default function ProjectKanbanPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Asignar a</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Asignar a</label>
                   <CustomSelect
                     value={taskEditForm.assigneeId}
                     onChange={(val) => setTaskEditForm((f) => ({ ...f, assigneeId: val }))}
@@ -548,7 +532,7 @@ export default function ProjectKanbanPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha límite</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha límite</label>
                   <input
                     type="date"
                     value={taskEditForm.dueDate}
@@ -558,7 +542,7 @@ export default function ProjectKanbanPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Prioridad</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Prioridad</label>
                   <CustomSelect
                     value={taskEditForm.priority}
                     onChange={(val) => setTaskEditForm((f) => ({ ...f, priority: val }))}
@@ -568,7 +552,7 @@ export default function ProjectKanbanPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Estado</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Estado</label>
                   <CustomSelect
                     value={taskEditForm.status}
                     onChange={(val) => setTaskEditForm((f) => ({ ...f, status: val }))}
@@ -579,7 +563,7 @@ export default function ProjectKanbanPage() {
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Progreso</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Progreso</label>
                 <div className="flex items-center gap-3">
                   <input
                     type="range"
@@ -598,10 +582,10 @@ export default function ProjectKanbanPage() {
                 <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{editError}</div>
               )}
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={cancelEditTask} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+                <button type="button" onClick={cancelEditTask} className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
                   Cancelar
                 </button>
-                <button type="submit" disabled={saving} className="rounded-lg bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60">
+                <button type="submit" disabled={saving} className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60">
                   {saving ? "Guardando..." : "Guardar"}
                 </button>
               </div>
@@ -632,7 +616,7 @@ export default function ProjectKanbanPage() {
             </div>
             <form onSubmit={handleCreateColumn} className="flex flex-col gap-4">
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Nombre *</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Nombre *</label>
                 <input
                   type="text"
                   required
@@ -644,7 +628,7 @@ export default function ProjectKanbanPage() {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Color</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Color</label>
                 <CustomSelect
                   value={newColumnColor}
                   onChange={(val) => setNewColumnColor(val)}
@@ -656,10 +640,10 @@ export default function ProjectKanbanPage() {
                 <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{columnError}</div>
               )}
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowNewColumn(false)} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+                <button type="button" onClick={() => setShowNewColumn(false)} className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
                   Cancelar
                 </button>
-                <button type="submit" disabled={columnSaving} className="rounded-lg bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60">
+                <button type="submit" disabled={columnSaving} className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60">
                   {columnSaving ? "Creando..." : "Crear columna"}
                 </button>
               </div>

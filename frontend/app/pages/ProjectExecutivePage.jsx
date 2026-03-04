@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
 import Avatar from "../components/Avatar";
-import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner, useStickyCompact, stickyTransition } from "../components/ProjectNavButtons";
+import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner } from "../components/ProjectNavButtons";
 import CustomSelect from "../components/CustomSelect";
 import NewTaskModal from "../components/NewTaskModal";
 
@@ -249,7 +249,6 @@ export default function ProjectExecutivePage() {
   const { id } = useParams();
   const { user } = useAuth();
   const isAdmin = user?.role && String(user.role).toUpperCase() === "ADMIN";
-  const { sentinelRef, compact } = useStickyCompact();
   const [data, setData] = useState(null);
   const [users, setUsers] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -342,21 +341,8 @@ export default function ProjectExecutivePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div ref={sentinelRef} className="h-px w-full -mb-px" />
-
-      {compact && (
-        <div className="fixed top-16 z-40 w-44 flex flex-col gap-3" style={{ left: "max(100px, calc((100vw - 1364px) / 4 - 4px))" }}>
-          <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          </Link>
-          <ProjectNavButtons projectId={id} current="executive" compact />
-          {filterElements(true)}
-          <NewTaskButton onClick={() => setShowNewTask(true)} />
-        </div>
-      )}
-
-      <div className={`sticky top-0 z-30 ${compact ? "py-3" : "flex flex-col gap-3"}`} style={stickyTransition.wrapper(compact)}>
-        <div className="flex flex-wrap items-center gap-3" style={stickyTransition.navRow(compact)}>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </Link>
@@ -367,12 +353,10 @@ export default function ProjectExecutivePage() {
           <NewTaskButton onClick={() => setShowNewTask(true)} />
         </div>
 
-        {!compact && (
-          <div className="flex flex-wrap items-center gap-3 py-1">
-            {filterElements(false)}
-            <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">{totalFiltered} tareas</span>
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-3 py-1">
+          {filterElements(false)}
+          <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">{totalFiltered} tareas</span>
+        </div>
       </div>
 
       <NewTaskModal

@@ -68,7 +68,7 @@ export default function ConfirmModal({
               type="button"
               onClick={onCancel}
               disabled={loading}
-              className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500/20 disabled:opacity-60"
+              className="flex-1 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500/20 disabled:opacity-60"
             >
               {cancelLabel}
             </button>
@@ -76,7 +76,7 @@ export default function ConfirmModal({
               type="button"
               onClick={onConfirm}
               disabled={loading}
-              className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition focus:outline-none focus:ring-2 disabled:opacity-60 ${confirmColors}`}
+              className={`flex-1 rounded-full px-5 py-2.5 text-sm font-medium text-white transition focus:outline-none focus:ring-2 disabled:opacity-60 ${confirmColors}`}
             >
               {loading ? (
                 <span className="inline-flex items-center gap-2">

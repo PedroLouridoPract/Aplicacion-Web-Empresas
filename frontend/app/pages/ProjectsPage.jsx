@@ -81,7 +81,7 @@ export default function ProjectsPage() {
           <button
             type="button"
             onClick={() => setShowCreate(!showCreate)}
-            className="rounded-lg bg-indigo-400 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
+            className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
           >
             + Nuevo proyecto
           </button>
@@ -99,25 +99,25 @@ export default function ProjectsPage() {
             </div>
             <form onSubmit={createProject} className="flex flex-col gap-4">
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Nombre</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Nombre</label>
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre del proyecto" className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Descripción</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Descripción</label>
                 <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descripción del proyecto" rows={3} className="w-full rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha inicio</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha inicio</label>
                   <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha fin</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha fin</label>
                   <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Estado</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Estado</label>
                 <CustomSelect
                   value={status}
                   onChange={(val) => setStatus(val)}
@@ -126,8 +126,8 @@ export default function ProjectsPage() {
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowCreate(false)} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
-                <button type="submit" className="rounded-lg bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500">Crear proyecto</button>
+                <button type="button" onClick={() => setShowCreate(false)} className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
+                <button type="submit" className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500">Crear proyecto</button>
               </div>
             </form>
           </div>

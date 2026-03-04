@@ -94,7 +94,7 @@ export default function LoginPage() {
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Accede con tu cuenta de empresa</p>
               <form onSubmit={onSubmitLogin} className="mt-5 flex flex-col gap-4">
                 <div>
-                  <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Email</label>
+                  <label htmlFor="email" className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Email</label>
                   <input
                     id="email"
                     type="email"
@@ -106,7 +106,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Contraseña</label>
+                  <label htmlFor="password" className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Contraseña</label>
                   <input
                     id="password"
                     type="password"
@@ -121,7 +121,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="mt-1 w-full rounded-lg bg-indigo-400 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-60"
+                  className="mt-1 w-full rounded-full bg-indigo-400 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-60"
                 >
                   {loading ? "Entrando..." : "Entrar"}
                 </button>
@@ -133,7 +133,7 @@ export default function LoginPage() {
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Crea tu empresa y usuario administrador</p>
               <form onSubmit={onSubmitRegister} className="mt-5 flex flex-col gap-4">
                 <div>
-                  <label htmlFor="companyName" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Nombre de la empresa</label>
+                  <label htmlFor="companyName" className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Nombre de la empresa</label>
                   <input
                     id="companyName"
                     type="text"
@@ -144,7 +144,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="adminName" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Tu nombre (admin)</label>
+                  <label htmlFor="adminName" className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Tu nombre (admin)</label>
                   <input
                     id="adminName"
                     type="text"
@@ -155,7 +155,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="regEmail" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Email</label>
+                  <label htmlFor="regEmail" className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Email</label>
                   <input
                     id="regEmail"
                     type="email"
@@ -167,7 +167,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="regPassword" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Contraseña</label>
+                  <label htmlFor="regPassword" className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Contraseña</label>
                   <input
                     id="regPassword"
                     type="password"
@@ -182,7 +182,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="mt-1 w-full rounded-lg bg-indigo-400 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-60"
+                  className="mt-1 w-full rounded-full bg-indigo-400 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-60"
                 >
                   {loading ? "Registrando..." : "Crear empresa"}
                 </button>

@@ -1,5 +1,5 @@
 const COLORS = [
-  "#6366f1", // indigo
+  "#5F96F9", // indigo
   "#8b5cf6", // violet
   "#ec4899", // pink
   "#ef4444", // red

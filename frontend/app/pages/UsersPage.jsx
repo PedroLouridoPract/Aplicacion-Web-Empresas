@@ -97,7 +97,7 @@ export default function UsersPage() {
           <button
             type="button"
             onClick={() => { setShowCreate(true); setError(""); }}
-            className="rounded-lg bg-indigo-400 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
+            className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
           >
             + Nuevo empleado
           </button>
@@ -109,7 +109,7 @@ export default function UsersPage() {
           <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Nuevo empleado</h2>
           <form onSubmit={handleCreate} className="mt-4 flex max-w-md flex-col gap-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Nombre</label>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Nombre</label>
               <input
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
@@ -119,7 +119,7 @@ export default function UsersPage() {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Email</label>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Email</label>
               <input
                 type="email"
                 value={form.email}
@@ -130,7 +130,7 @@ export default function UsersPage() {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Contraseña</label>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Contraseña</label>
               <input
                 type="password"
                 value={form.password}
@@ -141,7 +141,7 @@ export default function UsersPage() {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Rol</label>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Rol</label>
               <CustomSelect
                 value={form.role}
                 onChange={(val) => setForm((f) => ({ ...f, role: val }))}
@@ -153,14 +153,14 @@ export default function UsersPage() {
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="rounded-lg bg-indigo-400 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
+                className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
               >
                 Crear
               </button>
               <button
                 type="button"
                 onClick={() => { setShowCreate(false); setError(""); }}
-                className="rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+                className="rounded-full border border-slate-200 dark:border-slate-700 px-5 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
               >
                 Cancelar
               </button>

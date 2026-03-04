@@ -3,7 +3,6 @@ import { apiFetch } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
 import Avatar from "../components/Avatar";
 import CustomSelect from "../components/CustomSelect";
-import { useStickyCompact } from "../components/ProjectNavButtons";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 
@@ -281,7 +280,6 @@ function AbsenceDetailModal({ absence, onClose, isAdmin, currentUserId, onApprov
 
 export default function AbsencesPage() {
   const { user } = useAuth();
-  const { sentinelRef, compact } = useStickyCompact();
   const role = (user?.role && String(user.role).toUpperCase()) || "";
   const isAdmin = role === "ADMIN";
   const canCreate = role === "ADMIN" || role === "MEMBER";
@@ -456,7 +454,7 @@ export default function AbsencesPage() {
         </button>
       </div>
       {!vertical && canCreate && (
-        <button type="button" onClick={() => { setShowCreate(true); setError(""); }} className="ml-auto flex items-center gap-2 rounded-lg bg-indigo-400 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500">
+        <button type="button" onClick={() => { setShowCreate(true); setError(""); }} className="ml-auto flex items-center gap-2 rounded-full bg-indigo-400 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
           Nueva ausencia
         </button>
@@ -472,23 +470,7 @@ export default function AbsencesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div ref={sentinelRef} className="h-px w-full -mb-px" />
-
-      {/* Floating sidebar filters - visible only when scrolled */}
-      {compact && (
-        <div className="fixed top-16 z-40 w-44 flex flex-col gap-4" style={{ left: "max(100px, calc((100vw - 1364px) / 4 - 4px))" }}>
-          {canCreate && (
-            <button type="button" onClick={() => { setShowCreate(true); setError(""); }} className="flex items-center gap-2 rounded-lg bg-indigo-400 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 w-full justify-center">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-              Nueva ausencia
-            </button>
-          )}
-          {filterBar(true)}
-        </div>
-      )}
-
-      {/* Horizontal filter bar - visible only when NOT scrolled */}
-      {!compact && filterBar(false)}
+      {filterBar(false)}
 
       {error && (
         <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/30">
@@ -663,7 +645,7 @@ export default function AbsencesPage() {
             </div>
             <form onSubmit={handleCreate} className="flex flex-col gap-4">
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Tipo de solicitud *</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Tipo de solicitud *</label>
                 <CustomSelect
                   value={form.type}
                   onChange={(val) => setForm((f) => ({ ...f, type: val }))}
@@ -673,7 +655,7 @@ export default function AbsencesPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Fecha inicio *</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha inicio *</label>
                   <input
                     type="date"
                     required
@@ -683,7 +665,7 @@ export default function AbsencesPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Fecha fin</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha fin</label>
                   <input
                     type="date"
                     value={form.endDate}
@@ -693,7 +675,7 @@ export default function AbsencesPage() {
                 </div>
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Duración</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Duración</label>
                 <input
                   type="text"
                   value={form.duration}
@@ -703,7 +685,7 @@ export default function AbsencesPage() {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Comentarios</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Comentarios</label>
                 <textarea
                   value={form.comments}
                   onChange={(e) => setForm((f) => ({ ...f, comments: e.target.value }))}
@@ -713,7 +695,7 @@ export default function AbsencesPage() {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Adjuntar archivos</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Adjuntar archivos</label>
                 <div className="flex items-center gap-3">
                   <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 transition hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -759,14 +741,14 @@ export default function AbsencesPage() {
                 <button
                   type="button"
                   onClick={() => setShowCreate(false)}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
+                  className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-lg bg-indigo-400 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60"
+                  className="rounded-full bg-indigo-400 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60"
                 >
                   {saving ? "Enviando..." : "Enviar solicitud"}
                 </button>

@@ -436,7 +436,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => { setEditing(true); setProfileMsg({ type: "", text: "" }); }}
-                    className="rounded-lg bg-indigo-400 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
+                    className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
                   >
                     Editar
                   </button>
@@ -453,7 +453,7 @@ export default function ProfilePage() {
                       type="submit"
                       form="profile-form"
                       disabled={saving}
-                      className="rounded-lg bg-indigo-400 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-50"
+                      className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-50"
                     >
                       {saving ? "Guardando..." : "Guardar"}
                     </button>
@@ -594,7 +594,7 @@ export default function ProfilePage() {
                     <button
                       type="submit"
                       disabled={pwSaving}
-                      className="rounded-lg bg-indigo-400 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-50"
+                      className="rounded-full bg-indigo-400 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-50"
                     >
                       {pwSaving ? "Actualizando..." : "Cambiar contraseña"}
                     </button>

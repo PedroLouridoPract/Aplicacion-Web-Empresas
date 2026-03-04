@@ -5,7 +5,7 @@ import { apiFetch } from "../api/http";
 import Avatar from "../components/Avatar";
 import ConfirmModal from "../components/ConfirmModal";
 import TaskDetailPopup from "../components/TaskDetailPopup";
-import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner, useStickyCompact, stickyTransition } from "../components/ProjectNavButtons";
+import ProjectNavButtons, { NewTaskButton, ProjectLoadingSpinner } from "../components/ProjectNavButtons";
 import CustomSelect from "../components/CustomSelect";
 import NewTaskModal from "../components/NewTaskModal";
 
@@ -44,7 +44,6 @@ function parseTaskTitle(title) {
 export default function ProjectDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
-  const { sentinelRef, compact } = useStickyCompact();
   const role = (user?.role && String(user.role).toUpperCase()) || "";
   const isAdmin = role === "ADMIN";
   const canEditProject = role === "ADMIN" || role === "MEMBER";
@@ -271,10 +270,12 @@ export default function ProjectDetailPage() {
 
   const formatDate = (d) => (d ? new Date(d).toLocaleDateString("es-ES") : "-");
 
-  const filterElements = (vertical) => (
+  const filterElements = () => (
     <>
-      <input type="text" placeholder="Clave..." value={filterKey} onChange={(e) => setFilterKey(e.target.value)} className={`${vertical ? "w-full" : "w-28"} rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-1.5 text-sm text-slate-500 dark:text-slate-400 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20`} />
-      <input type="text" placeholder="ID..." value={filterId} onChange={(e) => setFilterId(e.target.value)} className={`${vertical ? "w-full" : "w-24"} rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-1.5 text-sm text-slate-500 dark:text-slate-400 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20`} />
+      <div className="flex-1 max-w-sm relative">
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+        <input type="text" placeholder="Buscar por clave o ID..." value={filterKey} onChange={(e) => setFilterKey(e.target.value)} className={`w-full rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 pl-9 pr-4 py-2 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20`} />
+      </div>
       <CustomSelect
         value={filterType}
         onChange={(val) => setFilterType(val)}
@@ -299,29 +300,16 @@ export default function ProjectDetailPage() {
         options={[{ value: "asc", label: "Ascendente" }, { value: "desc", label: "Descendente" }]}
         size="sm"
       />
-      {(filterKey || filterId || filterType || filterStatus || filterAssign) && (
-        <button type="button" onClick={() => { setFilterKey(""); setFilterId(""); setFilterType(""); setFilterStatus(""); setFilterAssign(""); }} className="rounded-lg px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200">Limpiar</button>
+      {(filterKey || filterType || filterStatus || filterAssign) && (
+        <button type="button" onClick={() => { setFilterKey(""); setFilterType(""); setFilterStatus(""); setFilterAssign(""); }} className="rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 transition hover:bg-slate-200 dark:hover:bg-slate-600">Limpiar</button>
       )}
     </>
   );
 
   return (
     <div className="flex flex-col gap-6">
-      <div ref={sentinelRef} className="h-px w-full -mb-px" />
-
-      {compact && (
-        <div className="fixed top-16 z-40 w-44 flex flex-col gap-3" style={{ left: "max(100px, calc((100vw - 1364px) / 4 - 4px))" }}>
-          <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          </Link>
-          <ProjectNavButtons projectId={id} current="detail" compact />
-          {filterElements(true)}
-          <NewTaskButton onClick={() => setShowNewTask(true)} />
-        </div>
-      )}
-
-      <div className={`sticky top-0 z-30 ${compact ? "py-3" : "flex flex-col gap-3"}`} style={stickyTransition.wrapper(compact)}>
-        <div className="flex flex-wrap items-center gap-3" style={stickyTransition.navRow(compact)}>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Link to="/projects" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 transition hover:bg-slate-50 dark:hover:bg-slate-700">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </Link>
@@ -332,9 +320,9 @@ export default function ProjectDetailPage() {
           <NewTaskButton onClick={() => setShowNewTask(true)} />
         </div>
 
-        {!compact && tasks.length > 0 && (
+        {tasks.length > 0 && (
           <div className="flex flex-wrap items-center gap-3 py-1">
-            {filterElements(false)}
+            {filterElements()}
             <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">{tasks.length} tareas</span>
           </div>
         )}
@@ -351,25 +339,25 @@ export default function ProjectDetailPage() {
             </div>
             <form onSubmit={handleSaveProject} className="flex flex-col gap-4">
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Nombre</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Nombre</label>
                 <input type="text" required value={projectForm.name} onChange={(e) => setProjectForm((f) => ({ ...f, name: e.target.value }))} className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Descripción</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Descripción</label>
                 <textarea value={projectForm.description} onChange={(e) => setProjectForm((f) => ({ ...f, description: e.target.value }))} rows={3} className="w-full rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha inicio</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha inicio</label>
                   <input type="date" value={projectForm.startDate} onChange={(e) => setProjectForm((f) => ({ ...f, startDate: e.target.value }))} className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha fin</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha fin</label>
                   <input type="date" value={projectForm.endDate} onChange={(e) => setProjectForm((f) => ({ ...f, endDate: e.target.value }))} className="w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Estado</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Estado</label>
                 <CustomSelect
                   value={projectForm.status}
                   onChange={(val) => setProjectForm((f) => ({ ...f, status: val }))}
@@ -379,51 +367,48 @@ export default function ProjectDetailPage() {
               </div>
               {saveError && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{saveError}</div>}
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => { setEditingProject(false); setSaveError(""); }} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
-                <button type="submit" disabled={saving} className="rounded-lg bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60">{saving ? "Guardando..." : "Guardar"}</button>
+                <button type="button" onClick={() => { setEditingProject(false); setSaveError(""); }} className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
+                <button type="submit" disabled={saving} className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60">{saving ? "Guardando..." : "Guardar"}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      <div className="content-card p-6">
+      {/* Project info card */}
+      <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-5 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             {project.description && (
               <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{project.description}</p>
             )}
-            <dl className="mt-6 grid gap-3 sm:grid-cols-2">
-              <div>
-                <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Inicio</dt>
-                <dd className="mt-0.5 text-sm font-medium text-slate-800 dark:text-slate-100">{formatDate(project.startDate ?? project.start_date)}</dd>
+            <div className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400 dark:text-slate-500">Inicio</span>
+                <span className="font-medium text-slate-700 dark:text-slate-200">{formatDate(project.startDate ?? project.start_date)}</span>
               </div>
-              <div>
-                <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Fin</dt>
-                <dd className="mt-0.5 text-sm font-medium text-slate-800 dark:text-slate-100">{formatDate(project.endDate ?? project.end_date)}</dd>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400 dark:text-slate-500">Fin</span>
+                <span className="font-medium text-slate-700 dark:text-slate-200">{formatDate(project.endDate ?? project.end_date)}</span>
               </div>
-              <div>
-                <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Estado</dt>
-                <dd className="mt-0.5">
-                  <span className="rounded-full bg-slate-100 dark:bg-slate-700 px-2.5 py-0.5 text-sm font-medium text-slate-700 dark:text-slate-200">
-                    {project.status === "ACTIVE" ? "Activo" : project.status === "PAUSED" ? "Pausado" : project.status === "COMPLETED" ? "Finalizado" : project.status ?? "—"}
-                  </span>
-                </dd>
-              </div>
+              <span className="rounded-full bg-slate-100 dark:bg-slate-700 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200">
+                {project.status === "ACTIVE" ? "Activo" : project.status === "PAUSED" ? "Pausado" : project.status === "COMPLETED" ? "Finalizado" : project.status ?? "—"}
+              </span>
               {project.leadName && (
-                <div>
-                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Responsable</dt>
-                  <dd className="mt-0.5 font-medium text-slate-800 dark:text-slate-100">{project.leadName}</dd>
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400 dark:text-slate-500">Responsable</span>
+                  <span className="font-medium text-slate-700 dark:text-slate-200">{project.leadName}</span>
                 </div>
               )}
-            </dl>
+            </div>
           </div>
           {canEditProject && !editingProject && (
             <button
               type="button"
               onClick={startEditProject}
-              className="shrink-0 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+              className="shrink-0 flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 transition hover:bg-slate-200 dark:hover:bg-slate-600"
             >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
               Editar proyecto
             </button>
           )}
@@ -441,7 +426,7 @@ export default function ProjectDetailPage() {
       />
 
       {editingTaskId && taskEditForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={cancelEditTask} onKeyDown={(e) => { if (e.key === "Escape") cancelEditTask(); }} tabIndex={-1} ref={(el) => el?.focus()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={cancelEditTask} onKeyDown={(e) => { if (e.key === "Escape") cancelEditTask(); }}>
           <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Editar tarea</h3>
@@ -452,15 +437,15 @@ export default function ProjectDetailPage() {
             <form onSubmit={handleSaveTask} className="flex flex-col gap-4">
               {(() => { const memberIsAssignee = !isAdmin && taskEditForm.assigneeId === user?.id; const canEditField = isAdmin; const canEditProgress = isAdmin || memberIsAssignee; return (<>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Título</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Título</label>
                 <input type="text" required value={taskEditForm.title} onChange={(e) => setTaskEditForm((f) => ({ ...f, title: e.target.value }))} disabled={!canEditField} className={`w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Descripción</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Descripción</label>
                 <textarea value={taskEditForm.description} onChange={(e) => setTaskEditForm((f) => ({ ...f, description: e.target.value }))} rows={2} disabled={!canEditField} className={`w-full rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Asignar a</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Asignar a</label>
                 <CustomSelect
                   value={taskEditForm.assigneeId}
                   onChange={(val) => setTaskEditForm((f) => ({ ...f, assigneeId: val }))}
@@ -470,11 +455,11 @@ export default function ProjectDetailPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Fecha límite</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha límite</label>
                   <input type="date" min={today} value={taskEditForm.dueDate} onChange={(e) => setTaskEditForm((f) => ({ ...f, dueDate: e.target.value }))} disabled={!canEditField} className={`w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${!canEditField ? "opacity-60 cursor-not-allowed" : ""}`} />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Progreso</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Progreso</label>
                   <div className="flex items-center gap-3">
                     <input type="range" min={0} max={100} value={taskEditForm.progress} onChange={(e) => setTaskEditForm((f) => ({ ...f, progress: Number(e.target.value) }))} disabled={!canEditProgress} className={`flex-1 accent-indigo-600 ${!canEditProgress ? "opacity-60 cursor-not-allowed" : ""}`} />
                     <span className="w-10 text-right text-sm font-semibold text-indigo-600 dark:text-indigo-400">{taskEditForm.progress}%</span>
@@ -483,7 +468,7 @@ export default function ProjectDetailPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Prioridad</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Prioridad</label>
                   <CustomSelect
                     value={taskEditForm.priority}
                     onChange={(val) => setTaskEditForm((f) => ({ ...f, priority: val }))}
@@ -493,7 +478,7 @@ export default function ProjectDetailPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Estado</label>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Estado</label>
                   <CustomSelect
                     value={taskEditForm.status}
                     onChange={(val) => setTaskEditForm((f) => ({ ...f, status: val }))}
@@ -506,8 +491,8 @@ export default function ProjectDetailPage() {
               </>); })()}
               {saveError && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">{saveError}</div>}
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={cancelEditTask} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
-                <button type="submit" disabled={saving} className="rounded-lg bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60">{saving ? "Guardando..." : "Guardar"}</button>
+                <button type="button" onClick={cancelEditTask} className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
+                <button type="submit" disabled={saving} className="rounded-full bg-indigo-400 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60">{saving ? "Guardando..." : "Guardar"}</button>
               </div>
             </form>
           </div>
@@ -545,8 +530,10 @@ export default function ProjectDetailPage() {
       {tasks.length > 0 && (() => {
         const filteredTasks = tasks.filter((t) => {
           const parsed = parseTaskTitle(t.title);
-          if (filterKey && !parsed.key.toLowerCase().includes(filterKey.toLowerCase())) return false;
-          if (filterId && !parsed.id.includes(filterId)) return false;
+          if (filterKey) {
+            const q = filterKey.toLowerCase();
+            if (!parsed.key.toLowerCase().includes(q) && !parsed.id.toLowerCase().includes(q) && !t.title.toLowerCase().includes(q)) return false;
+          }
           if (filterType && parsed.type !== filterType) return false;
           if (filterStatus && getTaskColumnKey(t) !== filterStatus) return false;
           if (filterAssign === "assigned" && !t.assigneeId && !t.assignee?.id) return false;
@@ -562,11 +549,11 @@ export default function ProjectDetailPage() {
           return sortOrder === "asc" ? aNum - bNum : bNum - aNum;
         });
 
-        const hasActiveFilters = filterKey || filterId || filterType || filterStatus || filterAssign;
+        const hasActiveFilters = filterKey || filterType || filterStatus || filterAssign;
 
         return (
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
-          <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-1 mb-2">
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Tareas del proyecto ({tasks.length})</h2>
             {hasActiveFilters && (
               <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -575,78 +562,56 @@ export default function ProjectDetailPage() {
             )}
           </div>
 
-          <div className="mt-4 space-y-3">
-            {sortedTasks.length === 0 ? (
-              <p className="py-6 text-center text-sm text-slate-400 dark:text-slate-500">No se encontraron tareas con los filtros aplicados</p>
-            ) : sortedTasks.map((t) => {
-              const canEditTask = isAdmin || role === "MEMBER";
-              return (
-                <div key={t.id} className="rounded-lg border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTask(t)}
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-xs text-slate-400 dark:text-slate-500">▶</span>
-                      <span className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{t.title}</span>
-                      <span className="text-sm text-slate-500 dark:text-slate-400 shrink-0">
-                        {t.assignee?.name ? `→ ${t.assignee.name}` : "Sin asignar"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          columnsMap.get(getTaskColumnKey(t))?.color
-                            ? ""
-                            : "bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200"
-                        }`}
-                        style={
-                          columnsMap.get(getTaskColumnKey(t))?.color
-                            ? { backgroundColor: columnsMap.get(getTaskColumnKey(t)).color, color: "#fff" }
-                            : undefined
-                        }
-                      >
-                        {statusLabelForTask(t)}
-                      </span>
-                      {canEditTask && (
-                        <span
-                          role="button"
-                          tabIndex={0}
-                          onClick={(e) => { e.stopPropagation(); startEditTask(t); }}
-                          onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); startEditTask(t); } }}
-                          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer"
-                        >
-                          Editar
-                        </span>
-                      )}
-                      {isAdmin && (
-                        <span
-                          role="button"
-                          tabIndex={0}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteConfirm({ open: true, task: t });
-                            setDeleteError("");
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key !== "Enter") return;
-                            e.stopPropagation();
-                            setDeleteConfirm({ open: true, task: t });
-                            setDeleteError("");
-                          }}
-                          className="rounded-lg border border-red-200 dark:border-red-500/30 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer"
-                          title="Eliminar tarea"
-                        >
-                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </span>
-                      )}
-                    </div>
-                  </button>
+          {sortedTasks.length === 0 ? (
+            <p className="py-6 text-center text-sm text-slate-400 dark:text-slate-500">No se encontraron tareas con los filtros aplicados</p>
+          ) : sortedTasks.map((t) => {
+            const canEditTask = isAdmin || role === "MEMBER";
+            const colObj = columnsMap.get(getTaskColumnKey(t));
+            const colColor = colObj?.color || "#94a3b8";
+            return (
+              <div key={t.id} className="group flex items-center gap-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-4 shadow-sm transition hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer" onClick={() => setSelectedTask(t)}>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: colColor + "20", color: colColor }}>
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" /></svg>
                 </div>
-              );
-            })}
-          </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 truncate">{t.title}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                    {t.assignee?.name ? t.assignee.name : "Sin asignar"}
+                  </p>
+                </div>
+                <span
+                  className="rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0"
+                  style={{ backgroundColor: colColor + "18", color: colColor }}
+                >
+                  {statusLabelForTask(t)}
+                </span>
+                {canEditTask && (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => { e.stopPropagation(); startEditTask(t); }}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); startEditTask(t); } }}
+                    className="rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 cursor-pointer shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    Editar
+                  </span>
+                )}
+                {isAdmin && (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ open: true, task: t }); setDeleteError(""); }}
+                    onKeyDown={(e) => { if (e.key !== "Enter") return; e.stopPropagation(); setDeleteConfirm({ open: true, task: t }); setDeleteError(""); }}
+                    className="rounded-full bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 p-1.5 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 cursor-pointer shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Eliminar tarea"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </span>
+                )}
+                <svg className="h-5 w-5 shrink-0 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+              </div>
+            );
+          })}
         </div>
         );
       })()}

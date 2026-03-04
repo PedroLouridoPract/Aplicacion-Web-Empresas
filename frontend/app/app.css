@@ -8,6 +8,18 @@
 
 @theme {
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+
+  --color-indigo-50: #eef4fe;
+  --color-indigo-100: #d9e7fd;
+  --color-indigo-200: #b8d1fb;
+  --color-indigo-300: #8fb5f9;
+  --color-indigo-400: #5F96F9;
+  --color-indigo-500: #4a82e6;
+  --color-indigo-600: #3b6dd4;
+  --color-indigo-700: #305ab5;
+  --color-indigo-800: #284a93;
+  --color-indigo-900: #233d75;
+  --color-indigo-950: #162649;
 }
 
 * {
