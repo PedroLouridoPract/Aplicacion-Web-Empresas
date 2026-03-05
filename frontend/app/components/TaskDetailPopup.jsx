@@ -570,7 +570,7 @@ function SingleComment({ comment, userId, isAdmin, canComment, onDelete, onReply
       </div>
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(false)}>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20" onClick={() => setShowDeleteConfirm(false)}>
           <div className="w-full max-w-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col items-center gap-3 text-center">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-500/20">
@@ -1072,7 +1072,7 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20"
       onClick={onClose}
       onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       tabIndex={-1}
@@ -1103,28 +1103,30 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
         </div>
 
         {/* Tabs */}
-        <div className="sticky top-[65px] z-10 flex border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-6">
-          <button
-            type="button"
-            onClick={() => setActiveTab("details")}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${activeTab === "details" ? "text-indigo-600 dark:text-indigo-400" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}
-          >
-            Detalles
-            {activeTab === "details" && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-full" />}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("comments")}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${activeTab === "comments" ? "text-indigo-600 dark:text-indigo-400" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}
-          >
-            Comentarios
-            {comments.length > 0 && (
-              <span className={`ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-medium ${activeTab === "comments" ? "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400" : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"}`}>
-                {comments.length}
-              </span>
-            )}
-            {activeTab === "comments" && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-full" />}
-          </button>
+        <div className="sticky top-[65px] z-10 flex items-center justify-center border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-3">
+          <div className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1 gap-0.5">
+            <button
+              type="button"
+              onClick={() => setActiveTab("details")}
+              className={`inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors duration-150 whitespace-nowrap ${activeTab === "details" ? "bg-indigo-400 text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><rect x="3" y="3" width="18" height="18" rx="2" /><line x1="7" y1="8" x2="17" y2="8" /><line x1="7" y1="12" x2="17" y2="12" /><line x1="7" y1="16" x2="13" y2="16" /></svg>
+              Detalles
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("comments")}
+              className={`inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors duration-150 whitespace-nowrap ${activeTab === "comments" ? "bg-indigo-400 text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" /></svg>
+              Comentarios
+              {comments.length > 0 && (
+                <span className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-semibold ${activeTab === "comments" ? "bg-white/20 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400"}`}>
+                  {comments.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         <div className="px-6 py-5 space-y-5">

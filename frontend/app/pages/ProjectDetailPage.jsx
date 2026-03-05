@@ -475,7 +475,7 @@ export default function ProjectDetailPage() {
       </div>
 
       {editingProject && canEditProject && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { setEditingProject(false); setSaveError(""); }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20" onClick={() => { setEditingProject(false); setSaveError(""); }}>
           <div className="w-full max-w-lg rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Editar proyecto</h3>
@@ -579,7 +579,7 @@ export default function ProjectDetailPage() {
       />
 
       {editingTaskId && taskEditForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={cancelEditTask} onKeyDown={(e) => { if (e.key === "Escape") cancelEditTask(); }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20" onClick={cancelEditTask} onKeyDown={(e) => { if (e.key === "Escape") cancelEditTask(); }}>
           <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Editar tarea</h3>
@@ -667,7 +667,7 @@ export default function ProjectDetailPage() {
 
       {lockError && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/20"
           onClick={() => setLockError("")}
           onKeyDown={(e) => { if (e.key === "Escape") setLockError(""); }}
           tabIndex={-1}

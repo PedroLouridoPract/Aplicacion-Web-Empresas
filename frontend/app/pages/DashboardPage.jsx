@@ -819,7 +819,7 @@ export default function DashboardPage() {
 
       {/* Custom range modal */}
       {showCustomRange && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowCustomRange(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20" onClick={() => setShowCustomRange(false)}>
           <div
             className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-6"
             onClick={(e) => e.stopPropagation()}

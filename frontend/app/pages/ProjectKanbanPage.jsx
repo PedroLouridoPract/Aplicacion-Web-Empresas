@@ -604,7 +604,7 @@ export default function ProjectKanbanPage() {
 
       {lockError && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/20"
           onClick={() => setLockError("")}
           onKeyDown={(e) => { if (e.key === "Escape") setLockError(""); }}
           tabIndex={-1}
@@ -631,7 +631,7 @@ export default function ProjectKanbanPage() {
       )}
 
       {editingTask && taskEditForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={cancelEditTask} onKeyDown={(e) => { if (e.key === "Escape") cancelEditTask(); }} tabIndex={-1} ref={(el) => el?.focus()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20" onClick={cancelEditTask} onKeyDown={(e) => { if (e.key === "Escape") cancelEditTask(); }} tabIndex={-1} ref={(el) => el?.focus()}>
           <div className="w-full max-w-lg rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Editar tarea</h3>
@@ -765,7 +765,7 @@ export default function ProjectKanbanPage() {
 
       {/* New Column Modal */}
       {showNewColumn && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowNewColumn(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20" onClick={() => setShowNewColumn(false)}>
           <div className="w-full max-w-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Nueva columna</h3>

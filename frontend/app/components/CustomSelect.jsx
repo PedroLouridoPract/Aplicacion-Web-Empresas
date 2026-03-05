@@ -12,14 +12,22 @@ export default function CustomSelect({
   variant = "default",
 }) {
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState({ top: 0, left: 0, minWidth: 0 });
+  const [pos, setPos] = useState({ top: 0, left: 0, minWidth: 0, openUp: false });
   const ref = useRef(null);
   const panelRef = useRef(null);
 
   const updatePos = useCallback(() => {
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
-    setPos({ top: rect.bottom + 4, left: rect.left, minWidth: rect.width });
+    const panelMaxH = 240;
+    const spaceBelow = window.innerHeight - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
+    const openUp = spaceBelow < panelMaxH && spaceAbove > spaceBelow;
+    if (openUp) {
+      setPos({ top: rect.top - 4, left: rect.left, minWidth: rect.width, openUp: true });
+    } else {
+      setPos({ top: rect.bottom + 4, left: rect.left, minWidth: rect.width, openUp: false });
+    }
   }, []);
 
   useEffect(() => {
@@ -91,7 +99,12 @@ export default function CustomSelect({
         <div
           ref={panelRef}
           className="fixed inline-flex flex-col rounded-xl bg-white dark:bg-slate-800 border-2 border-[#5F96F9] shadow-lg py-1 max-h-60 overflow-y-auto custom-select-dropdown"
-          style={{ top: pos.top, left: pos.left, zIndex: 99999, minWidth: variant === "modal" ? pos.minWidth : undefined }}
+          style={{
+            left: pos.left,
+            zIndex: 99999,
+            minWidth: variant === "modal" ? pos.minWidth : undefined,
+            ...(pos.openUp ? { bottom: window.innerHeight - pos.top } : { top: pos.top }),
+          }}
         >
           {options.map((opt) => (
             <button
