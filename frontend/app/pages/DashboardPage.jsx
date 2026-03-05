@@ -379,8 +379,8 @@ export default function DashboardPage() {
       label: "Detalles",
       sub: "Vista general",
       path: quickAccessProjectId ? `/projects/${quickAccessProjectId}` : null,
-      iconBg: "bg-indigo-50 dark:bg-indigo-500/10",
-      iconColor: "text-indigo-500",
+      iconBg: "bg-[#f2f4fe] dark:bg-[#f2f4fe]/20",
+      iconColor: "text-[#7b97f9]",
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
@@ -391,8 +391,8 @@ export default function DashboardPage() {
       label: "Kanban",
       sub: "Tablero visual",
       path: quickAccessProjectId ? `/projects/${quickAccessProjectId}/kanban` : null,
-      iconBg: "bg-blue-50 dark:bg-blue-500/10",
-      iconColor: "text-blue-500",
+      iconBg: "bg-[#f2f4fe] dark:bg-[#f2f4fe]/20",
+      iconColor: "text-[#7b97f9]",
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125c-.621 0-1.125.504-1.125 1.125v12.75c0 .621.504 1.125 1.125 1.125Z" />
@@ -403,8 +403,8 @@ export default function DashboardPage() {
       label: "Tabla ejecutiva",
       sub: "Vista de datos",
       path: quickAccessProjectId ? `/projects/${quickAccessProjectId}/executive` : null,
-      iconBg: "bg-emerald-50 dark:bg-emerald-500/10",
-      iconColor: "text-emerald-500",
+      iconBg: "bg-[#f2f4fe] dark:bg-[#f2f4fe]/20",
+      iconColor: "text-[#7b97f9]",
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M10.875 12h-7.5m8.625 0c-.621 0-1.125.504-1.125 1.125m1.125-1.125h7.5m-8.625 0c.621 0 1.125.504 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m-2.25 0c-.621 0-1.125.504-1.125 1.125" />
@@ -415,8 +415,8 @@ export default function DashboardPage() {
       label: "Calendario",
       sub: "Vista temporal",
       path: quickAccessProjectId ? `/projects/${quickAccessProjectId}/calendar` : null,
-      iconBg: "bg-amber-50 dark:bg-amber-500/10",
-      iconColor: "text-amber-500",
+      iconBg: "bg-[#f2f4fe] dark:bg-[#f2f4fe]/20",
+      iconColor: "text-[#7b97f9]",
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
@@ -429,8 +429,8 @@ export default function DashboardPage() {
     {
       label: "Total tareas",
       value: data?.totalTasks ?? 0,
-      iconBg: "bg-indigo-50 dark:bg-indigo-500/10",
-      iconColor: "text-indigo-500",
+      iconBg: "bg-[#d2ecff] dark:bg-[#d2ecff]/20",
+      iconColor: "text-[#5f96f9]",
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -440,8 +440,8 @@ export default function DashboardPage() {
     {
       label: "Atrasadas",
       value: data?.overdueTasks ?? 0,
-      iconBg: "bg-red-50 dark:bg-red-500/10",
-      iconColor: "text-red-500",
+      iconBg: "bg-[#d2ecff] dark:bg-[#d2ecff]/20",
+      iconColor: "text-[#5f96f9]",
       accent: (data?.overdueTasks ?? 0) > 0 ? "text-red-500" : undefined,
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -452,8 +452,8 @@ export default function DashboardPage() {
     {
       label: "Progreso medio",
       value: `${data?.avgProgress ?? 0}%`,
-      iconBg: "bg-blue-50 dark:bg-blue-500/10",
-      iconColor: "text-blue-500",
+      iconBg: "bg-[#d2ecff] dark:bg-[#d2ecff]/20",
+      iconColor: "text-[#5f96f9]",
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -464,8 +464,8 @@ export default function DashboardPage() {
       label: "Velocidad 7d",
       value: data?.velocity?.last7d ?? 0,
       sub: `${data?.velocity?.last30d ?? 0} en ${data?.days ?? 30}d`,
-      iconBg: "bg-emerald-50 dark:bg-emerald-500/10",
-      iconColor: "text-emerald-500",
+      iconBg: "bg-[#d2ecff] dark:bg-[#d2ecff]/20",
+      iconColor: "text-[#5f96f9]",
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -475,8 +475,8 @@ export default function DashboardPage() {
     {
       label: "Tiempo resolución",
       value: fmtHours(data?.avgResolutionHours),
-      iconBg: "bg-amber-50 dark:bg-amber-500/10",
-      iconColor: "text-amber-500",
+      iconBg: "bg-[#d2ecff] dark:bg-[#d2ecff]/20",
+      iconColor: "text-[#5f96f9]",
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -676,135 +676,221 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Users ranking + Pending tasks row */}
-          <div className="grid gap-4 lg:grid-cols-2">
-            {/* Pending tasks */}
-            {pendingTasks.length > 0 && (
-              <div className="content-card p-5 flex flex-col" style={{ maxHeight: 340 }}>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Tareas pendientes</h3>
-                  <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                    {pendingTasks.length}
-                  </span>
-                </div>
-                <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5">
-                  {pendingTasks.map((task) => {
-                    const PRIO_COLORS = { HIGH: "#ef4444", MEDIUM: "#f59e0b", LOW: "#94a3b8" };
-                    const PRIO_LABELS = { HIGH: "Alta", MEDIUM: "Media", LOW: "Baja" };
-                    const barColor = PRIO_COLORS[task.priority] || "#94a3b8";
-                    const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
-                    const fmtDate = task.dueDate
-                      ? new Date(task.dueDate).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })
-                      : null;
-
-                    return (
-                      <button
-                        key={task.id}
-                        type="button"
-                        onClick={() => setSelectedTask(task)}
-                        className="w-full text-left group shrink-0"
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-slate-700 dark:text-slate-200 truncate max-w-[200px] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition font-medium">
-                            {task.title}
-                          </span>
-                          <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                            {fmtDate && (
-                              <span className={`text-[10px] tabular-nums ${isOverdue ? "text-red-500 font-semibold" : "text-slate-400"}`}>
-                                {fmtDate}
+          {/* Three info boxes row */}
+          <div className="grid gap-4 lg:grid-cols-3">
+            {/* Box 1: Users with pending tasks */}
+            <div className="content-card p-5 flex flex-col" style={{ maxHeight: 380 }}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Tareas por completar</h3>
+                <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                  {pendingTasks.length}
+                </span>
+              </div>
+              {pendingTasks.length > 0 ? (() => {
+                const grouped = {};
+                for (const t of pendingTasks) {
+                  const uid = t.assignee?.id || "_unassigned";
+                  if (!grouped[uid]) grouped[uid] = { user: t.assignee, tasks: [] };
+                  grouped[uid].tasks.push(t);
+                }
+                const entries = Object.values(grouped).sort((a, b) => b.tasks.length - a.tasks.length);
+                return (
+                  <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3">
+                    {entries.map((entry) => (
+                      <div key={entry.user?.id || "_unassigned"} className="shrink-0">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          {entry.user?.avatarUrl ? (
+                            <img src={entry.user.avatarUrl} alt="" className="h-5 w-5 rounded-full object-cover" />
+                          ) : (
+                            <div className="h-5 w-5 rounded-full bg-[#5F96F9]/20 flex items-center justify-center">
+                              <span className="text-[10px] font-bold text-[#5F96F9]">
+                                {(entry.user?.name || "?")[0].toUpperCase()}
                               </span>
+                            </div>
+                          )}
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">
+                            {entry.user?.name || "Sin asignar"}
+                          </span>
+                          <span className="text-[10px] tabular-nums text-slate-400 dark:text-slate-500 ml-auto shrink-0">
+                            {entry.tasks.length} {entry.tasks.length === 1 ? "tarea" : "tareas"}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-1.5 pl-7">
+                          {entry.tasks.slice(0, 4).map((task) => {
+                            const PRIO_COLORS = { HIGH: "#ef4444", MEDIUM: "#f59e0b", LOW: "#94a3b8" };
+                            const barColor = PRIO_COLORS[task.priority] || "#94a3b8";
+                            const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
+                            const fmtDate = task.dueDate
+                              ? new Date(task.dueDate).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })
+                              : null;
+                            return (
+                              <button
+                                key={task.id}
+                                type="button"
+                                onClick={() => setSelectedTask(task)}
+                                className="w-full text-left group"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[11px] text-slate-600 dark:text-slate-300 truncate max-w-[140px] group-hover:text-[#5F96F9] transition font-medium">
+                                    {task.title}
+                                  </span>
+                                  <div className="flex items-center gap-1.5 shrink-0 ml-1.5">
+                                    {fmtDate && (
+                                      <span className={`text-[9px] tabular-nums ${isOverdue ? "text-red-500 font-semibold" : "text-slate-400"}`}>
+                                        {fmtDate}
+                                      </span>
+                                    )}
+                                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: barColor }} />
+                                  </div>
+                                </div>
+                                <div className="h-1 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden mt-0.5">
+                                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${task.progress ?? 0}%`, background: barColor }} />
+                                </div>
+                              </button>
+                            );
+                          })}
+                          {entry.tasks.length > 4 && (
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 italic">+{entry.tasks.length - 4} más</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })() : (
+                <p className="flex-1 flex items-center justify-center text-sm text-slate-400">No hay tareas pendientes</p>
+              )}
+            </div>
+
+            {/* Box 2: Column detail */}
+            <div className="content-card p-5 flex flex-col" style={{ maxHeight: 380 }}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Detalle de columnas</h3>
+              </div>
+              {data?.byColumn?.length > 0 ? (
+                <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5">
+                  {data.byColumn.map((col, i) => {
+                    const color = getColumnColor(col, i);
+                    const pct = data.totalTasks > 0 ? ((col.count / data.totalTasks) * 100) : 0;
+                    return (
+                      <div key={col.key} className="shrink-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: color }} />
+                            <span className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate">{col.label}</span>
+                            {!col.isBase && (
+                              <span className="rounded bg-slate-100 dark:bg-slate-700 px-1 py-0.5 text-[9px] font-medium text-slate-400 shrink-0">Custom</span>
                             )}
-                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: barColor + "18", color: barColor }}>
-                              {PRIO_LABELS[task.priority] || task.priority}
-                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                            <span className="text-xs font-bold tabular-nums text-slate-800 dark:text-slate-100">{col.count}</span>
+                            <span className="text-[10px] tabular-nums text-slate-400">{pct.toFixed(1)}%</span>
                           </div>
                         </div>
-                        <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{ width: `${task.progress ?? 0}%`, background: barColor }}
-                          />
+                        <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: color }} />
                         </div>
-                      </button>
+                      </div>
+                    );
+                  })}
+                  <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between shrink-0">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">Total tareas</span>
+                    <span className="text-xs font-bold tabular-nums text-[#5F96F9]">{data.totalTasks}</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="flex-1 flex items-center justify-center text-sm text-slate-400">Sin datos</p>
+              )}
+            </div>
+
+            {/* Box 3: Priority distribution */}
+            <div className="content-card p-5 flex flex-col" style={{ maxHeight: 380 }}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Distribución por prioridad</h3>
+              </div>
+              {data?.byPriority && (data.byPriority.HIGH + data.byPriority.MEDIUM + data.byPriority.LOW) > 0 ? (() => {
+                const priorities = [
+                  { key: "HIGH", label: "Alta", color: "#ef4444", count: data.byPriority.HIGH ?? 0 },
+                  { key: "MEDIUM", label: "Media", color: "#f59e0b", count: data.byPriority.MEDIUM ?? 0 },
+                  { key: "LOW", label: "Baja", color: "#94a3b8", count: data.byPriority.LOW ?? 0 },
+                ];
+                const total = priorities.reduce((s, p) => s + p.count, 0);
+                const maxCount = Math.max(...priorities.map((p) => p.count), 1);
+                return (
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div className="flex flex-col gap-4">
+                      {priorities.map((p) => {
+                        const pct = total > 0 ? ((p.count / total) * 100).toFixed(1) : "0.0";
+                        const barPct = maxCount > 0 ? (p.count / maxCount) * 100 : 0;
+                        return (
+                          <div key={p.key}>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <div className="flex items-center gap-2">
+                                <span className="h-3 w-3 rounded-full" style={{ background: p.color }} />
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{p.label}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg font-bold tabular-nums text-slate-800 dark:text-slate-100">{p.count}</span>
+                                <span className="text-xs tabular-nums text-slate-400 dark:text-slate-500">{pct}%</span>
+                              </div>
+                            </div>
+                            <div className="h-2.5 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                              <div className="h-full rounded-full transition-all duration-500" style={{ width: `${barPct}%`, background: p.color }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                      <span className="text-xs text-slate-500 dark:text-slate-400">Total tareas</span>
+                      <span className="text-xs font-bold tabular-nums text-[#5F96F9]">{total}</span>
+                    </div>
+                  </div>
+                );
+              })() : (
+                <p className="flex-1 flex items-center justify-center text-sm text-slate-400">Sin datos</p>
+              )}
+            </div>
+          </div>
+
+          {/* Top performance ranking */}
+          {data?.byUser?.length > 0 && (() => {
+            const BAR_COLORS = ["#5F96F9", "#94a3b8", "#c4b5fd", "#67e8f9", "#a3e635", "#fbbf24", "#f87171"];
+            const sorted = [...data.byUser].sort((a, b) => b.done - a.done || b.total - a.total);
+            const maxDone = sorted[0]?.done || 1;
+            const grandTotal = sorted.reduce((s, r) => s + r.total, 0);
+            return (
+              <div className="content-card p-5 flex flex-col" style={{ maxHeight: 340 }}>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Top rendimiento por usuario</h3>
+                </div>
+                <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3">
+                  {sorted.map((row, i) => {
+                    const pct = maxDone > 0 ? (row.done / maxDone) * 100 : 0;
+                    const barColor = BAR_COLORS[i % BAR_COLORS.length];
+                    return (
+                      <div key={row.user.id} className="shrink-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate max-w-[160px]">{row.user.name}</span>
+                            <span className="text-[10px] tabular-nums text-slate-400 dark:text-slate-500 shrink-0">{row.total}</span>
+                          </div>
+                          <span className="text-xs font-bold tabular-nums text-slate-800 dark:text-slate-100">{row.done} hechas</span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: barColor }} />
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
-              </div>
-            )}
-
-            {/* Users ranking */}
-            {data?.byUser?.length > 0 && (() => {
-              const BAR_COLORS = ["#5F96F9", "#94a3b8", "#c4b5fd", "#67e8f9", "#a3e635", "#fbbf24", "#f87171"];
-              const sorted = [...data.byUser].sort((a, b) => b.done - a.done || b.total - a.total);
-              const maxDone = sorted[0]?.done || 1;
-              const grandTotal = sorted.reduce((s, r) => s + r.total, 0);
-              return (
-                <div className="content-card p-5 flex flex-col" style={{ maxHeight: 340 }}>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Top rendimiento por usuario</h3>
-                  </div>
-                  <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3">
-                    {sorted.map((row, i) => {
-                      const pct = maxDone > 0 ? (row.done / maxDone) * 100 : 0;
-                      const barColor = BAR_COLORS[i % BAR_COLORS.length];
-                      return (
-                        <div key={row.user.id} className="shrink-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              <span className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate max-w-[160px]">{row.user.name}</span>
-                              <span className="text-[10px] tabular-nums text-slate-400 dark:text-slate-500 shrink-0">{row.total}</span>
-                            </div>
-                            <span className="text-xs font-bold tabular-nums text-slate-800 dark:text-slate-100">{row.done} hechas</span>
-                          </div>
-                          <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-500"
-                              style={{ width: `${pct}%`, background: barColor }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between shrink-0">
-                    <span className="text-xs text-slate-500 dark:text-slate-400">Total asignadas</span>
-                    <span className="text-xs font-bold tabular-nums text-indigo-600 dark:text-indigo-400">{grandTotal}</span>
-                  </div>
+                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between shrink-0">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Total asignadas</span>
+                  <span className="text-xs font-bold tabular-nums text-indigo-600 dark:text-indigo-400">{grandTotal}</span>
                 </div>
-              );
-            })()}
-          </div>
-
-          {/* Column cards detail */}
-          {data?.byColumn?.length > 0 && (
-            <div className="content-card p-6">
-              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-4">Detalle de columnas</h3>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {data.byColumn.map((col, i) => {
-                  const color = getColumnColor(col, i);
-                  const pct = data.totalTasks > 0 ? ((col.count / data.totalTasks) * 100).toFixed(1) : "0.0";
-                  return (
-                    <div
-                      key={col.key}
-                      className="rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-4"
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="h-3 w-3 rounded-full" style={{ background: color }} />
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{col.label}</span>
-                        {!col.isBase && (
-                          <span className="rounded bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                            Personalizada
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-2xl font-bold tabular-nums text-slate-800 dark:text-slate-100">{col.count}</p>
-                      <p className="mt-0.5 text-xs font-medium text-slate-400 dark:text-slate-500">{pct}% del total</p>
-                    </div>
-                  );
-                })}
               </div>
-            </div>
-          )}
+            );
+          })()}
         </>
       )}
 
