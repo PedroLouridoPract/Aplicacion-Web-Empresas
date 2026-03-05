@@ -41,6 +41,15 @@ const CalendarIcon = () => (
   </svg>
 );
 
+const DashboardIcon = () => (
+  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <rect x="3" y="3" width="7" height="7" rx="1.5" />
+    <rect x="14" y="3" width="7" height="4" rx="1.5" />
+    <rect x="3" y="14" width="7" height="4" rx="1.5" />
+    <rect x="14" y="11" width="7" height="7" rx="1.5" />
+  </svg>
+);
+
 const NewTaskIcon = () => (
   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <line x1="12" y1="5" x2="12" y2="19" />
@@ -53,6 +62,7 @@ const TABS = [
   { key: "kanban", label: "Kanban", icon: KanbanIcon },
   { key: "executive", label: "Tabla ejecutiva", icon: TableIcon },
   { key: "calendar", label: "Calendario", icon: CalendarIcon },
+  { key: "dashboard", label: "Dashboard", icon: DashboardIcon },
 ];
 
 const tabBase = "inline-flex items-center justify-center gap-1.5 rounded-full text-sm font-medium transition-colors duration-150 whitespace-nowrap";
