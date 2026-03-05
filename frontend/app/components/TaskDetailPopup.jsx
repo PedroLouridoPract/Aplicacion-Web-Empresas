@@ -1078,32 +1078,29 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
       tabIndex={-1}
     >
       <div
-        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-4">
-          <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 truncate">{task.title}</h2>
-            <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-              {parsed.key && <span className="font-mono">{parsed.key}</span>}
-              {parsed.id && <><span>·</span><span className="font-mono">{parsed.id}</span></>}
-              {parsed.type && <><span>·</span><span>{parsed.type}</span></>}
+        <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 px-6 py-5 border-b border-gray-100 dark:border-slate-800 rounded-t-2xl">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-2">
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  { HIGH: "bg-red-50 text-red-600", MEDIUM: "bg-blue-50 text-blue-600", LOW: "bg-green-50 text-green-600" }[(task.priority || "MEDIUM").toUpperCase()] || "bg-blue-50 text-blue-600"
+                }`}>{priorityLabel[(task.priority || "MEDIUM").toUpperCase()] || task.priority}</span>
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  { DONE: "bg-emerald-50 text-emerald-600", IN_PROGRESS: "bg-indigo-50 text-indigo-600", REVIEW: "bg-violet-50 text-violet-600", BACKLOG: "bg-slate-100 text-slate-600" }[(task.status || "BACKLOG").toUpperCase()] || "bg-slate-100 text-slate-600"
+                }`}>{statusLabel[(task.status || "BACKLOG").toUpperCase()] || task.status}</span>
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">{task.title}</h2>
             </div>
+            <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 text-2xl ml-4 cursor-pointer leading-none">×</button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </button>
         </div>
 
         {/* Tabs */}
-        <div className="sticky top-[65px] z-10 flex items-center justify-center border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-3">
+        <div className="sticky top-[85px] z-10 flex items-center justify-center bg-white dark:bg-slate-900 px-6 py-3">
           <div className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1 gap-0.5">
             <button
               type="button"
@@ -1129,104 +1126,103 @@ export default function TaskDetailPopup({ task, onClose, onCommentAdded }) {
           </div>
         </div>
 
-        <div className="px-6 py-5 space-y-5">
+        <div className="px-6 py-5 space-y-4">
           {activeTab === "details" && (<>
-          {/* Summary */}
-          {task.summary && (
-            <div className="rounded-xl bg-indigo-50/70 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 p-4">
-              <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-400">Resumen</span>
-              <p className="mt-1 text-sm text-slate-800 dark:text-slate-100 whitespace-pre-wrap">{task.summary}</p>
-            </div>
-          )}
-
-          {/* Metadata grid */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
-            <div>
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Persona asignada</span>
-              <div className="mt-0.5 flex items-center gap-2">
-                {task.assignee ? (
-                  <>
-                    <Avatar name={task.assignee.name} src={task.assignee.avatarUrl} size="2xs" />
-                    <span className="text-slate-800 dark:text-slate-100">{task.assignee.name}</span>
-                  </>
-                ) : (
-                  <span className="text-slate-800 dark:text-slate-100">Sin asignar</span>
-                )}
-              </div>
-            </div>
-            <div>
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Prioridad</span>
-              <p className="mt-0.5 text-slate-800 dark:text-slate-100">{priorityLabel[(task.priority || "MEDIUM").toUpperCase()] || task.priority}</p>
-            </div>
-            <div>
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Estado</span>
-              <p className="mt-0.5 text-slate-800 dark:text-slate-100">{statusLabel[(task.status || "BACKLOG").toUpperCase()] || task.status}</p>
-            </div>
-            <div>
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Fecha creación</span>
-              <p className="mt-0.5 text-slate-800 dark:text-slate-100">
-                {task.createdAt ? new Date(task.createdAt).toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
-              </p>
-            </div>
-            <div>
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Fecha inicio</span>
-              <p className="mt-0.5 text-slate-800 dark:text-slate-100">
-                {(task.startDate || task.start_date) ? new Date(task.startDate || task.start_date).toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
-              </p>
-            </div>
-            <div>
-              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Fecha fin</span>
-              <p className="mt-0.5 text-slate-800 dark:text-slate-100">
-                {(task.dueDate || task.due_date) ? new Date(task.dueDate || task.due_date).toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
-              </p>
-            </div>
-            {task.resolvedAt && (
-              <div>
-                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Fecha resuelta</span>
-                <p className="mt-0.5 text-slate-800 dark:text-slate-100">
-                  {new Date(task.resolvedAt).toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                </p>
-              </div>
-            )}
-            <div>
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Progreso</span>
-              <div className="mt-1 flex items-center gap-2">
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                  <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" style={{ width: `${progress}%` }} />
-                </div>
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{progress}%</span>
-              </div>
-            </div>
-            {sameCreatorReporter ? (
-              <div>
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Creador / Informador</span>
-                <p className="mt-0.5 text-slate-800 dark:text-slate-100">{creator}</p>
-              </div>
-            ) : (
-              <>
-                {creator && (
-                  <div>
-                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Creador</span>
-                    <p className="mt-0.5 text-slate-800 dark:text-slate-100">{creator}</p>
-                  </div>
-                )}
-                {reporter && (
-                  <div>
-                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Informador</span>
-                    <p className="mt-0.5 text-slate-800 dark:text-slate-100">{reporter}</p>
-                  </div>
-                )}
-              </>
-            )}
+          {/* Creation date */}
+          <div className="flex items-center gap-2 text-gray-600 dark:text-slate-400">
+            <svg className="w-5 h-5 text-gray-400 dark:text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            <span className="text-xs text-gray-500 dark:text-slate-500">Creación:</span>
+            <span className="text-sm font-medium">
+              {task.createdAt ? new Date(task.createdAt).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
+            </span>
           </div>
 
-          {/* Description with inline images */}
-          {task.description && (
-            <div>
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Descripción</span>
-              <RichDescription description={task.description} onPreview={setTaskPreviewImage} />
+          {/* Start / End dates row */}
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
+            <div className="flex items-center gap-2 text-gray-600 dark:text-slate-400">
+              <svg className="w-5 h-5 text-gray-400 dark:text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span className="text-xs text-gray-500 dark:text-slate-500">Inicio:</span>
+              <span className="text-sm font-medium">
+                {(task.startDate || task.start_date) ? new Date(task.startDate || task.start_date).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-gray-600 dark:text-slate-400">
+              <svg className="w-5 h-5 text-gray-400 dark:text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span className="text-xs text-gray-500 dark:text-slate-500">Fin:</span>
+              <span className="text-sm font-medium">
+                {(task.dueDate || task.due_date) ? new Date(task.dueDate || task.due_date).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
+              </span>
+            </div>
+          </div>
+
+          {task.resolvedAt && (
+            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+              <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span className="text-xs">Resuelta:</span>
+              <span className="text-sm font-medium">{new Date(task.resolvedAt).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
             </div>
           )}
+
+          {/* Assignee card */}
+          <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl">
+            <div className="w-10 h-10 rounded-full bg-[#5F96F9] flex items-center justify-center text-white font-medium shrink-0">
+              {task.assignee ? (task.assignee.name || "?").charAt(0).toUpperCase() : "?"}
+            </div>
+            <div>
+              <div className="text-xs text-gray-500 dark:text-slate-400">Asignado a</div>
+              <div className="font-medium text-gray-900 dark:text-slate-100">{task.assignee?.name || "Sin asignar"}</div>
+            </div>
+          </div>
+
+          {/* Creator / Reporter card */}
+          {(creator || reporter) && (
+            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl">
+              <div className="w-10 h-10 rounded-full bg-[#5F96F9] flex items-center justify-center text-white shrink-0">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 dark:text-slate-400">{sameCreatorReporter ? "Creador / Informador" : "Creador"}</div>
+                <div className="font-medium text-gray-900 dark:text-slate-100">{creator || reporter}</div>
+              </div>
+              {!sameCreatorReporter && reporter && creator && (
+                <div className="ml-auto">
+                  <div className="text-xs text-gray-500 dark:text-slate-400">Informador</div>
+                  <div className="font-medium text-gray-900 dark:text-slate-100">{reporter}</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Summary card */}
+          {task.summary && (
+            <div>
+              <div className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-2">Resumen</div>
+              <div className="text-gray-700 dark:text-slate-200 bg-gray-50 dark:bg-slate-800 p-4 rounded-xl whitespace-pre-wrap text-sm">{task.summary}</div>
+            </div>
+          )}
+
+          {/* Description card */}
+          {task.description && (
+            <div>
+              <div className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-2">Descripción</div>
+              <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-xl">
+                <RichDescription description={task.description} onPreview={setTaskPreviewImage} />
+              </div>
+            </div>
+          )}
+
+          {/* Progress card */}
+          <div>
+            <div className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-2">Progreso</div>
+            <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-xl">
+              <div className="flex items-center gap-3">
+                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                  <div className="h-full rounded-full bg-gradient-to-r from-[#5F96F9] to-indigo-500 transition-all" style={{ width: `${progress}%` }} />
+                </div>
+                <span className="text-sm font-bold text-gray-900 dark:text-slate-100 w-10 text-right">{progress}%</span>
+              </div>
+            </div>
+          </div>
 
           {/* Image attachments NOT referenced in description */}
           {!loadingAttachments && (() => {
