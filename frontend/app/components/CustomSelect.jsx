@@ -19,14 +19,13 @@ export default function CustomSelect({
   const updatePos = useCallback(() => {
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
-    const panelMaxH = 240;
+    const maxDropdownH = 320;
     const spaceBelow = window.innerHeight - rect.bottom - 8;
     const spaceAbove = rect.top - 8;
-    const openUp = spaceBelow < panelMaxH && spaceAbove > spaceBelow;
-    if (openUp) {
-      setPos({ top: rect.top - 4, left: rect.left, minWidth: rect.width, openUp: true });
+    if (spaceBelow >= maxDropdownH || spaceBelow >= spaceAbove) {
+      setPos({ top: rect.bottom + 4, left: rect.left, minWidth: rect.width, maxHeight: Math.min(maxDropdownH, spaceBelow), openUp: false });
     } else {
-      setPos({ top: rect.bottom + 4, left: rect.left, minWidth: rect.width, openUp: false });
+      setPos({ top: rect.top - 4, left: rect.left, minWidth: rect.width, maxHeight: Math.min(maxDropdownH, spaceAbove), openUp: true });
     }
   }, []);
 
@@ -98,10 +97,11 @@ export default function CustomSelect({
       {open && createPortal(
         <div
           ref={panelRef}
-          className="fixed inline-flex flex-col rounded-xl bg-white dark:bg-slate-800 border-2 border-[#5F96F9] shadow-lg py-1 max-h-60 overflow-y-auto custom-select-dropdown"
+          className="fixed inline-flex flex-col rounded-xl bg-white dark:bg-slate-800 border-2 border-[#5F96F9] shadow-lg py-1 overflow-y-auto custom-select-dropdown"
           style={{
             left: pos.left,
             zIndex: 99999,
+            maxHeight: pos.maxHeight,
             minWidth: variant === "modal" ? pos.minWidth : undefined,
             ...(pos.openUp ? { bottom: window.innerHeight - pos.top } : { top: pos.top }),
           }}
