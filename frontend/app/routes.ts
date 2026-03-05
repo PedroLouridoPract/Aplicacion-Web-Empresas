@@ -39,6 +39,10 @@ export default [
     file: "./pages/ProjectCalendarPage.jsx",
   },
   {
+    path: "/projects/:id/dashboard",
+    file: "./pages/ProjectDashboardPage.jsx",
+  },
+  {
     path: "/projects/:id",
     file: "./pages/ProjectDetailPage.jsx",
   },
