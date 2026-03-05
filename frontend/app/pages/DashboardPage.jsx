@@ -735,8 +735,8 @@ export default function DashboardPage() {
             {/* Users ranking */}
             {data?.byUser?.length > 0 && (() => {
               const BAR_COLORS = ["#5F96F9", "#94a3b8", "#c4b5fd", "#67e8f9", "#a3e635", "#fbbf24", "#f87171"];
-              const sorted = [...data.byUser].sort((a, b) => b.total - a.total);
-              const maxTotal = sorted[0]?.total || 1;
+              const sorted = [...data.byUser].sort((a, b) => b.done - a.done || b.total - a.total);
+              const maxDone = sorted[0]?.done || 1;
               const grandTotal = sorted.reduce((s, r) => s + r.total, 0);
               return (
                 <div className="content-card p-5 flex flex-col" style={{ maxHeight: 340 }}>
@@ -745,7 +745,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3">
                     {sorted.map((row, i) => {
-                      const pct = maxTotal > 0 ? (row.total / maxTotal) * 100 : 0;
+                      const pct = maxDone > 0 ? (row.done / maxDone) * 100 : 0;
                       const barColor = BAR_COLORS[i % BAR_COLORS.length];
                       return (
                         <div key={row.user.id} className="shrink-0">

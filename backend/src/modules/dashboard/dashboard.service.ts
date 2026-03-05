@@ -203,7 +203,7 @@ export async function getProjectMetrics(params: {
       return u ? { user: { id: u.id, name: u.name, avatarUrl: u.avatarUrl }, ...m } : null;
     })
     .filter(Boolean)
-    .sort((a: any, b: any) => b.total - a.total);
+    .sort((a: any, b: any) => b.done - a.done || b.total - a.total);
 
   const trend: Array<{ date: string; created: number; completed: number }> = [];
   const cursor = new Date(from);
@@ -351,7 +351,7 @@ export async function getAllMetrics(params: { companyId: string; days: number })
       return u ? { user: { id: u.id, name: u.name, avatarUrl: u.avatarUrl }, ...m } : null;
     })
     .filter(Boolean)
-    .sort((a: any, b: any) => b.total - a.total);
+    .sort((a: any, b: any) => b.done - a.done || b.total - a.total);
 
   const trend: Array<{ date: string; created: number; completed: number }> = [];
   const cursor = new Date(from);
